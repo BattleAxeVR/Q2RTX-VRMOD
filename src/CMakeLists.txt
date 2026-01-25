@@ -510,7 +510,13 @@ IF (TARGET client)
         TARGET_LINK_LIBRARIES(client vulkan)
         ENDIF()
     ENDIF()
-
+	
+	IF (CONFIG_SUPPORT_OPENXR)
+	    TARGET_COMPILE_DEFINITIONS(client PRIVATE SUPPORT_OPENXR=1)
+        TARGET_INCLUDE_DIRECTORIES(client PRIVATE ${CMAKE_SOURCE_DIR}/extern/OpenXR-SDK/include)
+		TARGET_LINK_LIBRARIES(client OpenXR::openxr_loader)
+    ENDIF()
+	
     TARGET_LINK_LIBRARIES(client stb)
     TARGET_LINK_LIBRARIES(client tinyobjloader)
     TARGET_LINK_LIBRARIES(client OpenAL)

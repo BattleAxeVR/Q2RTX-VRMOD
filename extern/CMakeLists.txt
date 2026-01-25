@@ -147,3 +147,11 @@ if (IS_64_BIT)
         target_compile_definitions(OpenAL PUBLIC AL_LIBTYPE_STATIC)
     endif()
 endif()
+
+
+#
+# OpenXR
+#
+if (CONFIG_SUPPORT_OPENXR)
+  add_subdirectory(OpenXR-SDK)
+endif()
