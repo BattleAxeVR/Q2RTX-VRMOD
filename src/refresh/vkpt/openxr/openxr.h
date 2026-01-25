@@ -304,7 +304,7 @@ private:
 	XrSessionState xr_session_state_ = XR_SESSION_STATE_UNKNOWN;
 	bool is_xr_session_running_ = false;
 
-	XrEventDataBuffer xr_event_data_buffer_;
+	XrEventDataBuffer xr_event_data_buffer_{};
 	XrFrameState xr_frame_state_{ XR_TYPE_FRAME_STATE };
 
 	XRInputState xr_input_;
