@@ -172,8 +172,8 @@ bool OpenXR::start_session()
 		return false;
 	}
 	
-	TVASSERT(xr_instance_ != XR_NULL_HANDLE);
-	TVASSERT(xr_session_ == XR_NULL_HANDLE);
+	assert(xr_instance_ != XR_NULL_HANDLE);
+	assert(xr_session_ == XR_NULL_HANDLE);
 
 	{
 		//Log::Write(Log::Level::Verbose, Fmt("Creating session..."));
@@ -185,7 +185,7 @@ bool OpenXR::start_session()
 
 		if (create_session_res != XR_SUCCESS)
 		{
-			TVASSERT(false);
+			assert(false);
 			return false;
 		}
 
@@ -205,7 +205,7 @@ bool OpenXR::start_session()
 
 	if(create_appspace_res != XR_SUCCESS)
 	{
-		TVASSERT(false);
+		assert(false);
 		return false;
 	}
 
@@ -232,7 +232,7 @@ bool OpenXR::start_session()
 
 	if(!actions_ok)
 	{
-		TVASSERT(false);
+		assert(false);
 		shutdown();
 		return false;
 	}
@@ -354,13 +354,13 @@ bool OpenXR::update()
 
 			if(!inputs_ok)
 			{
-				TVASSERT(false);
+				assert(false);
 				shutdown();
 				return false;
 			}
 		}
 
-		TVASSERT(xr_input_.is_initialized());
+		assert(xr_input_.is_initialized());
 
 		wait_frame();
 		begin_frame();
@@ -438,7 +438,7 @@ XrReferenceSpaceCreateInfo OpenXR::GetXrReferenceSpaceCreateInfo(const std::stri
 	}
 	else 
 	{
-		TVASSERT(false);
+		assert(false);
 	}
 	return referenceSpaceCreateInfo;
 }
@@ -507,7 +507,7 @@ void OpenXR::handle_sesssion_state_changed_event(const XrEventDataSessionStateCh
 	{
 	case XR_SESSION_STATE_READY: 
 	{
-		TVASSERT(xr_session_ != XR_NULL_HANDLE);
+		assert(xr_session_ != XR_NULL_HANDLE);
 		XrSessionBeginInfo sessionBeginInfo{ XR_TYPE_SESSION_BEGIN_INFO };
 		sessionBeginInfo.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 
@@ -526,7 +526,7 @@ void OpenXR::handle_sesssion_state_changed_event(const XrEventDataSessionStateCh
 	}
 	case XR_SESSION_STATE_STOPPING: 
 	{
-		TVASSERT(xr_session_ != XR_NULL_HANDLE);
+		assert(xr_session_ != XR_NULL_HANDLE);
 		is_xr_session_running_ = false;
 
 		xrEndSession(xr_session_);
@@ -731,7 +731,7 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 		return;
 	}
 
-	TVASSERT(projection_layer_view.subImage.imageArrayIndex == 0);
+	assert(projection_layer_view.subImage.imageArrayIndex == 0);
 
 	XRSwapchainImageContext* swapchain_context = m_swapchainImageContextMap[swapchain_image];
 	uint32_t image_index = swapchain_context->ImageIndex(swapchain_image);
@@ -757,7 +757,7 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	VkOffset2D offset{ 0, 0 };
 
 	VkImageView swapchain_colour_view = swapchain_context->get_colour_view(image_index);
-	TVASSERT(swapchain_colour_view);
+	assert(swapchain_colour_view);
 
 	VkRenderingAttachmentInfoKHR swapchain_colour_attachment_info{};
 	swapchain_colour_attachment_info.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
@@ -782,7 +782,7 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 
 #if PASS_DEPTH_TO_OPENXR
 	VkImageView swapchain_depth_view = swapchain_context->get_depth_view(image_index);
-	TVASSERT(swapchain_depth_view);
+	assert(swapchain_depth_view);
 
 	VkRenderingAttachmentInfoKHR depth_attachment_info{};
 	depth_attachment_info.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
@@ -798,8 +798,8 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	rendering_info.pStencilAttachment = &depth_attachment_info;
 #endif
 
-	TVASSERT(swapchain_context->size.width == extent.width);
-	TVASSERT(swapchain_context->size.height == extent.height);
+	assert(swapchain_context->size.width == extent.width);
+	assert(swapchain_context->size.height == extent.height);
 
 	rendering_info.renderArea.extent = extent;
 	rendering_info.renderArea.offset = offset;
@@ -982,7 +982,7 @@ XrResult OpenXR::GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystem
 
 bool OpenXR::create_instance()
 {
-	TVASSERT(xr_instance_ == XR_NULL_HANDLE);
+	assert(xr_instance_ == XR_NULL_HANDLE);
 
 	std::vector<const char*> extensions;
 
@@ -1162,11 +1162,11 @@ bool OpenXR::init_system()
 {
 	if(!xr_instance_)
 	{
-		TVASSERT(false);
+		assert(false);
 		return false;
 	}
 
-	TVASSERT(xr_system_id_ == XR_NULL_SYSTEM_ID);
+	assert(xr_system_id_ == XR_NULL_SYSTEM_ID);
 
 	XrSystemGetInfo systemInfo{ XR_TYPE_SYSTEM_GET_INFO };
 	XrFormFactor FormFactor{XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY};
@@ -1177,12 +1177,12 @@ bool OpenXR::init_system()
 
 	if(xr_system_result != XR_SUCCESS)
 	{
-		TVASSERT(false);
+		assert(false);
 		return false;
 	}
 
 	//Log::Write(Log::Level::Verbose, Fmt("Using system %d for form factor %s", xr_system_id_, to_string(FormFactor)));
-	TVASSERT(xr_system_id_ != XR_NULL_SYSTEM_ID);
+	assert(xr_system_id_ != XR_NULL_SYSTEM_ID);
 
 	return true;
 }
@@ -1197,20 +1197,20 @@ bool OpenXR::init_device()
 {
 	if(!xr_instance_)
 	{
-		TVASSERT(false);
+		assert(false);
 		return false;
 	}
 
 	Device& device = engine_.get_device();
 	Context& ctx = device.context_;
 
-	TVASSERT(!ctx.vk_instance_);
+	assert(!ctx.vk_instance_);
 
 	XrResult xr_graphics_result = GetVulkanGraphicsRequirements2KHR(xr_instance_, xr_system_id_, &xr_graphics_requirements_);
 
 	if (xr_graphics_result != XR_SUCCESS)
 	{
-		TVASSERT(false);
+		assert(false);
 		return false;
 	}
 
@@ -1227,17 +1227,17 @@ bool OpenXR::init_device()
 
 	if(create_vk_instance_result != XR_SUCCESS)
 	{
-		TVASSERT(false);
+		assert(false);
 		return false;
 	}
 
-	TVASSERT(ctx.vk_instance_);
+	assert(ctx.vk_instance_);
 
 	XrVulkanGraphicsDeviceGetInfoKHR device_get_info{ XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR };
 	device_get_info.systemId = xr_system_id_;
 	device_get_info.vulkanInstance = ctx.vk_instance_;
 	GetVulkanGraphicsDevice2KHR(xr_instance_, &device_get_info, &ctx.vk_physical_device_);
-	TVASSERT(ctx.vk_physical_device_);
+	assert(ctx.vk_physical_device_);
 
 	VkDeviceQueueCreateInfo queue_info{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
 	float queuePriorities = 0;
@@ -1293,13 +1293,13 @@ bool OpenXR::init_device()
 
 	if(create_vk_device_result != XR_SUCCESS)
 	{
-		TVASSERT(false);
+		assert(false);
 		return false;
 	}
 
-	TVASSERT(m_queueFamilyIndex != INVALID_INDEX);
-	TVASSERT(m_queueFamilyIndexCompute != INVALID_INDEX);
-	TVASSERT(m_queueFamilyIndexTransfer != INVALID_INDEX);
+	assert(m_queueFamilyIndex != INVALID_INDEX);
+	assert(m_queueFamilyIndexCompute != INVALID_INDEX);
+	assert(m_queueFamilyIndexTransfer != INVALID_INDEX);
 
 	ctx.m_queueGCT.familyIndex = m_queueFamilyIndex;
 	ctx.m_queueC.familyIndex = m_queueFamilyIndexCompute;
@@ -1351,7 +1351,7 @@ int64_t OpenXR::select_swap_format(const std::vector<int64_t>& runtimeFormats) c
 
 	if(swapchainFormatIt == runtimeFormats.end())
 	{
-		TVASSERT(false);
+		assert(false);
 		return INVALID_INDEX;
 	}
 
@@ -1361,10 +1361,10 @@ int64_t OpenXR::select_swap_format(const std::vector<int64_t>& runtimeFormats) c
 
 bool OpenXR::create_swapchain()
 {
-	TVASSERT(xr_session_ != XR_NULL_HANDLE);
-	TVASSERT(xr_swapchains_.empty());
-	TVASSERT(xr_config_views_.empty());
-	TVASSERT(xr_system_properties_initialized_);
+	assert(xr_session_ != XR_NULL_HANDLE);
+	assert(xr_swapchains_.empty());
+	assert(xr_config_views_.empty());
+	assert(xr_system_properties_initialized_);
 
 	// Query and cache view configuration views.
 	uint32_t viewCount = 0;
@@ -1376,7 +1376,7 @@ bool OpenXR::create_swapchain()
 	// Create and cache view buffer for xrLocateViews later.
 	xr_views_.resize(viewCount, { XR_TYPE_VIEW });
 
-	TVASSERT(viewCount == NUM_EYES);
+	assert(viewCount == NUM_EYES);
 
 	if(viewCount > 0)
 	{
@@ -1386,7 +1386,7 @@ bool OpenXR::create_swapchain()
 
 		xrEnumerateSwapchainFormats(xr_session_, (uint32_t)swapchainFormats.size(), &swapchainFormatCount, swapchainFormats.data());
 
-		TVASSERT(swapchainFormatCount == swapchainFormats.size());
+		assert(swapchainFormatCount == swapchainFormats.size());
 		xr_colour_swapchain_format_ = select_swap_format(swapchainFormats);
 
 		{
@@ -1439,8 +1439,8 @@ bool OpenXR::create_swapchain()
 			swapchain.height = swapchainCreateInfo.height;
 			XrResult create_res = xrCreateSwapchain(xr_session_, &swapchainCreateInfo, &swapchain.handle);
 			
-			TVASSERT(create_res == XR_SUCCESS);
-			TVASSERT(swapchain.handle);
+			assert(create_res == XR_SUCCESS);
+			assert(swapchain.handle);
 
 			xr_swapchains_.push_back(swapchain);
 
@@ -2111,7 +2111,7 @@ void OpenXR::destroy_swapchain()
 
 bool OpenXR::get_system_properties()
 {
-	TVASSERT(xr_session_ != XR_NULL_HANDLE);
+	assert(xr_session_ != XR_NULL_HANDLE);
 
 	if(xr_system_properties_initialized_)
 	{
@@ -2226,8 +2226,8 @@ bool OpenXR::update_views(XrTime predicted_display_time)
 		return false;
 	}
 
-	TVASSERT(actual_num_views == NUM_EYES);
-	TVASSERT(actual_num_views == xr_config_views_.size());
+	assert(actual_num_views == NUM_EYES);
+	assert(actual_num_views == xr_config_views_.size());
 
 	for (uint view_id = 0; view_id < actual_num_views; view_id++)
 	{
@@ -2545,7 +2545,7 @@ void OpenXR::update_thumbstick(const uint hand, const XrVector2f& stick_value)
 {
 	if(hand > RIGHT)
 	{
-		TVASSERT(false);
+		assert(false);
 		return;
 	}
 
@@ -2557,7 +2557,7 @@ void OpenXR::update_thumbstick_x(const uint hand, const float x_axis_value)
 {
 	if(hand > RIGHT)
 	{
-		TVASSERT(false);
+		assert(false);
 		return;
 	}
 
@@ -2568,7 +2568,7 @@ void OpenXR::update_thumbstick_y(const uint hand, const float y_axis_value)
 {
 	if(hand > RIGHT)
 	{
-		TVASSERT(false);
+		assert(false);
 		return;
 	}
 
@@ -2587,7 +2587,7 @@ float OpenXR::get_stick_y_value(const uint hand) const
 
 void OpenXR::set_hand_gripping(const uint hand, const bool hand_gripping)
 {
-	TVASSERT(hand <= RIGHT);
+	assert(hand <= RIGHT);
 
 	if(hand <= RIGHT)
 	{
@@ -2605,7 +2605,7 @@ bool OpenXR::is_hand_gripping(const uint hand) const
 {
 	if(hand > RIGHT)
 	{
-		TVASSERT(false);
+		assert(false);
 		return false;
 	}
 
@@ -2614,7 +2614,7 @@ bool OpenXR::is_hand_gripping(const uint hand) const
 
 void OpenXR::set_trigger_squeezed(const uint hand, const bool trigger_squeezed)
 {
-	TVASSERT(hand <= RIGHT);
+	assert(hand <= RIGHT);
 
 	if(hand <= RIGHT)
 	{
@@ -2629,7 +2629,7 @@ bool OpenXR::is_trigger_squeezed(const uint hand) const
 {
 	if(hand > RIGHT)
 	{
-		TVASSERT(false);
+		assert(false);
 		return false;
 	}
 
@@ -2641,7 +2641,7 @@ void OpenXR::update_trigger(const uint hand, const float trigger_value)
 {
 	if(hand > RIGHT)
 	{
-		TVASSERT(false);
+		assert(false);
 		return;
 	}
 
@@ -2664,7 +2664,7 @@ void OpenXR::update_grip(const uint hand, const float grip_value)
 {
 	if(hand > RIGHT)
 	{
-		TVASSERT(false);
+		assert(false);
 		return;
 	}
 
@@ -2868,7 +2868,7 @@ inline std::string GetXrVersionString(XrVersion ver)
 
 void OpenXR::log_instance_info()
 {
-	TVASSERT(xr_instance_ != XR_NULL_HANDLE);
+	assert(xr_instance_ != XR_NULL_HANDLE);
 
 	XrInstanceProperties instanceProperties{ XR_TYPE_INSTANCE_PROPERTIES };
 	xrGetInstanceProperties(xr_instance_, &instanceProperties);

@@ -30,7 +30,7 @@ bool XRInputState::init()
 		return false;
 	}
 
-	TVASSERT(xr_action_set_);
+	assert(xr_action_set_);
 	const bool initialized_ok = init_controllers();
 
 	set_initialized(initialized_ok);
@@ -40,8 +40,8 @@ bool XRInputState::init()
 
 bool XRInputState::init_actions()
 {
-	TVASSERT(openxr_.xr_instance_);
-	TVASSERT(!xr_action_set_);
+	assert(openxr_.xr_instance_);
+	assert(!xr_action_set_);
 
 	XrActionSetCreateInfo action_set_info{ XR_TYPE_ACTION_SET_CREATE_INFO };
 	strcpy_s(action_set_info.actionSetName, "gameplay");
@@ -246,9 +246,9 @@ bool XRInputState::init_actions()
 
 bool XRInputState::init_controllers()
 {
-	TVASSERT(openxr_.xr_instance_);
-	TVASSERT(openxr_.xr_session_);
-	TVASSERT(xr_action_set_);
+	assert(openxr_.xr_instance_);
+	assert(openxr_.xr_session_);
+	assert(xr_action_set_);
 
 #if SUPPORT_KHR_SIMPLE_CONTROLLERS
 	// Suggest bindings for KHR Simple.

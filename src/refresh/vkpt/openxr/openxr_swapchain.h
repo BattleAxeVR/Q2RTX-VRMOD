@@ -7,11 +7,12 @@
 
 #include "defines.h"
 
-#if 0//SUPPORT_OPENXR
+#if SUPPORT_OPENXR
 
 #include <array>
 #include <map>
 #include <list>
+#include <vector>
 
 #define XR_USE_GRAPHICS_API_VULKAN 1
 #define XR_USE_PLATFORM_WIN32 1

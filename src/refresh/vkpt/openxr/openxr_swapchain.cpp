@@ -4,9 +4,10 @@
 
 #include "openxr_swapchain.h"
 
-#if 0//SUPPORT_OPENXR
+#if SUPPORT_OPENXR
 
 #include <algorithm>
+#include "assert.h"
 
 void XRMemoryAllocator::Init(VkPhysicalDevice physicalDevice, VkDevice device)
 {
@@ -104,7 +105,7 @@ void XRRenderTarget::Create(VkDevice device, VkImage aColorImage, VkFormat colou
 		colorViewInfo.subresourceRange.baseArrayLayer = 0;
 		colorViewInfo.subresourceRange.layerCount = 1;
 		vkCreateImageView(vk_logical_device_, &colorViewInfo, nullptr, &colorView);
-		TVASSERT(colorView);
+		assert(colorView);
 	}
 
 	// Create depth image view
@@ -124,7 +125,7 @@ void XRRenderTarget::Create(VkDevice device, VkImage aColorImage, VkFormat colou
 		depthViewInfo.subresourceRange.baseArrayLayer = 0;
 		depthViewInfo.subresourceRange.layerCount = 1;
 		vkCreateImageView(vk_logical_device_, &depthViewInfo, nullptr, &depthView);
-		TVASSERT(depthView);
+		assert(depthView);
 	}
 }
 
