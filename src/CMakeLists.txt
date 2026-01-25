@@ -284,6 +284,10 @@ SET(SRC_VKPT
 	refresh/vkpt/device_memory_allocator.c
 	refresh/vkpt/god_rays.c
 	refresh/vkpt/conversion.c
+	refresh/vkpt/openxr/openxr.cpp
+	refresh/vkpt/openxr/openxr_input.cpp
+	refresh/vkpt/openxr/openxr_swapchain.cpp
+	refresh/vkpt/openxr/openxr_command_buffer.cpp
 )
 
 SET(HEADERS_VKPT
@@ -297,6 +301,12 @@ SET(HEADERS_VKPT
 	refresh/vkpt/physical_sky.h
 	refresh/vkpt/precomputed_sky.h
 	refresh/vkpt/conversion.h
+	refresh/vkpt/openxr/openxr.h
+	refresh/vkpt/openxr/openxr_input.h
+	refresh/vkpt/openxr/openxr_swapchain.h
+	refresh/vkpt/openxr/openxr_command_buffer.h
+	refresh/vkpt/openxr/xr_linear.h
+	refresh/vkpt/openxr/defines.h
 )
 
 set(SRC_SHADERS
