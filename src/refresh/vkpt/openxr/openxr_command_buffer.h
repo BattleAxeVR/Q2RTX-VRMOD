@@ -7,7 +7,9 @@
 
 #include "defines.h"
 
-#if 0
+#if SUPPORT_OPENXR
+
+#include <vulkan/vulkan.h>
 
 enum class CommandBufferState
 {
@@ -44,7 +46,7 @@ private:
 	void SetState(CommandBufferState newState);
 };
 
-#endif
+#endif // SUPPORT_OPENXR
 
 
 #endif // OPENXR_COMMAND_BUFFER_H

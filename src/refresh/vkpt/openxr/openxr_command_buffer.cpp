@@ -4,7 +4,7 @@
 
 #include "openxr_command_buffer.h"
 
-#if 0//SUPPORT_OPENXR
+#if SUPPORT_OPENXR
 
 bool CommandBuffer::Init(VkDevice device, uint32_t queue_family_index)
 {
