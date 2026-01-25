@@ -23,3 +23,6 @@
 [submodule "extern/openal-soft"]
 	path = extern/openal-soft
 	url = https://github.com/kcat/openal-soft.git
+[submodule "extern/OpenXR-SDK"]
+	path = extern/OpenXR-SDK
+	url = https://github.com/KhronosGroup/OpenXR-SDK.git
