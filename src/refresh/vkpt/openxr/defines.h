@@ -11,6 +11,9 @@
 
 #if SUPPORT_OPENXR
 
+#define NUM_COMMAND_BUFFERS 2
+#define INVALID_INDEX -1 
+
 #define LEFT 0
 #define RIGHT 1
 #define BOTH 2

@@ -5,14 +5,29 @@
 #ifndef OPENXR_H
 #define OPENXR_H
 
-#if 0
 #include "defines.h"
+
+#if SUPPORT_OPENXR
+
+#include <stdint.h>
+typedef signed char        schar;
+typedef long long          slong;
+typedef unsigned char      uchar;
+typedef unsigned short     ushort;
+typedef unsigned int	   uint;
+typedef unsigned long long ulong;
+
+typedef uint8_t uint8;
+typedef uint16_t uint16;
+typedef uint32_t uint32;
+typedef uint64_t uint64;
 
 #include <array>
 #include <map>
 #include <list>
 #include <vector>
 #include <set>
+#include <string>
 
 #define XR_USE_GRAPHICS_API_VULKAN 1
 #define XR_USE_PLATFORM_WIN32 1
@@ -42,7 +57,7 @@
 
 #include "openxr_swapchain.h"
 #include "openxr_command_buffer.h"
-#include "opemxr_input.h"
+#include "openxr_input.h"
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
 #include <openxr/meta_body_tracking_calibration.h>
@@ -58,6 +73,7 @@
 //#include <openxr/meta_simultaneous_hands_and_controllers.h>
 #endif
 
+#if 0
 struct XrMatrix4x4f;
 
 float4x4 tv_convert_xr_to_float4x4(const XrMatrix4x4f& input);
@@ -72,22 +88,55 @@ XrQuaternionf tv_convert_to_xr(const Quat& input);
 Pose tv_convert_xr_pose_to_pose(const XrPosef& input);
 XRPose tv_convert(const XrPosef& input);
 XrPosef tv_convert_to_xr(const Pose& input);
+#endif
+
+
+struct XRPose
+{
+	//Quat rotation_;
+	//float3 position_;
+};
+
+struct XRView
+{
+	XRPose xr_pose_;
+	//FOVAngles fov_;
+};
+
+struct HMDView
+{
+	XRView eye_poses_[NUM_EYES];
+	//const float3 get_head_position_LS() const;
+	const XRPose get_head_xr_pose_LS() const;
+};
 
 constexpr bool is_xr_pose_valid(XrSpaceLocationFlags locationFlags);
-
-class Context;
 
 class OpenXR
 {
 public:
 	friend class XRInputState;
 
-	OpenXR(Engine& engine);
+	VkInstance vk_instance_ = nullptr;
+	VkPhysicalDevice vk_physical_device_ = nullptr;
+	VkDevice vk_logical_device_ = nullptr;
+
+	OpenXR();
 	virtual ~OpenXR();
 
 	bool init();
 	bool shutdown();
 	bool update();
+
+	bool is_initialized() const
+	{
+		return initialized_;
+	}
+
+	void set_initialized(const bool initialized)
+	{
+		initialized_ = initialized;
+	}
 
 	bool wait_frame();
 	bool begin_frame();
@@ -169,11 +218,6 @@ public:
 
 	bool render_into_xr_swapchain_ = true;
 
-	Engine& get_engine()
-	{
-		return engine_;
-	}
-
 #if ENABLE_EXT_EYE_TRACKING
 	bool EXT_eye_tracking_supported_ = false;
 	bool EXT_eye_tracking_enabled_ = false;
@@ -233,10 +277,10 @@ public:
 #endif
 
 private:
-	Engine& engine_;
-	HMDView hmd_view_;
+	bool initialized_ = false;
 
-	float2 thumbsticks_[NUM_SIDES] = { float2_zero, float2_zero };
+	//HMDView hmd_view_;
+	//float2 thumbsticks_[NUM_SIDES] = { float2_zero, float2_zero };
 
 	float triggers_[NUM_SIDES] = { 0.0f, 0.0f };
 	float grips_[NUM_SIDES] = { 0.0f, 0.0f };
@@ -452,6 +496,6 @@ private:
 
 };
 
-#endif
+#endif // SUPPORT_OPENXR
 
 #endif // OPENXR_H

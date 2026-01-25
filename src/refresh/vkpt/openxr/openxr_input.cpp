@@ -2,10 +2,10 @@
 // Copyright (c) 2026 BattleAxeVR. All rights reserved.
 //--------------------------------------------------------------------------------------
 
-//#include "openxr_input.h"
-//#include "openxr.h"
+#include "openxr.h"
+#include "openxr_input.h"
 
-#if 0//SUPPORT_OPENXR
+#if SUPPORT_OPENXR
 
 #ifndef VK_USE_PLATFORM_WIN32_KHR
 #define VK_USE_PLATFORM_WIN32_KHR
@@ -13,7 +13,7 @@
 #include <vulkan/vulkan.h>
 #include <algorithm>
 
-XRInputState::XRInputState(OpenXR& openxr) : openxr_(openxr), BaseObject(ObjectType::VR_OPEN_XR_INPUT_)
+XRInputState::XRInputState(OpenXR& openxr) : openxr_(openxr)
 {
 
 }

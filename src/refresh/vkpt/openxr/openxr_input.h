@@ -7,7 +7,7 @@
 
 #include "defines.h"
 
-#if 0//SUPPORT_OPENXR
+#if SUPPORT_OPENXR
 
 #include <array>
 #include <map>
@@ -63,6 +63,16 @@ public:
 	virtual bool init();
 	virtual bool update();
 	virtual bool shutdown();
+
+	bool is_initialized() const
+	{
+		return initialized_;
+	}
+
+	void set_initialized(const bool initialized)
+	{
+		initialized_ = initialized;
+	}
 
 	bool init_actions();
 	bool init_controllers();
@@ -160,6 +170,7 @@ public:
 
 private:
 	OpenXR& openxr_;
+	bool initialized_ = false;
 };
 
 #endif // SUPPORT_OPENXR

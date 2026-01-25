@@ -4,11 +4,14 @@
 
 #include "openxr.h"
 
-#if 0
+#if SUPPORT_OPENXR
 
 #include <algorithm>
 #include "xr_linear.h"
 #include <chrono>
+#include <xlocale>
+
+#include <iterator>
 
 #ifndef XR_LOAD
 #define XR_LOAD(instance, fn) xrGetInstanceProcAddr(instance, #fn, reinterpret_cast<PFN_xrVoidFunction*>(&fn))
@@ -23,6 +26,7 @@
 #define SPV_SUFFIX
 #endif
 
+#if 0
 float4x4 tv_convert_xr_to_float4x4(const XrMatrix4x4f& input)
 {
 	float4x4 output = float4x4(&input.m[0]);
@@ -102,6 +106,7 @@ XrPosef tv_convert_to_xr(const Pose& input)
 	output.orientation = tv_convert_to_xr(input.get_combined_rotation());
 	return output;
 }
+#endif
 
 constexpr bool is_xr_pose_valid(XrSpaceLocationFlags locationFlags)
 {
@@ -110,7 +115,7 @@ constexpr bool is_xr_pose_valid(XrSpaceLocationFlags locationFlags)
 }
 
 
-OpenXR::OpenXR(Engine& engine) : engine_(engine), xr_input_{*this}, BaseObject(ObjectType::VR_OPEN_XR_)
+OpenXR::OpenXR() : xr_input_{ *this }
 {
 }
 
@@ -153,11 +158,9 @@ bool OpenXR::init()
 		return false;
 	}
 
-	Device& device = engine_.get_device();
-
 	for (uint xr_command_buffer_index = 0; xr_command_buffer_index < NUM_COMMAND_BUFFERS; xr_command_buffer_index++)
 	{
-		xr_command_buffers_[xr_command_buffer_index].Init(device.get_vk_logical_device(), device.get_vk_graphics_queue_index());
+		xr_command_buffers_[xr_command_buffer_index].Init(vk_logical_device_, m_queueFamilyIndex);
 	}
 
 	set_initialized(true);
@@ -412,6 +415,7 @@ XrReferenceSpaceCreateInfo OpenXR::GetXrReferenceSpaceCreateInfo(const std::stri
 {
 	XrReferenceSpaceCreateInfo referenceSpaceCreateInfo{ XR_TYPE_REFERENCE_SPACE_CREATE_INFO };
 
+#if 0
 	Pose reference_pose;
 	XrPosef xr_reference_pose = tv_convert_to_xr(reference_pose);
 	referenceSpaceCreateInfo.poseInReferenceSpace = xr_reference_pose;
@@ -440,6 +444,7 @@ XrReferenceSpaceCreateInfo OpenXR::GetXrReferenceSpaceCreateInfo(const std::stri
 	{
 		assert(false);
 	}
+#endif
 	return referenceSpaceCreateInfo;
 }
 
@@ -449,9 +454,7 @@ std::vector<XrSwapchainImageBaseHeader*> OpenXR::AllocateSwapchainImageStructs(u
 
 	XRSwapchainImageContext& swapchainImageContext = m_swapchainImageContexts.back();
 
-	Device& device = engine_.get_device();
-
-	std::vector<XrSwapchainImageBaseHeader*> bases = swapchainImageContext.Create(device.get_vk_logical_device(), &xr_memory_allocator_, capacity, swapchainCreateInfo);
+	std::vector<XrSwapchainImageBaseHeader*> bases = swapchainImageContext.Create(vk_logical_device_, &xr_memory_allocator_, capacity, swapchainCreateInfo);
 
 	for(auto& base : bases) 
 	{
@@ -812,13 +815,12 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	const VkRect2D rect = { offset, extent };
 	vkCmdSetScissor(command_buffer, 0, 1, &rect);
 
-	PostProcess& post_process = engine_.get_post_process();
-	post_process.post_process(command_buffer, (EYE)view_id);
+	//post_process.post_process(command_buffer, (EYE)view_id);
 
 	vkCmdEndRenderingKHR(command_buffer);
 
 	xr_command_buffer.End();
-	xr_command_buffer.Exec(engine_.get_device().get_vk_graphics_queue());
+	//xr_command_buffer.Exec(engine_.get_device().get_vk_graphics_queue());
 	xr_command_buffer_index_ = (xr_command_buffer_index_ + 1) % NUM_COMMAND_BUFFERS;
 }
 
@@ -931,10 +933,11 @@ XrResult OpenXR::CreateVulkanDeviceKHR(XrInstance instance, const XrVulkanDevice
 		deviceInfo.enabledExtensionCount = (uint32_t)extensions.size();
 		deviceInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
 
-		Device& device = engine_.get_device();
+		assert(vk_instance_);
+		assert(vk_physical_device_);
 
-		auto pfnCreateDevice = (PFN_vkCreateDevice)createInfo->pfnGetInstanceProcAddr(device.get_vk_instance(), "vkCreateDevice");
-		*vulkanResult = pfnCreateDevice(device.get_vk_physical_device(), &deviceInfo, createInfo->vulkanAllocator, vulkanDevice);
+		auto pfnCreateDevice = (PFN_vkCreateDevice)createInfo->pfnGetInstanceProcAddr(vk_instance_, "vkCreateDevice");
+		*vulkanResult = pfnCreateDevice(vk_physical_device_, &deviceInfo, createInfo->vulkanAllocator, vulkanDevice);
 	}
 
 	return XR_SUCCESS;
@@ -1201,10 +1204,7 @@ bool OpenXR::init_device()
 		return false;
 	}
 
-	Device& device = engine_.get_device();
-	Context& ctx = device.context_;
-
-	assert(!ctx.vk_instance_);
+	assert(!vk_instance_);
 
 	XrResult xr_graphics_result = GetVulkanGraphicsRequirements2KHR(xr_instance_, xr_system_id_, &xr_graphics_requirements_);
 
@@ -1214,7 +1214,8 @@ bool OpenXR::init_device()
 		return false;
 	}
 
-	VkInstanceCreateInfo& instance_create_info = ctx.get_instance_create_info();
+	//VkInstanceCreateInfo& instance_create_info = ctx.get_instance_create_info();
+	VkInstanceCreateInfo instance_create_info = {};
 
 	XrVulkanInstanceCreateInfoKHR xr_create_info{ XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR };
 	xr_create_info.systemId = xr_system_id_;
@@ -1223,7 +1224,7 @@ bool OpenXR::init_device()
 	xr_create_info.vulkanAllocator = nullptr;
 
 	VkResult err = VK_SUCCESS;
-	XrResult create_vk_instance_result = CreateVulkanInstanceKHR(xr_instance_, &xr_create_info, &ctx.vk_instance_, &err);
+	XrResult create_vk_instance_result = CreateVulkanInstanceKHR(xr_instance_, &xr_create_info, &vk_instance_, &err);
 
 	if(create_vk_instance_result != XR_SUCCESS)
 	{
@@ -1231,13 +1232,13 @@ bool OpenXR::init_device()
 		return false;
 	}
 
-	assert(ctx.vk_instance_);
+	assert(vk_instance_);
 
 	XrVulkanGraphicsDeviceGetInfoKHR device_get_info{ XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR };
 	device_get_info.systemId = xr_system_id_;
-	device_get_info.vulkanInstance = ctx.vk_instance_;
-	GetVulkanGraphicsDevice2KHR(xr_instance_, &device_get_info, &ctx.vk_physical_device_);
-	assert(ctx.vk_physical_device_);
+	device_get_info.vulkanInstance = vk_instance_;
+	GetVulkanGraphicsDevice2KHR(xr_instance_, &device_get_info, &vk_physical_device_);
+	assert(vk_physical_device_);
 
 	VkDeviceQueueCreateInfo queue_info{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
 	float queuePriorities = 0;
@@ -1245,9 +1246,9 @@ bool OpenXR::init_device()
 	queue_info.pQueuePriorities = &queuePriorities;
 
 	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(ctx.vk_physical_device_, &queueFamilyCount, nullptr);
+	vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device_, &queueFamilyCount, nullptr);
 	std::vector<VkQueueFamilyProperties> queueFamilyProps(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(ctx.vk_physical_device_, &queueFamilyCount, &queueFamilyProps[0]);
+	vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device_, &queueFamilyCount, &queueFamilyProps[0]);
 
 	std::vector<VkDeviceQueueCreateInfo> queue_infos;
 
@@ -1279,17 +1280,17 @@ bool OpenXR::init_device()
 	}
 
 	const int device_index = 0;
-	VkDeviceCreateInfo device_create_info = ctx.get_device_create_info(device_index);
+	VkDeviceCreateInfo device_create_info = {};// ctx.get_device_create_info(device_index);
 
 	XrVulkanDeviceCreateInfoKHR deviceCreateInfo{ XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR };
 	deviceCreateInfo.systemId = xr_system_id_;
 	deviceCreateInfo.pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
 	deviceCreateInfo.vulkanCreateInfo = &device_create_info;
-	deviceCreateInfo.vulkanPhysicalDevice = ctx.vk_physical_device_;
+	deviceCreateInfo.vulkanPhysicalDevice = vk_physical_device_;
 	deviceCreateInfo.vulkanAllocator = nullptr;
 
 	VkResult vk_create_device_err = VK_SUCCESS;
-	XrResult create_vk_device_result = CreateVulkanDeviceKHR(xr_instance_, &deviceCreateInfo, &ctx.vk_logical_device_, &vk_create_device_err);
+	XrResult create_vk_device_result = CreateVulkanDeviceKHR(xr_instance_, &deviceCreateInfo, &vk_logical_device_, &vk_create_device_err);
 
 	if(create_vk_device_result != XR_SUCCESS)
 	{
@@ -1301,16 +1302,16 @@ bool OpenXR::init_device()
 	assert(m_queueFamilyIndexCompute != INVALID_INDEX);
 	assert(m_queueFamilyIndexTransfer != INVALID_INDEX);
 
-	ctx.m_queueGCT.familyIndex = m_queueFamilyIndex;
-	ctx.m_queueC.familyIndex = m_queueFamilyIndexCompute;
-	ctx.m_queueT.familyIndex = m_queueFamilyIndexTransfer;
+	//ctx.m_queueGCT.familyIndex = m_queueFamilyIndex;
+	//ctx.m_queueC.familyIndex = m_queueFamilyIndexCompute;
+	//ctx.m_queueT.familyIndex = m_queueFamilyIndexTransfer;
 
-	xr_memory_allocator_.Init(ctx.vk_physical_device_, ctx.vk_logical_device_);
+	xr_memory_allocator_.Init(vk_physical_device_, vk_logical_device_);
 
 	// VERY IMPORTANT to patch these values, XR session won't start without them
-	xr_graphics_binding_.instance = ctx.vk_instance_;
-	xr_graphics_binding_.physicalDevice = ctx.vk_physical_device_;
-	xr_graphics_binding_.device = ctx.vk_logical_device_;
+	xr_graphics_binding_.instance = vk_instance_;
+	xr_graphics_binding_.physicalDevice = vk_physical_device_;
+	xr_graphics_binding_.device = vk_logical_device_;
 	xr_graphics_binding_.queueFamilyIndex = m_queueFamilyIndex;
 	xr_graphics_binding_.queueIndex = 0;
 
@@ -1324,26 +1325,9 @@ void OpenXR::destroy_device()
 
 int64_t OpenXR::select_swap_format(const std::vector<int64_t>& runtimeFormats) const
 {
-
-#if USE_FP16_SWAP_CHAIN
+#if 1
 	VkFormat hdr_colour_format = VK_FORMAT_R16G16B16A16_SFLOAT;
-#else
-	VkFormat hdr_colour_format = VK_FORMAT_B8G8R8A8_UNORM;
-#endif
-
-#if 0
-#if USE_OPENXR_HDR_FORMAT
-	VkFormat hdr_colour_format = VK_FORMAT_R16G16B16A16_SFLOAT;
-#if USE_FP32_FOR_HDR_COLOUR
-	VkFormat hdr_colour_format = VK_FORMAT_R32G32B32A32_SFLOAT;
-#elif USE_FP16_FOR_HDR_COLOUR
-	VkFormat hdr_colour_format = VK_FORMAT_R16G16B16A16_SFLOAT;
-#elif USE_B10G11R11_FOR_HDR_COLOUR
-	VkFormat hdr_colour_format = VK_FORMAT_B10G11R11_UFLOAT_PACK32;
-#endif
-#endif
-
-	return hdr_colour_format;
+	return VK_FORMAT_R16G16B16A16_SFLOAT;
 #else
 	constexpr int64_t SupportedColorSwapchainFormats[] = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB,VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM };
 
@@ -2194,6 +2178,7 @@ bool OpenXR::get_system_properties()
 	return true;
 }
 
+#if 0
 HMDView& OpenXR::get_hmd_view()
 {
 	return hmd_view_;
@@ -2203,6 +2188,7 @@ const HMDView& OpenXR::get_hmd_view() const
 {
 	return hmd_view_;
 }
+#endif
 
 bool OpenXR::update_views(XrTime predicted_display_time)
 {
@@ -2231,10 +2217,11 @@ bool OpenXR::update_views(XrTime predicted_display_time)
 
 	for (uint view_id = 0; view_id < actual_num_views; view_id++)
 	{
+#if 0
 		XRView& xr_view = hmd_view_.eye_poses_[view_id];
-
 		xr_view.xr_pose_ = tv_convert(xr_views_[view_id].pose);
 		xr_view.fov_.set_from_xr(xr_views_[view_id].fov);
+#endif
 	}
 
 	return true;
@@ -2246,6 +2233,8 @@ bool OpenXR::update_controller_poses(XrTime predicted_display_time)
 	{
 		return false;
 	}
+
+#if 0
 
 	const PlayerBase& player_base = engine_.get_player_base();
 	const Pose& player_pose = player_base.pose_;
@@ -2334,6 +2323,8 @@ bool OpenXR::update_controller_poses(XrTime predicted_display_time)
 		}
 #endif
 	}
+
+#endif
 
 	return true;
 }
@@ -2549,8 +2540,8 @@ void OpenXR::update_thumbstick(const uint hand, const XrVector2f& stick_value)
 		return;
 	}
 
-	thumbsticks_[hand].x = stick_value.x;
-	thumbsticks_[hand].y = stick_value.y;
+	//thumbsticks_[hand].x = stick_value.x;
+	//thumbsticks_[hand].y = stick_value.y;
 }
 
 void OpenXR::update_thumbstick_x(const uint hand, const float x_axis_value)
@@ -2561,7 +2552,7 @@ void OpenXR::update_thumbstick_x(const uint hand, const float x_axis_value)
 		return;
 	}
 
-	thumbsticks_[hand].x = x_axis_value;
+	//thumbsticks_[hand].x = x_axis_value;
 }
 
 void OpenXR::update_thumbstick_y(const uint hand, const float y_axis_value)
@@ -2572,17 +2563,19 @@ void OpenXR::update_thumbstick_y(const uint hand, const float y_axis_value)
 		return;
 	}
 
-	thumbsticks_[hand].y = y_axis_value;
+	//thumbsticks_[hand].y = y_axis_value;
 }
 
 float OpenXR::get_stick_x_value(const uint hand) const
 {
-	return thumbsticks_[hand].x;
+	return 0.0f;
+	//return thumbsticks_[hand].x;
 }
 
 float OpenXR::get_stick_y_value(const uint hand) const
 {
-	return thumbsticks_[hand].y;
+	return 0.0f;
+	//return thumbsticks_[hand].y;
 }
 
 void OpenXR::set_hand_gripping(const uint hand, const bool hand_gripping)
@@ -2595,8 +2588,8 @@ void OpenXR::set_hand_gripping(const uint hand, const bool hand_gripping)
 		{
 			hand_gripping_[hand] = hand_gripping;
 
-			DigitalButton& grip_click_button = engine_.get_vr_manager().get_grip_button(hand);
-			grip_click_button.set_state(hand_gripping);
+			//DigitalButton& grip_click_button = engine_.get_vr_manager().get_grip_button(hand);
+			//grip_click_button.set_state(hand_gripping);
 		}
 	}
 }
@@ -2646,7 +2639,7 @@ void OpenXR::update_trigger(const uint hand, const float trigger_value)
 	}
 
 	triggers_[hand] = trigger_value;
-	engine_.get_vr_manager().vr_controllers_[hand].analog_[VRAnalogID::VRAnalog_Trigger].set_value(trigger_value);
+	//engine_.get_vr_manager().vr_controllers_[hand].analog_[VRAnalogID::VRAnalog_Trigger].set_value(trigger_value);
 }
 
 
@@ -2669,7 +2662,7 @@ void OpenXR::update_grip(const uint hand, const float grip_value)
 	}
 
 	grips_[hand] = grip_value;
-	engine_.get_vr_manager().vr_controllers_[hand].analog_[VRAnalogID::VRAnalog_Grip].set_value(grip_value);
+	//engine_.get_vr_manager().vr_controllers_[hand].analog_[VRAnalogID::VRAnalog_Grip].set_value(grip_value);
 }
 
 float OpenXR::get_grip(const uint hand) const
@@ -2837,6 +2830,7 @@ void OpenXR::log_layers_and_extensions()
 }
 
 
+#if 0
 inline std::string Fmt(const char* fmt, ...)
 {
 	va_list vl;
@@ -2856,14 +2850,13 @@ inline std::string Fmt(const char* fmt, ...)
 			return std::string(buffer.get(), size);
 		}
 	}
-
-	throw std::runtime_error("Unexpected vsnprintf failure");
 }
 
 inline std::string GetXrVersionString(XrVersion ver) 
 {
 	return Fmt("%d.%d.%d", XR_VERSION_MAJOR(ver), XR_VERSION_MINOR(ver), XR_VERSION_PATCH(ver));
 }
+#endif
 
 
 void OpenXR::log_instance_info()
@@ -2876,4 +2869,5 @@ void OpenXR::log_instance_info()
 	//Log::Write(Log::Level::Info, Fmt("Instance RuntimeName=%s RuntimeVersion=%s", instanceProperties.runtimeName, GetXrVersionString(instanceProperties.runtimeVersion).c_str()));
 }
 
-#endif
+#endif // SUPPORT_OPENXR
+
