@@ -123,41 +123,6 @@ OpenXR::~OpenXR()
 {
 }
 
-bool OpenXR::init()
-{
-	if(is_initialized())
-	{
-		return false;
-	}
-
-	log_layers_and_extensions();
-	
-	VkInstanceCreateInfo instance_create_info = {};// device.context_.get_instance_create_info();
-
-	const bool instance_ok = create_instance(instance_create_info);
-
-	if(!instance_ok)
-	{
-		shutdown();
-		return false;
-	}
-
-	const int device_index = 0;
-	VkDeviceCreateInfo device_create_info = {};// device.context_.get_device_create_info(device_index);
-
-	const bool device_ok = create_device(device_create_info);
-
-	if (!device_ok)
-	{
-		shutdown();
-		return false;
-	}
-
-	set_initialized(true);
-
-	return true;
-}
-
 bool OpenXR::start_session()
 {
 	if(!is_initialized() || xr_session_ || is_session_running())
@@ -374,8 +339,8 @@ bool OpenXR::update()
 	
 	if(request_restart)
 	{
-		shutdown();
-		init();
+		stop_session();
+		start_session();
 	}
 
 	return true;
@@ -395,6 +360,11 @@ inline bool EqualsIgnoreCase(const std::string& s1, const std::string& s2, const
 XrReferenceSpaceCreateInfo OpenXR::GetXrReferenceSpaceCreateInfo(const std::string& referenceSpaceTypeStr) 
 {
 	XrReferenceSpaceCreateInfo referenceSpaceCreateInfo{ XR_TYPE_REFERENCE_SPACE_CREATE_INFO };
+
+	XrPosef xr_reference_pose = {};
+	xr_reference_pose.orientation.w = 1.0f;
+	referenceSpaceCreateInfo.poseInReferenceSpace = xr_reference_pose;
+	referenceSpaceCreateInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_LOCAL;
 
 #if 0
 	Pose reference_pose;
@@ -2093,6 +2063,7 @@ void OpenXR::destroy_swapchain()
 		}
 	}
 
+	m_swapchainImageContexts.clear();
 	xr_swapchains_.clear();
 }
 
@@ -2873,6 +2844,7 @@ void OpenXR::log_instance_info()
 }
 
 OpenXR openxr_;
+bool started_session_ = false;
 
 // C Interface wrapper for simplicity
 extern "C"
@@ -2898,11 +2870,6 @@ extern "C"
 			return VK_ERROR_UNKNOWN;
 		}
 
-		if(*vk_physical_device)
-		{
-			openxr_.vk_physical_device_ = *vk_physical_device;
-		}
-
 		const bool device_ok = openxr_.create_device(*device_create_info);
 
 		if(!device_ok)
@@ -2918,6 +2885,12 @@ extern "C"
 
 	void OpenXR_Update()
 	{
+		if(!started_session_)
+		{
+			openxr_.start_session();
+			started_session_ = true;
+		}
+
 		openxr_.update();
 	}
 

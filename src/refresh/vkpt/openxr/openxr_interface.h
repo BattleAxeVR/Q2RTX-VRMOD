@@ -124,7 +124,6 @@ public:
 	OpenXR();
 	virtual ~OpenXR();
 
-	bool init();
 	bool shutdown();
 	bool update();
 
