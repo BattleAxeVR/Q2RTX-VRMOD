@@ -12,6 +12,9 @@
 #include <vulkan/vulkan.h>
 
 VkResult CreateVulkanOpenXRInstance(const VkInstanceCreateInfo* instance_create_info, VkInstance* vk_instance);
+VkResult CreateVulkanOpenXRDevice(const VkDeviceCreateInfo* device_create_info, VkPhysicalDevice* vk_physical_device, VkDevice* vk_logical_device);
+
+void OpenXR_Update();
 void OpenXR_Shutdown();
 
 #endif // SUPPORT_OPENXR

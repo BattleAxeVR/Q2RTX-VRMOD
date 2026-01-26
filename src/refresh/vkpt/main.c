@@ -1482,11 +1482,20 @@ init_vulkan(void)
 	}
 
 	/* create device and queue */
-	result = vkCreateDevice(qvk.physical_device, &dev_create_info, NULL, &qvk.device);
+
+#if SUPPORT_OPENXR
+	result = CreateVulkanOpenXRDevice(&dev_create_info, &qvk.physical_device, &qvk.device);
+
 	if (result != VK_SUCCESS)
+#endif
 	{
-		Com_Error(ERR_FATAL, "Failed to create a Vulkan device.\nError code: %s", qvk_result_to_string(result));
-		return false;
+		result = vkCreateDevice(qvk.physical_device, &dev_create_info, NULL, &qvk.device);
+
+		if (result != VK_SUCCESS)
+		{
+			Com_Error(ERR_FATAL, "Failed to create a Vulkan device.\nError code: %s", qvk_result_to_string(result));
+			return false;
+		}
 	}
 
 	vkGetDeviceQueue(qvk.device, qvk.queue_idx_graphics, 0, &qvk.queue_graphics);

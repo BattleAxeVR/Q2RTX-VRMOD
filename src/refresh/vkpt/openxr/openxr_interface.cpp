@@ -153,11 +153,6 @@ bool OpenXR::init()
 		return false;
 	}
 
-	for (uint xr_command_buffer_index = 0; xr_command_buffer_index < NUM_COMMAND_BUFFERS; xr_command_buffer_index++)
-	{
-		xr_command_buffers_[xr_command_buffer_index].Init(vk_logical_device_, m_queueFamilyIndex);
-	}
-
 	set_initialized(true);
 
 	return true;
@@ -1226,80 +1221,61 @@ bool OpenXR::create_device(const VkDeviceCreateInfo& device_create_info)
 		return false;
 	}
 
-	assert(!vk_instance_);
-
-	XrResult xr_graphics_result = GetVulkanGraphicsRequirements2KHR(xr_instance_, xr_system_id_, &xr_graphics_requirements_);
-
-	if (xr_graphics_result != XR_SUCCESS)
+	if(!vk_physical_device_)
 	{
-		assert(false);
-		return false;
+		XrVulkanGraphicsDeviceGetInfoKHR device_get_info{ XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR };
+		device_get_info.systemId = xr_system_id_;
+		device_get_info.vulkanInstance = vk_instance_;
+		GetVulkanGraphicsDevice2KHR(xr_instance_, &device_get_info, &vk_physical_device_);
+		assert(vk_physical_device_);
 	}
 
-	//VkInstanceCreateInfo& instance_create_info = ctx.get_instance_create_info();
-	VkInstanceCreateInfo instance_create_info = {};
-
-	XrVulkanInstanceCreateInfoKHR xr_create_info{ XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR };
-	xr_create_info.systemId = xr_system_id_;
-	xr_create_info.pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
-	xr_create_info.vulkanCreateInfo = &instance_create_info;
-	xr_create_info.vulkanAllocator = nullptr;
-
-	VkResult err = VK_SUCCESS;
-	XrResult create_vk_instance_result = CreateVulkanInstanceKHR(xr_instance_, &xr_create_info, &vk_instance_, &err);
-
-	if(create_vk_instance_result != XR_SUCCESS)
+	if(m_queueFamilyIndex == INVALID_INDEX)
 	{
-		assert(false);
-		return false;
-	}
+		VkDeviceQueueCreateInfo queue_info{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
+		float queuePriorities = 0;
+		queue_info.queueCount = 1;
+		queue_info.pQueuePriorities = &queuePriorities;
 
-	assert(vk_instance_);
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device_, &queueFamilyCount, nullptr);
+		std::vector<VkQueueFamilyProperties> queueFamilyProps(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device_, &queueFamilyCount, &queueFamilyProps[0]);
 
-	XrVulkanGraphicsDeviceGetInfoKHR device_get_info{ XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR };
-	device_get_info.systemId = xr_system_id_;
-	device_get_info.vulkanInstance = vk_instance_;
-	GetVulkanGraphicsDevice2KHR(xr_instance_, &device_get_info, &vk_physical_device_);
-	assert(vk_physical_device_);
+		std::vector<VkDeviceQueueCreateInfo> queue_infos;
 
-	VkDeviceQueueCreateInfo queue_info{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
-	float queuePriorities = 0;
-	queue_info.queueCount = 1;
-	queue_info.pQueuePriorities = &queuePriorities;
-
-	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device_, &queueFamilyCount, nullptr);
-	std::vector<VkQueueFamilyProperties> queueFamilyProps(queueFamilyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(vk_physical_device_, &queueFamilyCount, &queueFamilyProps[0]);
-
-	std::vector<VkDeviceQueueCreateInfo> queue_infos;
-
-	for(uint32_t i = 0; i < queueFamilyCount; ++i)
-	{
-		if((queueFamilyProps[i].queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)) == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
+		for(uint32_t i = 0; i < queueFamilyCount; ++i)
 		{
-			queue_info.queueFamilyIndex = i;
-			m_queueFamilyIndex = queue_info.queueFamilyIndex;
-			queue_infos.push_back(queue_info);
+			if((queueFamilyProps[i].queueFlags & (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)) == (VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
+			{
+				queue_info.queueFamilyIndex = i;
+				m_queueFamilyIndex = queue_info.queueFamilyIndex;
+				queue_infos.push_back(queue_info);
+			}
+			else if((queueFamilyProps[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)) == (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
+			{
+				queue_info.queueFamilyIndex = i;
+				m_queueFamilyIndexCompute = queue_info.queueFamilyIndex;
+				queue_infos.push_back(queue_info);
+			}
+			else if((queueFamilyProps[i].queueFlags & (VK_QUEUE_TRANSFER_BIT)) == (VK_QUEUE_TRANSFER_BIT))
+			{
+				queue_info.queueFamilyIndex = i;
+				m_queueFamilyIndexTransfer = queue_info.queueFamilyIndex;
+				queue_infos.push_back(queue_info);
+			}
 		}
-		else if((queueFamilyProps[i].queueFlags & (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT)) == (VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT))
+
+		if(m_queueFamilyIndexTransfer == INVALID_INDEX)
 		{
-			queue_info.queueFamilyIndex = i;
-			m_queueFamilyIndexCompute = queue_info.queueFamilyIndex;
-			queue_infos.push_back(queue_info);
+			m_queueFamilyIndexTransfer = m_queueFamilyIndex;
 		}
-		else if((queueFamilyProps[i].queueFlags & (VK_QUEUE_TRANSFER_BIT)) == (VK_QUEUE_TRANSFER_BIT))
-		{
-			queue_info.queueFamilyIndex = i;
-			m_queueFamilyIndexTransfer = queue_info.queueFamilyIndex;
-			queue_infos.push_back(queue_info);
-		}
+		
+		assert(m_queueFamilyIndexCompute != INVALID_INDEX);
+		assert(m_queueFamilyIndexTransfer != INVALID_INDEX);
 	}
 
-	if(m_queueFamilyIndexTransfer == INVALID_INDEX)
-	{
-		m_queueFamilyIndexTransfer = m_queueFamilyIndex;
-	}
+	assert(m_queueFamilyIndex != INVALID_INDEX);
 
 	XrVulkanDeviceCreateInfoKHR deviceCreateInfo{ XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR };
 	deviceCreateInfo.systemId = xr_system_id_;
@@ -1317,14 +1293,6 @@ bool OpenXR::create_device(const VkDeviceCreateInfo& device_create_info)
 		return false;
 	}
 
-	assert(m_queueFamilyIndex != INVALID_INDEX);
-	assert(m_queueFamilyIndexCompute != INVALID_INDEX);
-	assert(m_queueFamilyIndexTransfer != INVALID_INDEX);
-
-	//ctx.m_queueGCT.familyIndex = m_queueFamilyIndex;
-	//ctx.m_queueC.familyIndex = m_queueFamilyIndexCompute;
-	//ctx.m_queueT.familyIndex = m_queueFamilyIndexTransfer;
-
 	xr_memory_allocator_.Init(vk_physical_device_, vk_logical_device_);
 
 	// VERY IMPORTANT to patch these values, XR session won't start without them
@@ -1333,6 +1301,13 @@ bool OpenXR::create_device(const VkDeviceCreateInfo& device_create_info)
 	xr_graphics_binding_.device = vk_logical_device_;
 	xr_graphics_binding_.queueFamilyIndex = m_queueFamilyIndex;
 	xr_graphics_binding_.queueIndex = 0;
+
+	for (uint xr_command_buffer_index = 0; xr_command_buffer_index < NUM_COMMAND_BUFFERS; xr_command_buffer_index++)
+	{
+		xr_command_buffers_[xr_command_buffer_index].Init(vk_logical_device_, m_queueFamilyIndex);
+	}
+
+	set_initialized(true);
 
 	return true;
 }
@@ -2914,6 +2889,36 @@ extern "C"
 		*vk_instance = openxr_.vk_instance_;
 		 
 		return VK_SUCCESS;
+	}
+
+	VkResult CreateVulkanOpenXRDevice(const VkDeviceCreateInfo* device_create_info, VkPhysicalDevice* vk_physical_device, VkDevice* vk_logical_device)
+	{
+		if(!openxr_.vk_instance_ || openxr_.vk_physical_device_ || openxr_.vk_logical_device_)
+		{
+			return VK_ERROR_UNKNOWN;
+		}
+
+		if(*vk_physical_device)
+		{
+			openxr_.vk_physical_device_ = *vk_physical_device;
+		}
+
+		const bool device_ok = openxr_.create_device(*device_create_info);
+
+		if(!device_ok)
+		{
+			return VK_ERROR_UNKNOWN;
+		}
+
+		*vk_physical_device = openxr_.vk_physical_device_;
+		*vk_logical_device = openxr_.vk_logical_device_;
+
+		return VK_SUCCESS;
+	}
+
+	void OpenXR_Update()
+	{
+		openxr_.update();
 	}
 
 	void OpenXR_Shutdown()
