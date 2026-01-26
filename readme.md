@@ -5,6 +5,8 @@ Start Date: Jan 25th, 2026
 
 This is a fork of Nvidia's FINAL Q2RTX code, that uses OpenXR to prove once and for all that path tracing + VR works, runs fast, and looks great, even in an ancient game like this one.
 
+Give it a day or two more and it should be fully playable. Right now I just got the OpenXR integration mostly hooked up, except for view/projection matrices passed into the main renderer. Modifying the shaders to do single-pass stereo (or 2-pass), is fairly trivial, as I've done it before.
+
 <img width="1622" height="1765" alt="image" src="https://github.com/user-attachments/assets/a4687cd1-0fd4-403d-933f-d961b71be14e" />
 
 
