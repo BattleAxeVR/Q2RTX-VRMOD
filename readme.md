@@ -1,6 +1,7 @@
 # Quake II RTX -- VR MOD
 
 Author: Bela Kampis of BattleAxeVR
+
 Start Date: Jan 25th, 2026
 
 This is a fork of Nvidia's FINAL Q2RTX code, that uses OpenXR to prove once and for all that path tracing + VR works, runs fast, and looks great, even in an ancient game like this one.
