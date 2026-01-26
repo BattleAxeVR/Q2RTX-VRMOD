@@ -13,6 +13,8 @@
 #define SUPPORT_OPENXR 0
 #endif
 
+#define SUPPORT_GAMEPADS 1
+
 #if SUPPORT_OPENXR
 
 #define NUM_COMMAND_BUFFERS 2

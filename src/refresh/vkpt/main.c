@@ -3792,6 +3792,11 @@ R_Init_RTX(bool total)
     extern SDL_Window *get_sdl_window(void);
     qvk.window = get_sdl_window();
 
+#if SUPPORT_GAMEPADS
+	const uint32_t flags = SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER;
+	SDL_Init(flags);
+#endif
+
 	cvar_profiler = Cvar_Get("profiler", "0", 0);
 	cvar_profiler_samples = Cvar_Get("profiler_samples", "60", CVAR_ARCHIVE);
 	cvar_profiler_scale = Cvar_Get("profiler_scale", "1", CVAR_ARCHIVE);

@@ -37,6 +37,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_vulkan.h>
 
+#include "../../refresh/vkpt/openxr/defines.h"
+
 #ifdef _WINDOWS
 #include <ShellScalingAPI.h>
 
@@ -587,9 +589,16 @@ static void pump_events(void)
             break;
         case SDL_MOUSEMOTION:
             if (sdl.win_width && sdl.win_height)
-                UI_MouseEvent(event.motion.x * sdl.width / sdl.win_width,
-                              event.motion.y * sdl.height / sdl.win_height);
+                UI_MouseEvent(event.motion.x * sdl.width / sdl.win_width, event.motion.y * sdl.height / sdl.win_height);
             break;
+#if SUPPORT_GAMEPADS
+        case SDL_CONTROLLERAXISMOTION:
+                UI_MouseEvent((event.caxis.axis == 0) ? event.caxis.value : 0.0f, (event.caxis.axis == 1) ? event.caxis.value : 0.0f);
+            break;
+        case SDL_JOYAXISMOTION:
+                UI_MouseEvent((event.jaxis.axis == 0) ? event.jaxis.value : 0.0f, (event.jaxis.axis == 1) ? event.jaxis.value : 0.0f);
+            break;
+#endif
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
             mouse_button_event(&event.button);
