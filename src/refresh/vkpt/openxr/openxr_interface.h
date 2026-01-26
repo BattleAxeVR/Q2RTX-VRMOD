@@ -139,7 +139,7 @@ public:
 
 	bool wait_frame();
 	bool begin_frame();
-	bool end_frame();
+	bool end_frame(VkCommandBuffer* external_command_buffer);
 
 	bool start_session();
 	bool stop_session();
@@ -338,8 +338,8 @@ private:
 	std::list<XRSwapchainImageContext> m_swapchainImageContexts;
 	std::map<const XrSwapchainImageBaseHeader*, XRSwapchainImageContext*> m_swapchainImageContextMap;
 
-	bool render_composition_layer(std::vector<XrCompositionLayerProjectionView>& projection_layer_views, XrCompositionLayerProjection& composition_layer);
-	void render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id);
+	bool render_composition_layer(std::vector<XrCompositionLayerProjectionView>& projection_layer_views, XrCompositionLayerProjection& composition_layer, VkCommandBuffer* external_command_buffer);
+	void render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id, VkCommandBuffer* external_command_buffer);
 
 	virtual XrStructureType GetGraphicsBindingType() const { return XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR; }
 	virtual XrStructureType GetSwapchainImageType() const { return XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR; }

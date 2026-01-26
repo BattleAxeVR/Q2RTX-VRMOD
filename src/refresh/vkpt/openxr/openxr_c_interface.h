@@ -16,7 +16,7 @@ VkResult CreateVulkanOpenXRDevice(const VkDeviceCreateInfo* device_create_info, 
 
 void OpenXR_Update();
 void OpenXR_Shutdown();
-void OpenXR_Endframe();
+void OpenXR_Endframe(VkCommandBuffer* external_command_buffer);
 
 #endif // SUPPORT_OPENXR
 

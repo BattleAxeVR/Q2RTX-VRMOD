@@ -580,7 +580,7 @@ bool OpenXR::begin_frame()
 	return true;
 }
 
-bool OpenXR::end_frame()
+bool OpenXR::end_frame(VkCommandBuffer* external_command_buffer)
 {
 	if(!is_initialized() || !is_session_running())
 	{
@@ -597,7 +597,7 @@ bool OpenXR::end_frame()
 
 	std::vector<XrCompositionLayerProjectionView> projection_layer_views;
 	
-	if(render_composition_layer(projection_layer_views, composition_layer))
+	if(render_composition_layer(projection_layer_views, composition_layer, external_command_buffer))
 	{
 		XrCompositionLayerBaseHeader* header = reinterpret_cast<XrCompositionLayerBaseHeader*>(&composition_layer);
 		composition_layers.push_back(header);
@@ -614,7 +614,7 @@ bool OpenXR::end_frame()
 	return true;
 }
 
-bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionView>& projection_layer_views, XrCompositionLayerProjection& composition_layer)
+bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionView>& projection_layer_views, XrCompositionLayerProjection& composition_layer, VkCommandBuffer* external_command_buffer)
 {
 	if(!is_initialized() || !is_session_running())
 	{
@@ -661,7 +661,7 @@ bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionVi
 #endif
 		}
 
-		render_projection_layer_view(projection_layer_views[view_id], swapchainImage, xr_colour_swapchain_format_, view_id);
+		render_projection_layer_view(projection_layer_views[view_id], swapchainImage, xr_colour_swapchain_format_, view_id, external_command_buffer);
 
 		XrSwapchainImageReleaseInfo releaseInfo{ XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
 		xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo);
@@ -678,7 +678,7 @@ bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionVi
 	return true;
 }
 
-void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id)
+void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id, VkCommandBuffer* external_command_buffer)
 {
 	if (!render_into_xr_swapchain_)
 	{
@@ -690,12 +690,22 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	XRSwapchainImageContext* swapchain_context = m_swapchainImageContextMap[swapchain_image];
 	uint32_t image_index = swapchain_context->ImageIndex(swapchain_image);
 
-	CommandBuffer& xr_command_buffer = xr_command_buffers_[xr_command_buffer_index_];
-	xr_command_buffer.Wait();
-	xr_command_buffer.Reset();
-	xr_command_buffer.Begin();
+	VkCommandBuffer command_buffer = {};
 
-	VkCommandBuffer command_buffer = xr_command_buffer.vk_command_buffer_;
+	if(external_command_buffer)
+	{
+		command_buffer = *external_command_buffer;
+	}
+	else
+	{
+		CommandBuffer& xr_command_buffer = xr_command_buffers_[xr_command_buffer_index_];
+
+		xr_command_buffer.Wait();
+		xr_command_buffer.Reset();
+		xr_command_buffer.Begin();
+
+		command_buffer = xr_command_buffer.vk_command_buffer_;
+	}
 
 	swapchain_context->depthBuffer.TransitionLayout(command_buffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
@@ -770,9 +780,13 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 
 	vkCmdEndRendering(command_buffer);
 
-	xr_command_buffer.End();
-	//xr_command_buffer.Exec(engine_.get_device().get_vk_graphics_queue());
-	xr_command_buffer_index_ = (xr_command_buffer_index_ + 1) % NUM_COMMAND_BUFFERS;
+	if(!external_command_buffer)
+	{
+		CommandBuffer& xr_command_buffer = xr_command_buffers_[xr_command_buffer_index_];
+		xr_command_buffer.End();
+		//xr_command_buffer.Exec(engine_.get_device().get_vk_graphics_queue());
+		xr_command_buffer_index_ = (xr_command_buffer_index_ + 1) % NUM_COMMAND_BUFFERS;
+	}
 }
 
 std::vector<const char*> ParseExtensionString(char* names) 
@@ -2897,9 +2911,9 @@ extern "C"
 		openxr_.shutdown();
 	}
 
-	void OpenXR_Endframe()
+	void OpenXR_Endframe(VkCommandBuffer* external_command_buffer)
 	{
-		openxr_.end_frame();
+		openxr_.end_frame(external_command_buffer);
 	}
 }
 

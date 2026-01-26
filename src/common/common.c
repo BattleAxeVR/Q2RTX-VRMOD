@@ -1143,11 +1143,6 @@ void Qcommon_Frame(void)
     }
 
 
-#if SUPPORT_OPENXR
-    OpenXR_Endframe();
-#endif
-
-
 #endif
 }
 
