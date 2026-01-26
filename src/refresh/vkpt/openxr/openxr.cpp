@@ -807,7 +807,7 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	rendering_info.renderArea.extent = extent;
 	rendering_info.renderArea.offset = offset;
 
-	vkCmdBeginRenderingKHR(command_buffer, &rendering_info);
+	vkCmdBeginRendering(command_buffer, &rendering_info);
 
 	VkViewport viewport{ 0, 0, (float)projection_layer_view.subImage.imageRect.extent.width, (float)projection_layer_view.subImage.imageRect.extent.height, 0, 10000 };
 	vkCmdSetViewport(command_buffer, 0, 1, &viewport);
@@ -817,7 +817,7 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 
 	//post_process.post_process(command_buffer, (EYE)view_id);
 
-	vkCmdEndRenderingKHR(command_buffer);
+	vkCmdEndRendering(command_buffer);
 
 	xr_command_buffer.End();
 	//xr_command_buffer.Exec(engine_.get_device().get_vk_graphics_queue());

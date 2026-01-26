@@ -7,15 +7,10 @@
 
 #if SUPPORT_OPENXR
 
-#ifndef VK_USE_PLATFORM_WIN32_KHR
-#define VK_USE_PLATFORM_WIN32_KHR
-
-#include <vulkan/vulkan.h>
-#include <algorithm>
+#include "assert.h"
 
 XRInputState::XRInputState(OpenXR& openxr) : openxr_(openxr)
 {
-
 }
 
 bool XRInputState::init()
@@ -843,8 +838,6 @@ bool XRInputState::update()
 		return false;
 	}
 
-	tv::VR_Manager& vr_manager = openxr_.get_engine().get_vr_manager();
-
 	const XrActiveActionSet activeActionSet{ xr_action_set_, XR_NULL_PATH };
 	XrActionsSyncInfo syncInfo{ XR_TYPE_ACTIONS_SYNC_INFO };
 	syncInfo.countActiveActionSets = 1;
@@ -876,10 +869,7 @@ bool XRInputState::update()
 					hapticActionInfo.action = vibrateAction;
 					hapticActionInfo.subactionPath = hand_subaction_path_[hand];
 
-					if(vr_manager.haptics_on_grab_enabled_)
-					{
-						xrApplyHapticFeedback(openxr_.xr_session_, &hapticActionInfo, (XrHapticBaseHeader*)&vibration);
-					}
+					xrApplyHapticFeedback(openxr_.xr_session_, &hapticActionInfo, (XrHapticBaseHeader*)&vibration);
 
 #endif // SUPPORT_HAPTICS					
 					openxr_.set_hand_gripping((uint)hand, true);
@@ -923,10 +913,7 @@ bool XRInputState::update()
 					XrHapticActionInfo hapticActionInfo{ XR_TYPE_HAPTIC_ACTION_INFO };
 					hapticActionInfo.action = vibrateAction;
 					hapticActionInfo.subactionPath = hand_subaction_path_[hand];
-					if(vr_manager.haptics_on_trigger_enabled_)
-					{
-						xrApplyHapticFeedback(openxr_.xr_session_, &hapticActionInfo, (XrHapticBaseHeader*)&vibration);
-					}
+					xrApplyHapticFeedback(openxr_.xr_session_, &hapticActionInfo, (XrHapticBaseHeader*)&vibration);
 #endif
 
 				}
@@ -1025,7 +1012,7 @@ bool XRInputState::update()
 
 			if(button_value.isActive == XR_TRUE)
 			{
-				vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_Joystick_Click].set_state(button_value.currentState);
+				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_Joystick_Click].set_state(button_value.currentState);
 			}
 		}
 
@@ -1042,7 +1029,7 @@ bool XRInputState::update()
 
 			if(menu_button_value.isActive == XR_TRUE)
 			{
-				vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_ApplicationMenu].set_state(menu_button_value.currentState);
+				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_ApplicationMenu].set_state(menu_button_value.currentState);
 			}
 		}
 #endif
@@ -1059,7 +1046,7 @@ bool XRInputState::update()
 
 			if(button_value.isActive == XR_TRUE)
 			{
-				vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_XA_Touch].set_state(button_value.currentState);
+				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_XA_Touch].set_state(button_value.currentState);
 			}
 		}
 
@@ -1074,7 +1061,7 @@ bool XRInputState::update()
 
 			if(button_value.isActive == XR_TRUE)
 			{
-				vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_XA_Click].set_state(button_value.currentState);
+				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_XA_Click].set_state(button_value.currentState);
 			}
 		}
 
@@ -1089,7 +1076,7 @@ bool XRInputState::update()
 
 			if(button_value.isActive == XR_TRUE)
 			{
-				vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_YB_Touch].set_state(button_value.currentState);
+				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_YB_Touch].set_state(button_value.currentState);
 			}
 		}
 
@@ -1104,7 +1091,7 @@ bool XRInputState::update()
 
 			if(button_value.isActive == XR_TRUE)
 			{
-				vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_YB_Click].set_state(button_value.currentState);
+				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_YB_Click].set_state(button_value.currentState);
 			}
 		}
 #endif
@@ -1148,7 +1135,5 @@ bool XRInputState::shutdown()
 	set_initialized(false);
 	return true;
 }
-
-#endif
 
 #endif // SUPPORT_OPENXR
