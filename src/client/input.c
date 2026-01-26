@@ -550,7 +550,6 @@ static void CL_AdjustAngles(int msec)
             cl.viewangles[PITCH] += speed * cl_pitchspeed->value * (float)gamepad_right_y / 32767.0f;
         }
     }
-    
 #endif
 }
 
@@ -750,6 +749,9 @@ void CL_RegisterInput(void)
     cl_sidespeed = Cvar_Get("cl_sidespeed", "200", 0);
     cl_yawspeed = Cvar_Get("cl_yawspeed", "140", 0);
     cl_pitchspeed = Cvar_Get("cl_pitchspeed", "150", CVAR_CHEAT);
+#if SUPPORT_OPENXR
+    cl_pitchspeed = 0;
+#endif
     cl_anglespeedkey = Cvar_Get("cl_anglespeedkey", "1.5", CVAR_CHEAT);
     cl_run = Cvar_Get("cl_run", "1", CVAR_ARCHIVE);
 
