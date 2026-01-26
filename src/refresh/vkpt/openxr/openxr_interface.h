@@ -276,6 +276,20 @@ public:
 	bool recenter_event_occurred_ = false;
 #endif
 
+	bool create_instance(const VkInstanceCreateInfo& instance_create_info);
+	void destroy_instance();
+
+	bool init_system();
+	void destroy_system();
+
+	bool create_device(const VkDeviceCreateInfo& device_create_info);
+	void destroy_device();
+
+	bool create_swapchain();
+	void destroy_swapchain();
+
+	bool get_system_properties();
+
 private:
 	bool initialized_ = false;
 
@@ -337,20 +351,6 @@ private:
 	virtual XrResult CreateVulkanDeviceKHR(XrInstance instance, const XrVulkanDeviceCreateInfoKHR* createInfo, VkDevice* vulkanDevice, VkResult* vulkanResult);
 	virtual XrResult GetVulkanGraphicsDevice2KHR(XrInstance instance, const XrVulkanGraphicsDeviceGetInfoKHR* getInfo, VkPhysicalDevice* vulkanPhysicalDevice);
 	virtual XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId, XrGraphicsRequirementsVulkan2KHR* graphicsRequirements);
-
-	bool create_instance();
-	void destroy_instance();
-
-	bool init_system();
-	void destroy_system();
-
-	bool init_device();
-	void destroy_device();
-
-	bool create_swapchain();
-	void destroy_swapchain();
-
-	bool get_system_properties();
 
 #if ENABLE_EXT_EYE_TRACKING
 	XrSystemEyeGazeInteractionPropertiesEXT ext_gaze_interaction_properties_{ XR_TYPE_SYSTEM_EYE_GAZE_INTERACTION_PROPERTIES_EXT };

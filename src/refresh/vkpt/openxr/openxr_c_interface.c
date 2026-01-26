@@ -2,9 +2,11 @@
 // Copyright (c) 2026 BattleAxeVR. All rights reserved.
 //--------------------------------------------------------------------------------------
 
-#include "openxr_c_interface.h"
+
 
 #if SUPPORT_OPENXR
+
+#include "openxr_interface.h"
 
 //VkInstance vk_instance_ = nullptr;
 //VkPhysicalDevice vk_physical_device_ = nullptr;

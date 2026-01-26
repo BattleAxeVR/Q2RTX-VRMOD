@@ -9,40 +9,10 @@
 
 #if SUPPORT_OPENXR
 
-struct OpenXR_CInterface
-{
-	//VkInstance vk_instance_ = nullptr;
-	//VkPhysicalDevice vk_physical_device_ = nullptr;
-	//VkDevice vk_logical_device_ = nullptr;
-	int i;
-#if 0
-	bool init();
-	bool shutdown();
-	bool update();
+#include <vulkan/vulkan.h>
 
-	bool is_initialized() const
-	{
-		return initialized_;
-	}
-
-	void set_initialized(const bool initialized)
-	{
-		initialized_ = initialized;
-	}
-
-	bool wait_frame();
-	bool begin_frame();
-	bool end_frame();
-
-	bool start_session();
-	bool stop_session();
-
-	bool is_session_running() const;
-
-	bool initialized_ = false;
-	void* openxr_interface_ = nullptr;
-#endif
-};
+VkResult CreateVulkanOpenXRInstance(const VkInstanceCreateInfo* instance_create_info, VkInstance* vk_instance);
+void OpenXR_Shutdown();
 
 #endif // SUPPORT_OPENXR
 

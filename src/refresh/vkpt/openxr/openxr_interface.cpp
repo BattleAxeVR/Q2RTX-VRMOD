@@ -132,7 +132,9 @@ bool OpenXR::init()
 
 	log_layers_and_extensions();
 	
-	const bool instance_ok = create_instance();
+	VkInstanceCreateInfo instance_create_info = {};// device.context_.get_instance_create_info();
+
+	const bool instance_ok = create_instance(instance_create_info);
 
 	if(!instance_ok)
 	{
@@ -140,17 +142,10 @@ bool OpenXR::init()
 		return false;
 	}
 
-	log_instance_info();
+	const int device_index = 0;
+	VkDeviceCreateInfo device_create_info = {};// device.context_.get_device_create_info(device_index);
 
-	const bool system_ok = init_system();
-
-	if(!system_ok)
-	{
-		shutdown();
-		return false;
-	}
-
-	const bool device_ok = init_device();
+	const bool device_ok = create_device(device_create_info);
 
 	if (!device_ok)
 	{
@@ -285,16 +280,7 @@ bool OpenXR::shutdown()
 	DestroyEXTEeyeTracking();
 #endif
 
-	for(XRSwapchain swapchain : xr_swapchains_)
-	{
-		if (swapchain.handle)
-		{
-			//xrDestroySwapchain(swapchain.handle);
-			swapchain.handle = nullptr;
-		}
-	}
-
-	xr_swapchains_.clear();
+	destroy_swapchain();
 
 	//for(XrSpace visualizedSpace : m_visualizedSpaces)
 	{
@@ -983,11 +969,11 @@ XrResult OpenXR::GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystem
 	return XR_SUCCESS;
 }
 
-bool OpenXR::create_instance()
+bool OpenXR::create_instance(const VkInstanceCreateInfo& instance_create_info)
 {
 	assert(xr_instance_ == XR_NULL_HANDLE);
 
-	std::vector<const char*> extensions;
+	std::vector<const char*> xr_instance_extensions;
 
 #if 1
 
@@ -995,7 +981,7 @@ bool OpenXR::create_instance()
 	if(supports_hand_tracking_)
 	{
 		//Log::Write(Log::Level::Info, "Hand Tracking is supported");
-		extensions.push_back(XR_EXT_HAND_TRACKING_EXTENSION_NAME);
+		xr_instance_extensions.push_back(XR_EXT_HAND_TRACKING_EXTENSION_NAME);
 	}
 	else
 	{
@@ -1007,7 +993,7 @@ bool OpenXR::create_instance()
 	if(supports_eye_tracking_social_)
 	{
 		//Log::Write(Log::Level::Info, "Eye Tracking is supported (Quest Pro)");
-		extensions.push_back(XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME);
+		xr_instance_extensions.push_back(XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME);
 	}
 	else
 	{
@@ -1019,7 +1005,7 @@ bool OpenXR::create_instance()
 	if(supports_ext_eye_tracking_)
 	{
 		//Log::Write(Log::Level::Info, "EXT Eye Tracking is supported");
-		extensions.push_back(XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME);
+		xr_instance_extensions.push_back(XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME);
 	}
 	else
 	{
@@ -1031,7 +1017,7 @@ bool OpenXR::create_instance()
 	if(supports_face_tracking_)
 	{
 		//Log::Write(Log::Level::Info, "Face Tracking is supported");
-		extensions.push_back(XR_EXT_HAND_TRACKING_EXTENSION_NAME);
+		xr_instance_extensions.push_back(XR_EXT_HAND_TRACKING_EXTENSION_NAME);
 	}
 	else
 	{
@@ -1043,7 +1029,7 @@ bool OpenXR::create_instance()
 	if(supports_fb_body_tracking_)
 	{
 		//Log::Write(Log::Level::Info, "FB Meta Body Tracking is supported");
-		extensions.push_back(XR_FB_BODY_TRACKING_EXTENSION_NAME);
+		xr_instance_extensions.push_back(XR_FB_BODY_TRACKING_EXTENSION_NAME);
 	}
 	else
 	{
@@ -1055,7 +1041,7 @@ bool OpenXR::create_instance()
 	if(supports_meta_body_tracking_fidelity_)
 	{
 		//Log::Write(Log::Level::Info, "XR_META_body_tracking_fidelity is supported");
-		extensions.push_back(XR_META_BODY_TRACKING_FIDELITY_EXTENSION_NAME);
+		xr_instance_extensions.push_back(XR_META_BODY_TRACKING_FIDELITY_EXTENSION_NAME);
 	}
 	else
 	{
@@ -1067,7 +1053,7 @@ bool OpenXR::create_instance()
 	if(supports_meta_full_body_tracking_)
 	{
 		//Log::Write(Log::Level::Info, "XR_META_body_tracking_full_body is supported");
-		extensions.push_back(XR_META_BODY_TRACKING_FULL_BODY_EXTENSION_NAME);
+		xr_instance_extensions.push_back(XR_META_BODY_TRACKING_FULL_BODY_EXTENSION_NAME);
 	}
 	else
 	{
@@ -1079,7 +1065,7 @@ bool OpenXR::create_instance()
 	if(supports_simultaneous_hands_and_controllers_)
 	{
 		//Log::Write(Log::Level::Info, "Simultaneous hands and controllers are supported");
-		extensions.push_back(XR_META_SIMULTANEOUS_HANDS_AND_CONTROLLERS_EXTENSION_NAME);
+		xr_instance_extensions.push_back(XR_META_SIMULTANEOUS_HANDS_AND_CONTROLLERS_EXTENSION_NAME);
 	}
 	else
 	{
@@ -1091,7 +1077,7 @@ bool OpenXR::create_instance()
 	if(supports_HTCX_vive_tracker_interaction_)
 	{
 		//Log::Write(Log::Level::Info, "Vive trackers are supported");
-		extensions.push_back(XR_HTCX_VIVE_TRACKER_INTERACTION_EXTENSION_NAME);
+		xr_instance_extensions.push_back(XR_HTCX_VIVE_TRACKER_INTERACTION_EXTENSION_NAME);
 	}
 	else
 	{
@@ -1102,11 +1088,11 @@ bool OpenXR::create_instance()
 #endif
 
 	const std::vector<std::string> platformExtensions = GetPlatformInstanceExtensions();
-	std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(extensions),[](const std::string& ext) { return ext.c_str(); });
+	std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(xr_instance_extensions),[](const std::string& ext) { return ext.c_str(); });
 
 	const std::vector<std::string> graphicsExtensions = GetGraphicsInstanceExtensions();
 
-	std::transform(graphicsExtensions.begin(), graphicsExtensions.end(), std::back_inserter(extensions), [](const std::string& ext) { return ext.c_str(); });
+	std::transform(graphicsExtensions.begin(), graphicsExtensions.end(), std::back_inserter(xr_instance_extensions), [](const std::string& ext) { return ext.c_str(); });
 
 	uint32_t instanceExtensionCount = 0;
 	xrEnumerateInstanceExtensionProperties(nullptr, 0, &instanceExtensionCount, nullptr);
@@ -1133,8 +1119,8 @@ bool OpenXR::create_instance()
 
 	XrInstanceCreateInfo xr_instance_create_info{ XR_TYPE_INSTANCE_CREATE_INFO };
 	xr_instance_create_info.next = nullptr;// GetInstanceCreateExtension();
-	xr_instance_create_info.enabledExtensionCount = (uint32_t)extensions.size();
-	xr_instance_create_info.enabledExtensionNames = extensions.data();
+	xr_instance_create_info.enabledExtensionCount = (uint32_t)xr_instance_extensions.size();
+	xr_instance_create_info.enabledExtensionNames = xr_instance_extensions.data();
 
 	strcpy(xr_instance_create_info.applicationInfo.applicationName, "HelloXR");
 
@@ -1148,6 +1134,42 @@ bool OpenXR::create_instance()
 	{
 		return false;
 	}
+
+	assert(xr_instance_);
+
+	log_instance_info();
+
+	const bool system_ok = init_system();
+
+	if(!system_ok)
+	{
+		return false;
+	}
+
+	XrResult xr_graphics_result = GetVulkanGraphicsRequirements2KHR(xr_instance_, xr_system_id_, &xr_graphics_requirements_);
+
+	if(xr_graphics_result != XR_SUCCESS)
+	{
+		assert(false);
+		return false;
+	}
+
+	XrVulkanInstanceCreateInfoKHR xr_create_info{ XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR };
+	xr_create_info.systemId = xr_system_id_;
+	xr_create_info.pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
+	xr_create_info.vulkanCreateInfo = &instance_create_info;
+	xr_create_info.vulkanAllocator = nullptr;
+
+	VkResult err = VK_SUCCESS;
+	XrResult create_vk_instance_result = CreateVulkanInstanceKHR(xr_instance_, &xr_create_info, &vk_instance_, &err);
+
+	if(create_vk_instance_result != XR_SUCCESS)
+	{
+		assert(false);
+		return false;
+	}
+
+	assert(vk_instance_);
 
 	return true;
 }
@@ -1196,7 +1218,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugMessageThunk(VkDebugUtilsMessageSever
 }
 
 
-bool OpenXR::init_device()
+bool OpenXR::create_device(const VkDeviceCreateInfo& device_create_info)
 {
 	if(!xr_instance_)
 	{
@@ -1278,9 +1300,6 @@ bool OpenXR::init_device()
 	{
 		m_queueFamilyIndexTransfer = m_queueFamilyIndex;
 	}
-
-	const int device_index = 0;
-	VkDeviceCreateInfo device_create_info = {};// ctx.get_device_create_info(device_index);
 
 	XrVulkanDeviceCreateInfoKHR deviceCreateInfo{ XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR };
 	deviceCreateInfo.systemId = xr_system_id_;
@@ -2090,7 +2109,16 @@ void OpenXR::SetSimultaneousHandsAndControllersEnabled(const bool enabled)
 
 void OpenXR::destroy_swapchain()
 {
+	for(XRSwapchain swapchain : xr_swapchains_)
+	{
+		if (swapchain.handle)
+		{
+			//xrDestroySwapchain(swapchain.handle);
+			swapchain.handle = nullptr;
+		}
+	}
 
+	xr_swapchains_.clear();
 }
 
 bool OpenXR::get_system_properties()
@@ -2867,6 +2895,31 @@ void OpenXR::log_instance_info()
 	xrGetInstanceProperties(xr_instance_, &instanceProperties);
 
 	//Log::Write(Log::Level::Info, Fmt("Instance RuntimeName=%s RuntimeVersion=%s", instanceProperties.runtimeName, GetXrVersionString(instanceProperties.runtimeVersion).c_str()));
+}
+
+OpenXR openxr_;
+
+// C Interface wrapper for simplicity
+extern "C"
+{
+	VkResult __cdecl CreateVulkanOpenXRInstance(const VkInstanceCreateInfo* instance_create_info, VkInstance* vk_instance)
+	{
+		const bool instance_ok = openxr_.create_instance(*instance_create_info);
+
+		if(!instance_ok)
+		{
+			return VK_ERROR_UNKNOWN;
+		}
+
+		*vk_instance = openxr_.vk_instance_;
+		 
+		return VK_SUCCESS;
+	}
+
+	void OpenXR_Shutdown()
+	{
+		openxr_.shutdown();
+	}
 }
 
 #endif // SUPPORT_OPENXR

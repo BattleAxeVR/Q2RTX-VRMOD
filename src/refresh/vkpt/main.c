@@ -950,6 +950,9 @@ init_vulkan(void)
 	VkResult result = VK_SUCCESS;
 
 #if SUPPORT_OPENXR
+	result = CreateVulkanOpenXRInstance(&inst_create_info, &qvk.instance);
+
+	if(result != VK_SUCCESS)
 #endif
 	{
 		result = vkCreateInstance(&inst_create_info, NULL, &qvk.instance);
@@ -3959,6 +3962,10 @@ R_Init_RTX(bool total)
 void
 R_Shutdown_RTX(bool total)
 {
+#if SUPPORT_OPENXR
+	OpenXR_Shutdown();
+#endif
+
 	vkpt_freecam_reset();
 
 	vkDeviceWaitIdle(qvk.device);

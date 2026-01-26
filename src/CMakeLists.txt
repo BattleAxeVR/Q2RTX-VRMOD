@@ -284,7 +284,6 @@ SET(SRC_VKPT
 	refresh/vkpt/device_memory_allocator.c
 	refresh/vkpt/god_rays.c
 	refresh/vkpt/conversion.c
-	refresh/vkpt/openxr/openxr_c_interface.c
 	refresh/vkpt/openxr/openxr_interface.cpp
 	refresh/vkpt/openxr/openxr_input.cpp
 	refresh/vkpt/openxr/openxr_swapchain.cpp
