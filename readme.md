@@ -13,7 +13,9 @@ For starters, waist-oriented locomotion is a priority for me, it will prove to p
 
 I may also enable eye-tracking for aim assist or some cool laser eye cannons but I will not be implementing my private foveated path tracing scheme in this repo, until after my own game launches.
 
-I will open up a Patreon for donations to support my work.
+Here is my patreon in case anyone wants to donate to support my work. THANK YOU!
+
+https://www.patreon.com/posts/quake-2-rtx-vr-149142788?utm_medium=social&utm_source=twitter&utm_campaign=postshare_creator&utm_content=join_link
 
 ## Project Discontinued
 
