@@ -51,6 +51,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "system/system.h"
 #include "system/hunk.h"
 
+#include "../refresh/vkpt/openxr/defines.h"
+
 #if USE_DEBUG
 #include "features.h"
 #endif
@@ -1115,6 +1117,11 @@ void Qcommon_Frame(void)
     remaining = SV_Frame(msec);
 
 #if USE_CLIENT
+
+#if SUPPORT_OPENXR
+    OpenXR_Update();
+#endif
+
     if (host_speeds->integer)
         time_between = Sys_Milliseconds();
 

@@ -5,6 +5,10 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#ifdef SUPPORT_OPENXR
+#undef SUPPORT_OPENXR
+#endif
+
 #ifndef SUPPORT_OPENXR
 #define SUPPORT_OPENXR 0
 #endif

@@ -1904,10 +1904,6 @@ unsigned SV_Frame(unsigned msec)
     time_before_game = time_after_game = 0;
 #endif
 
-#if SUPPORT_OPENXR
-    OpenXR_Update();
-#endif
-
     // advance local server time
     svs.realtime += msec;
 
