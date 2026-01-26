@@ -10,7 +10,7 @@ Give it a day or two more and it should be fully playable. Right now I just got 
 <img width="1622" height="1765" alt="image" src="https://github.com/user-attachments/assets/a4687cd1-0fd4-403d-933f-d961b71be14e" />
 
 
-I originally coded an OpenVR version the same month this originally, years ago but never released it to validate to myself whether an RTX 2080 Ti could even render path traced visuals in VR in realtime. And it could.
+I originally coded an OpenVR version back in 2019 but never released it. It was just to validate to myself whether an RTX 2080 Ti could even render path-traced visuals in VR in realtime. And it could.
 
 I will eventually add many features.
 
