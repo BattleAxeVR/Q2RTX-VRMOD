@@ -2,7 +2,7 @@
 // Copyright (c) 2026 BattleAxeVR. All rights reserved.
 //--------------------------------------------------------------------------------------
 
-#include "openxr.h"
+#include "openxr_interface.h"
 #include "openxr_input.h"
 
 #if SUPPORT_OPENXR

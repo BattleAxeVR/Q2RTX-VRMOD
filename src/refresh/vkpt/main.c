@@ -51,6 +51,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <string.h>
 #include <assert.h>
 
+#include "openxr/defines.h"
+
+#if SUPPORT_OPENXR
+#include "openxr/openxr_c_interface.h"
+#endif
+
 cvar_t *cvar_profiler = NULL;
 cvar_t *cvar_profiler_samples = NULL;
 cvar_t *cvar_profiler_scale = NULL;
@@ -941,27 +947,33 @@ init_vulkan(void)
 		qvk.enable_validation = true;
 	}
 
-	VkResult result = vkCreateInstance(&inst_create_info, NULL, &qvk.instance);
+	VkResult result = VK_SUCCESS;
 
-	if (result == VK_ERROR_LAYER_NOT_PRESENT)
+#if SUPPORT_OPENXR
+#endif
 	{
-		Com_WPrintf("Vulkan validation layer is requested through cvar %s but is not available.\n", cvar_vk_validation->name);
-
-		// Try again, this time without the validation layer
-
-		inst_create_info.enabledLayerCount = 0;
 		result = vkCreateInstance(&inst_create_info, NULL, &qvk.instance);
-		qvk.enable_validation = false;
-	}
-	else if (cvar_vk_validation->integer)
-	{
-		Com_WPrintf("Vulkan validation layer is enabled, expect degraded game performance.\n");
-	}
 
-	if (result != VK_SUCCESS)
-	{
-		Com_Error(ERR_FATAL, "Failed to initialize a Vulkan instance.\nError code: %s", qvk_result_to_string(result));
-		return false;
+		if (result == VK_ERROR_LAYER_NOT_PRESENT)
+		{
+			Com_WPrintf("Vulkan validation layer is requested through cvar %s but is not available.\n", cvar_vk_validation->name);
+
+			// Try again, this time without the validation layer
+
+			inst_create_info.enabledLayerCount = 0;
+			result = vkCreateInstance(&inst_create_info, NULL, &qvk.instance);
+			qvk.enable_validation = false;
+		}
+		else if (cvar_vk_validation->integer)
+		{
+			Com_WPrintf("Vulkan validation layer is enabled, expect degraded game performance.\n");
+		}
+
+		if (result != VK_SUCCESS)
+		{
+			Com_Error(ERR_FATAL, "Failed to initialize a Vulkan instance.\nError code: %s", qvk_result_to_string(result));
+			return false;
+		}
 	}
 
 #define VK_EXTENSION_DO(a) \

@@ -2,8 +2,8 @@
 // Copyright (c) 2026 BattleAxeVR. All rights reserved.
 //--------------------------------------------------------------------------------------
 
-#ifndef OPENXR_H
-#define OPENXR_H
+#ifndef OPENXR_INTERFACE_H
+#define OPENXR_INTERFACE_H
 
 #include "defines.h"
 
@@ -498,4 +498,4 @@ private:
 
 #endif // SUPPORT_OPENXR
 
-#endif // OPENXR_H
+#endif // OPENXR_INTERFACE_H

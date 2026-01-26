@@ -6,7 +6,7 @@
 #define DEFINES_H
 
 #ifndef SUPPORT_OPENXR
-#define SUPPORT_OPENXR 0
+#define SUPPORT_OPENXR 1
 #endif
 
 #if SUPPORT_OPENXR
