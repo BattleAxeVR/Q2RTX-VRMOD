@@ -1141,6 +1141,13 @@ void Qcommon_Frame(void)
         Com_Printf("all:%3i ev:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n",
                    all, ev, sv, gm, cl, rf);
     }
+
+
+#if SUPPORT_OPENXR
+    OpenXR_Endframe();
+#endif
+
+
 #endif
 }
 

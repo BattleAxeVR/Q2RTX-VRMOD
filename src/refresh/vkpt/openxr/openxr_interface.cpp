@@ -701,7 +701,7 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 
 	static std::array<VkClearValue, 2> clearValues;
 	clearValues[0].color.float32[0] = 0.0f;
-	clearValues[0].color.float32[1] = 0.0f;
+	clearValues[0].color.float32[1] = 1.0f;
 	clearValues[0].color.float32[2] = 0.0f;
 	clearValues[0].color.float32[3] = 1.0f;
 	clearValues[1].depthStencil.depth = 1.0f;
@@ -2191,11 +2191,9 @@ bool OpenXR::update_views(XrTime predicted_display_time)
 
 	for (uint view_id = 0; view_id < actual_num_views; view_id++)
 	{
-#if 0
-		XRView& xr_view = hmd_view_.eye_poses_[view_id];
-		xr_view.xr_pose_ = tv_convert(xr_views_[view_id].pose);
-		xr_view.fov_.set_from_xr(xr_views_[view_id].fov);
-#endif
+		//XRView& xr_view = hmd_view_.eye_poses_[view_id];
+		//xr_view.xr_pose_ = tv_convert(xr_views_[view_id].pose);
+		//xr_view.fov_.set_from_xr(xr_views_[view_id].fov);
 	}
 
 	return true;
@@ -2897,6 +2895,11 @@ extern "C"
 	void OpenXR_Shutdown()
 	{
 		openxr_.shutdown();
+	}
+
+	void OpenXR_Endframe()
+	{
+		openxr_.end_frame();
 	}
 }
 

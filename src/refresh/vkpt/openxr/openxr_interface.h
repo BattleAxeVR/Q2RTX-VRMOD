@@ -292,7 +292,7 @@ public:
 private:
 	bool initialized_ = false;
 
-	//HMDView hmd_view_;
+	HMDView hmd_view_;
 	//float2 thumbsticks_[NUM_SIDES] = { float2_zero, float2_zero };
 
 	float triggers_[NUM_SIDES] = { 0.0f, 0.0f };
