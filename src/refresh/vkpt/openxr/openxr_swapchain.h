@@ -86,6 +86,7 @@ struct XRDepthBuffer
 	XRDepthBuffer& operator=(XRDepthBuffer&& other) noexcept;
 	
 	void Create(VkDevice device, XRMemoryAllocator* memAllocator, VkFormat depthFormat, const XrSwapchainCreateInfo& swapchainCreateInfo);
+	void Destroy();
 	void TransitionLayout(VkCommandBuffer command_buffer, VkImageLayout newLayout);
 
 	XRDepthBuffer(const XRDepthBuffer&) = delete;

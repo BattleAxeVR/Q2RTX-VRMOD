@@ -141,20 +141,7 @@ XRDepthBuffer::XRDepthBuffer(XRDepthBuffer&& other) noexcept : XRDepthBuffer()
 
 XRDepthBuffer::~XRDepthBuffer()
 {
-	if(vk_logical_device_ != nullptr)
-	{
-		if(depthImage != VK_NULL_HANDLE)
-		{
-			vkDestroyImage(vk_logical_device_, depthImage, nullptr);
-		}
-		if(depthMemory != VK_NULL_HANDLE)
-		{
-			vkFreeMemory(vk_logical_device_, depthMemory, nullptr);
-		}
-	}
-	depthImage = VK_NULL_HANDLE;
-	depthMemory = VK_NULL_HANDLE;
-	vk_logical_device_ = nullptr;
+	Destroy();
 }
 
 
@@ -203,6 +190,27 @@ void XRDepthBuffer::Create(VkDevice device, XRMemoryAllocator* memAllocator, VkF
 	vkGetImageMemoryRequirements(device, depthImage, &memRequirements);
 	memAllocator->Allocate(memRequirements, &depthMemory, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, nullptr);
 	vkBindImageMemory(device, depthImage, depthMemory, 0);
+}
+
+void XRDepthBuffer::Destroy()
+{
+	if(vk_logical_device_ != nullptr)
+	{
+		if(depthImage != VK_NULL_HANDLE)
+		{
+			vkDestroyImage(vk_logical_device_, depthImage, nullptr);
+			depthImage = VK_NULL_HANDLE;
+		}
+
+		if(depthMemory != VK_NULL_HANDLE)
+		{
+			vkFreeMemory(vk_logical_device_, depthMemory, nullptr);
+			depthMemory = VK_NULL_HANDLE;
+		}
+	}
+	depthImage = VK_NULL_HANDLE;
+	depthMemory = VK_NULL_HANDLE;
+	vk_logical_device_ = nullptr;
 }
 
 void XRDepthBuffer::TransitionLayout(VkCommandBuffer command_buffer, VkImageLayout newLayout)
