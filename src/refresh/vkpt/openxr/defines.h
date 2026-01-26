@@ -5,6 +5,9 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#define SUPPORT_GAMEPADS 1
+
+
 #ifdef SUPPORT_OPENXR
 #undef SUPPORT_OPENXR
 #endif
@@ -12,8 +15,6 @@
 #ifndef SUPPORT_OPENXR
 #define SUPPORT_OPENXR 0
 #endif
-
-#define SUPPORT_GAMEPADS 1
 
 #if SUPPORT_OPENXR
 

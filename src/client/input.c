@@ -18,6 +18,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // cl.input.c  -- builds an intended movement command to send to the server
 
 #include "client.h"
+#include "SDL2/SDL.h"
+#include "../refresh/vkpt/openxr/defines.h"
 
 static cvar_t    *cl_nodelta;
 static cvar_t    *cl_maxpackets;
@@ -527,6 +529,43 @@ static void CL_AdjustAngles(int msec)
 
     cl.viewangles[PITCH] -= speed * cl_pitchspeed->value * CL_KeyState(&in_lookup);
     cl.viewangles[PITCH] += speed * cl_pitchspeed->value * CL_KeyState(&in_lookdown);
+
+#if SUPPORT_GAMEPADS
+    int joystick_index = 0;
+    SDL_GameController* gamecontroller = SDL_GameControllerOpen(joystick_index);
+
+    if(gamecontroller)
+    {
+        Sint16 gamepad_left_x = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_LEFTX);
+
+        if((gamepad_left_x < -100) || (gamepad_left_x > 100))
+        {
+            cl.mousemove[1] = speed * cl_sidespeed->value * (float)gamepad_left_x;
+        }
+
+        Sint16 gamepad_left_y = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_LEFTY);
+
+        if((gamepad_left_y < -100) || (gamepad_left_y > 100))
+        {
+            cl.mousemove[0] = speed * cl_forwardspeed->value * -(float)gamepad_left_y;
+        }
+
+        Sint16 gamepad_right_x = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_RIGHTX);
+
+        if((gamepad_right_x < -100) || (gamepad_right_x > 100))
+        {
+            cl.viewangles[YAW] -= speed * cl_yawspeed->value * (float)gamepad_right_x / 32767.0f;
+        }
+
+        Sint16 gamepad_right_y = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_RIGHTY);
+
+        if((gamepad_right_y < -100) || (gamepad_right_y > 100))
+        {
+            cl.viewangles[PITCH] += speed * cl_pitchspeed->value * (float)gamepad_right_y / 32767.0f;
+        }
+    }
+    
+#endif
 }
 
 /*
