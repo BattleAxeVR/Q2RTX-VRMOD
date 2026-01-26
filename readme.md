@@ -1,4 +1,19 @@
-# Quake II RTX
+# Quake II RTX -- VR MOD
+
+Author: Bela Kampis of BattleAxeVR
+Start Date: Jan 25th, 2026
+
+This is a fork of Nvidia's FINAL Q2RTX code, that uses OpenXR to prove once and for all that path tracing + VR works, runs fast, and looks great, even in an ancient game like this one.
+
+I originally coded an OpenVR version the same month this originally, years ago but never released it to validate to myself whether an RTX 2080 Ti could even render path traced visuals in VR in realtime. And it could.
+
+I will eventually add many features.
+
+For starters, waist-oriented locomotion is a priority for me, it will prove to people what you can do with extremely simple code (provided you have a waist tracker available in OpenXR) and that boosts realism and comfort at the same time.
+
+I may also enable eye-tracking for aim assist or some cool laser eye cannons but I will not be implementing my private foveated path tracing scheme in this repo, until after my own game launches.
+
+I will open up a Patreon for donations to support my work.
 
 ## Project Discontinued
 
