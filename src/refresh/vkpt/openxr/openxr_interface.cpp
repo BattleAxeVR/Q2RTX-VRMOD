@@ -678,6 +678,9 @@ bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionVi
 	return true;
 }
 
+
+extern "C" VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped, int view_id);
+
 void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id, VkCommandBuffer* external_command_buffer)
 {
 	if (!render_into_xr_swapchain_)
@@ -776,7 +779,9 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	const VkRect2D rect = { offset, extent };
 	vkCmdSetScissor(command_buffer, 0, 1, &rect);
 
-	//post_process.post_process(command_buffer, (EYE)view_id);
+	int image = 24; // VKPT_IMG_TAA_OUTPUT
+	VkExtent2D input_extent = { 3840, 2081 };
+	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, input_extent, false, false, view_id);
 
 	vkCmdEndRendering(command_buffer);
 
@@ -1101,7 +1106,7 @@ bool OpenXR::create_instance(const VkInstanceCreateInfo& instance_create_info)
 	xr_instance_create_info.enabledExtensionCount = (uint32_t)xr_instance_extensions.size();
 	xr_instance_create_info.enabledExtensionNames = xr_instance_extensions.data();
 
-	strcpy(xr_instance_create_info.applicationInfo.applicationName, "HelloXR");
+	strcpy(xr_instance_create_info.applicationInfo.applicationName, "Q2RTX_VRMOD");
 
 	xr_instance_create_info.applicationInfo.apiVersion = XR_API_VERSION_1_0;
 	

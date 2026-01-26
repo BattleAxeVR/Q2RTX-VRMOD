@@ -815,6 +815,86 @@ vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D ex
 	return VK_SUCCESS;
 }
 
+
+VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped, int view_id)
+{
+	VkDescriptorImageInfo img_info_input = 
+	{
+		.imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+		.imageView   = qvk.images_views[image_index],
+		.sampler     = qvk.tex_sampler,
+	};
+
+	VkImageView debug_lines_view = vpkt_debugdraw_imageview();
+
+	if (!debug_lines_view)
+		debug_lines_view = qvk.images_views[VKPT_IMG_CLEAR];
+
+	VkDescriptorImageInfo img_info_debug_lines = 
+	{
+		.imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+		.imageView   = debug_lines_view,
+		.sampler     = qvk.tex_sampler_nearest,
+	};
+
+	VkWriteDescriptorSet elem_images[] = 
+	{
+		{
+			.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.dstSet          = desc_set_final_blit[qvk.current_frame_index],
+			.dstBinding      = 0,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.pImageInfo      = &img_info_input,
+		},
+		{
+			.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+			.dstSet          = desc_set_final_blit[qvk.current_frame_index],
+			.dstBinding      = 1,
+			.dstArrayElement = 0,
+			.descriptorCount = 1,
+			.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			.pImageInfo      = &img_info_debug_lines,
+		},
+	};
+
+#if 0
+	vkUpdateDescriptorSets(qvk.device, LENGTH(elem_images), elem_images, 0, NULL);
+
+	VkRenderPassBeginInfo render_pass_info = {
+		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+		.renderPass = render_pass_stretch_pic,
+		.framebuffer = framebuffer_stretch_pic[qvk.current_swap_chain_image_index],
+		.renderArea.offset = { 0, 0 },
+		.renderArea.extent = vkpt_draw_get_extent()
+	};
+#endif
+
+	VkDescriptorSet desc_sets[] = 
+	{
+		qvk.desc_set_ubo,
+		desc_set_final_blit[qvk.current_frame_index]
+	};
+
+	FinalBlitPushConstants_t push_constants = {.input_dimensions = {extent.width, extent.height}};
+
+	//vkCmdBeginRenderPass(cmd_buf, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+
+	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout_final_blit, 0, LENGTH(desc_sets), desc_sets, 0, 0);
+
+	int pipeline_idx = (filtered ? FINAL_BLIT_FILTERED : 0) | (warped ? FINAL_BLIT_WARPED : 0);
+
+	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_final_blit[pipeline_idx]);
+	vkCmdPushConstants(cmd_buf, pipeline_layout_final_blit, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push_constants), &push_constants);
+
+	vkCmdDraw(cmd_buf, 4, 1, 0, 0);
+
+	//vkCmdEndRenderPass(cmd_buf);
+
+	return VK_SUCCESS;
+}
+
 void R_SetClipRect_RTX(const clipRect_t *clip) 
 { 
 	if (clip)
