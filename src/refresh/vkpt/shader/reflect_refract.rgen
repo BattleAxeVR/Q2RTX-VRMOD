@@ -636,6 +636,11 @@ main()
 		motion.z = -motion.z;
 		distance_curr = -distance_curr;
 
+		if (push_constants.stereo == 1)
+		{
+			motion.x *= 0.5f;
+		}
+
 		imageStore(IMG_PT_VIEW_DEPTH_A, ipos, vec4(distance_curr));
 		imageStore(IMG_PT_MOTION, ipos, vec4(motion, fwidth_depth));
 	}
@@ -645,6 +650,12 @@ main()
 		
 		vec4 motion = imageLoad(IMG_PT_MOTION, ipos);
 		motion.z = -motion.z;
+
+		if (push_constants.stereo == 1)
+		{
+			motion.x *= 0.5f;
+		}
+
 		imageStore(IMG_PT_MOTION, ipos, motion);
 	}
 
