@@ -1051,7 +1051,7 @@ vkpt_pt_trace_primary_rays(VkCommandBuffer cmd_buf)
 
 	if(stereo)
 	{
-		width /= 2;
+		//width /= 2;
 	}
 
 	for(int i = 0; i < qvk.device_count; i++)
@@ -1100,7 +1100,7 @@ vkpt_pt_trace_reflections(VkCommandBuffer cmd_buf, int bounce)
 
 	if(stereo)
 	{
-		width /= 2;
+		//width /= 2;
 	}
 
 	for (int i = 0; i < qvk.device_count; i++)
@@ -1145,7 +1145,7 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 
 	if(stereo)
 	{
-		width /= 2;
+		//width /= 2;
 	}
 
 	for (int i = 0; i < qvk.device_count; i++)
