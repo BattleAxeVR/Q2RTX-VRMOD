@@ -153,6 +153,8 @@ ivec2 get_image_position()
 		{
 			pos.x -= half_width;
 		}
+
+		pos.x *= 2;
 	}
 
 	pos.y = int(rt_LaunchID.y);
