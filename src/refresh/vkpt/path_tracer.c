@@ -1049,11 +1049,6 @@ vkpt_pt_trace_primary_rays(VkCommandBuffer cmd_buf)
 	int width = qvk.extent_render.width / 2;
 	const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
 
-	if(stereo)
-	{
-		//width /= 2;
-	}
-
 	for(int i = 0; i < qvk.device_count; i++)
 	{
 		set_current_gpu(cmd_buf, i);
@@ -1098,11 +1093,6 @@ vkpt_pt_trace_reflections(VkCommandBuffer cmd_buf, int bounce)
 
 	const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
 
-	if(stereo)
-	{
-		//width /= 2;
-	}
-
 	for (int i = 0; i < qvk.device_count; i++)
     {
         set_current_gpu(cmd_buf, i);
@@ -1142,11 +1132,6 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 	int width = qvk.extent_render.width / 2;
 
 	const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
-
-	if(stereo)
-	{
-		//width /= 2;
-	}
 
 	for (int i = 0; i < qvk.device_count; i++)
 	{
