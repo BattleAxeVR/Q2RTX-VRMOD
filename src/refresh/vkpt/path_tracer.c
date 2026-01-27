@@ -23,6 +23,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "shader/vertex_buffer.h"
 #include "../../client/client.h"
 
+extern cvar_t *r_stereo;
+
 #include <assert.h>
 
 #define RAY_GEN_ACCEL_STRUCTURE_BINDING_IDX 0
@@ -1045,6 +1047,11 @@ vkpt_pt_trace_primary_rays(VkCommandBuffer cmd_buf)
 
 	int width = qvk.extent_render.width / 2;
 
+	if(r_stereo->value == 1.0f)
+	{
+		width /= 2;
+	}
+
 	for(int i = 0; i < qvk.device_count; i++)
 	{
 		set_current_gpu(cmd_buf, i);
@@ -1086,6 +1093,11 @@ vkpt_pt_trace_reflections(VkCommandBuffer cmd_buf, int bounce)
 
 	int width = qvk.extent_render.width / 2;
 
+	if(r_stereo->value == 1.0f)
+	{
+		width /= 2;
+	}
+
 	for (int i = 0; i < qvk.device_count; i++)
     {
         set_current_gpu(cmd_buf, i);
@@ -1122,6 +1134,11 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 	BEGIN_PERF_MARKER(cmd_buf, PROFILER_DIRECT_LIGHTING);
 
 	int width = qvk.extent_render.width / 2;
+
+	if(r_stereo->value == 1.0f)
+	{
+		width /= 2;
+	}
 
 	for (int i = 0; i < qvk.device_count; i++)
 	{
