@@ -1043,6 +1043,8 @@ vkpt_pt_trace_primary_rays(VkCommandBuffer cmd_buf)
 
 	BEGIN_PERF_MARKER(cmd_buf, PROFILER_PRIMARY_RAYS);
 
+	int width = qvk.extent_render.width / 2;
+
 	for(int i = 0; i < qvk.device_count; i++)
 	{
 		set_current_gpu(cmd_buf, i);
@@ -1051,7 +1053,7 @@ vkpt_pt_trace_primary_rays(VkCommandBuffer cmd_buf)
 		push.gpu_index = qvk.device_count == 1 ? -1 : i;
 		push.bounce = 0;
 
-		dispatch_rays(cmd_buf, PIPELINE_PRIMARY_RAYS, push, qvk.extent_render.width / 2, qvk.extent_render.height, qvk.device_count == 1 ? 2 : 1);
+		dispatch_rays(cmd_buf, PIPELINE_PRIMARY_RAYS, push, width, qvk.extent_render.height, qvk.device_count == 1 ? 2 : 1);
 	}
 
 	set_current_gpu(cmd_buf, ALL_GPUS);
@@ -1082,6 +1084,8 @@ vkpt_pt_trace_reflections(VkCommandBuffer cmd_buf, int bounce)
 {
 	int frame_idx = qvk.frame_counter & 1;
 
+	int width = qvk.extent_render.width / 2;
+
 	for (int i = 0; i < qvk.device_count; i++)
     {
         set_current_gpu(cmd_buf, i);
@@ -1092,7 +1096,7 @@ vkpt_pt_trace_reflections(VkCommandBuffer cmd_buf, int bounce)
         push.gpu_index = qvk.device_count == 1 ? -1 : i;
         push.bounce = bounce;
 
-        dispatch_rays(cmd_buf, pipeline, push, qvk.extent_render.width / 2, qvk.extent_render.height, qvk.device_count == 1 ? 2 : 1);
+        dispatch_rays(cmd_buf, pipeline, push, width, qvk.extent_render.height, qvk.device_count == 1 ? 2 : 1);
 	}
 
 	set_current_gpu(cmd_buf, ALL_GPUS);
@@ -1117,6 +1121,8 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 {
 	BEGIN_PERF_MARKER(cmd_buf, PROFILER_DIRECT_LIGHTING);
 
+	int width = qvk.extent_render.width / 2;
+
 	for (int i = 0; i < qvk.device_count; i++)
 	{
 		set_current_gpu(cmd_buf, i);
@@ -1127,7 +1133,7 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 		push.gpu_index = qvk.device_count == 1 ? -1 : i;
 		push.bounce = 0;
 
-		dispatch_rays(cmd_buf, pipeline, push, qvk.extent_render.width / 2, qvk.extent_render.height, qvk.device_count == 1 ? 2 : 1);
+		dispatch_rays(cmd_buf, pipeline, push, width, qvk.extent_render.height, qvk.device_count == 1 ? 2 : 1);
 	}
 
 	set_current_gpu(cmd_buf, ALL_GPUS);
@@ -1150,17 +1156,19 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 	BEGIN_PERF_MARKER(cmd_buf, PROFILER_INDIRECT_LIGHTING);
 
 	assert(num_bounce_rays <= 2);
+
 	if (num_bounce_rays > 0)
 	{
+		int height = qvk.extent_render.height;
+
+		if(num_bounce_rays == 0.5f)
+		{
+			height = qvk.extent_render.height / 2;
+		}
+
 		for (int i = 0; i < qvk.device_count; i++)
 		{
 			set_current_gpu(cmd_buf, i);
-
-            int height;
-            if (num_bounce_rays == 0.5f)
-                height = qvk.extent_render.height / 2;
-            else
-                height = qvk.extent_render.height;
 
 			for (int bounce_ray = 0; bounce_ray < (int)ceilf(num_bounce_rays); bounce_ray++)
             {
@@ -1171,7 +1179,7 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
                 push.gpu_index = qvk.device_count == 1 ? -1 : i;
                 push.bounce = 0;
 
-                dispatch_rays(cmd_buf, pipeline, push, qvk.extent_render.width / 2, height, qvk.device_count == 1 ? 2 : 1);
+                dispatch_rays(cmd_buf, pipeline, push, width, height, qvk.device_count == 1 ? 2 : 1);
 
 				BARRIER_COMPUTE(cmd_buf, qvk.images[VKPT_IMG_PT_COLOR_LF_SH]);
 				BARRIER_COMPUTE(cmd_buf, qvk.images[VKPT_IMG_PT_COLOR_LF_COCG]);
