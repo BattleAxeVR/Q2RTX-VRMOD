@@ -36,6 +36,8 @@ layout(constant_id = 1) const uint spec_final_blit_water_warp = 0;
 
 layout(push_constant, std430) uniform PushConstants {
     vec2 input_dimensions;
+    int stereo;
+    int view_id;
 } push;
 
 layout(set = 1, binding = 0) uniform sampler2D final_blit_input_image;
@@ -123,6 +125,16 @@ main()
     }
 
     uv *= push.input_dimensions / vec2(global_ubo.taa_image_width, global_ubo.taa_image_height);
+
+    if (push.stereo == 1)
+    {
+        uv.x *= 0.5f;
+
+        if (push.view_id == 1)
+        {
+            uv.x += 0.5f;
+        }
+    }
 
     vec3 color;
     if(spec_final_blit_filter_lanczos != 0)
