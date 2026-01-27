@@ -462,8 +462,11 @@ void
 main() 
 {
 	ivec2 ipos = ivec2(rt_LaunchID.xy);
+
 	if(rt_LaunchID.z != 0)
+	{
 		ipos.x += global_ubo.width / 2;
+	}
 
 	// Half-resolution tracing happens in the "low" GI setting
 	bool half_res = global_ubo.pt_num_bounce_rays == 0.5;
