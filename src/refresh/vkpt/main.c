@@ -2732,6 +2732,8 @@ prepare_viewmatrix(refdef_t *fd)
 	inverse(vkpt_refdef.view_matrix, vkpt_refdef.view_matrix_inv);
 }
 
+extern cvar_t *r_stereo;
+
 static void
 prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, const vec3_t sky_matrix[3], bool render_world)
 {
@@ -2749,7 +2751,17 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 
 	{
 		float raw_proj[16];
-		create_projection_matrix(raw_proj, vkpt_refdef.z_near, vkpt_refdef.z_far, fd->fov_x, fd->fov_y);
+
+		float fov_x = fd->fov_x;
+
+		const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
+
+		if(stereo)
+		{
+			//fov_x *= 0.5f;
+		}
+
+		create_projection_matrix(raw_proj, vkpt_refdef.z_near, vkpt_refdef.z_far, fov_x, fd->fov_y);
 
 		// In some cases (ex.: player setup), 'fd' will describe a viewport that is not full screen.
 		// Simulate that with a projection matrix adjustment to avoid modifying the rendering code.
