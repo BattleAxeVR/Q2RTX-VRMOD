@@ -593,10 +593,16 @@ static void pump_events(void)
             break;
 #if SUPPORT_GAMEPADS
         case SDL_CONTROLLERAXISMOTION:
-                ///UI_MouseEvent((event.caxis.axis == 0) ? event.caxis.value : 0.0f, (event.caxis.axis == 1) ? event.caxis.value : 0.0f);
+            break;
+        case SDL_CONTROLLERBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONUP:
+            Key_Event(K_MOUSE1, event.cbutton.state, event.cbutton.timestamp);
             break;
         case SDL_JOYAXISMOTION:
-                //UI_MouseEvent((event.jaxis.axis == 0) ? event.jaxis.value : 0.0f, (event.jaxis.axis == 1) ? event.jaxis.value : 0.0f);
+            break;
+        case SDL_JOYBUTTONDOWN:
+        case SDL_JOYBUTTONUP:
+            Key_Event(K_MOUSE1, event.jbutton.state, event.jbutton.timestamp);
             break;
 #endif
         case SDL_MOUSEBUTTONDOWN:
