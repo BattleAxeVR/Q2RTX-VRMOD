@@ -679,7 +679,7 @@ bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionVi
 }
 
 
-extern "C" VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped, int view_id);
+extern "C" VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, bool filtered, bool warped, int view_id);
 
 void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id, VkCommandBuffer* external_command_buffer)
 {
@@ -773,15 +773,14 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 
 	vkCmdBeginRendering(command_buffer, &rendering_info);
 
-	VkViewport viewport{ 0, 0, (float)projection_layer_view.subImage.imageRect.extent.width, (float)projection_layer_view.subImage.imageRect.extent.height, 0, 10000 };
-	vkCmdSetViewport(command_buffer, 0, 1, &viewport);
+	//VkViewport viewport{ 0, 0, (float)projection_layer_view.subImage.imageRect.extent.width, (float)projection_layer_view.subImage.imageRect.extent.height, 0, 10000 };
+	//vkCmdSetViewport(command_buffer, 0, 1, &viewport);
 	
-	const VkRect2D rect = { offset, extent };
-	vkCmdSetScissor(command_buffer, 0, 1, &rect);
+	//const VkRect2D rect = { offset, extent };
+	//vkCmdSetScissor(command_buffer, 0, 1, &rect);
 
 	int image = 24; // VKPT_IMG_TAA_OUTPUT
-	VkExtent2D input_extent = { 3840, 2081 };
-	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, input_extent, false, false, view_id);
+	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, false, false, view_id);
 
 	vkCmdEndRendering(command_buffer);
 

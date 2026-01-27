@@ -126,12 +126,15 @@ main()
         if (push.view_id == 0)
         {
             // Left eye
-            uv.x *= 2.0f;
-            uv.x -= 0.25f;
+            //uv.x *= 3840.0f / 2256.0F;
+            //uv.x *= 2.0F * 3840.0f / 2256.0F;
+            //uv.x += 0.25f;
+
+            uv.x += 0.1f;
 
             if ((uv.x > 0.75) && (uv.x < 0.76))
             {
-                color.b = 1.0f;
+                //color.b = 1.0f;
             }
             else if ((uv.x > 0.5) && (uv.x < 0.51))
             {
@@ -139,7 +142,7 @@ main()
             }
             else if ((uv.x > 0.25) && (uv.x < 0.26))
             {
-                color.r = 1.0f;
+                //color.r = 1.0f;
             }
             else
             {  
@@ -152,8 +155,9 @@ main()
         {
             // Right eye
 
-            uv.x *= 2.0f;
+            //uv.x *= 2.0f;
             //uv.x += 0.5f;
+            uv.x += 0.25f;
 
             if ((uv.x > 0.75) && (uv.x < 0.76))
             {

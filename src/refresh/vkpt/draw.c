@@ -820,7 +820,7 @@ vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D ex
 }
 
 
-VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped, int view_id)
+VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, bool filtered, bool warped, int view_id)
 {
 	VkDescriptorImageInfo img_info_input = 
 	{
@@ -881,7 +881,7 @@ VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, 
 		desc_set_final_blit[qvk.current_frame_index]
 	};
 
-	FinalBlitPushConstants_t push_constants = {.input_dimensions = {extent.width, extent.height}};
+	FinalBlitPushConstants_t push_constants = {.input_dimensions = {1, 1}};
 	push_constants.stereo = 1;
 	push_constants.view_id = view_id;
 
