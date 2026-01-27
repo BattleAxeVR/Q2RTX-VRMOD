@@ -64,8 +64,22 @@ void
 main() 
 {
 	ivec2 ipos = ivec2(rt_LaunchID.xy);
+
+	int width = global_ubo.width;
+	int half_width = width;
+
+	if (push_constants.stereo == 1)
+	{
+		if (ipos.x >= width)
+		{
+			ipos.x -= width;
+		}
+	}
+	
 	if(rt_LaunchID.z != 0)
-		ipos.x += global_ubo.width / 2;
+	{
+		ipos.x += half_width / 2;
+	}
 
 	vec4 position_material = imageLoad(IMG_PT_SHADING_POSITION, ipos);
 	

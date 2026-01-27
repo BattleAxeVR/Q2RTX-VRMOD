@@ -113,8 +113,23 @@ void
 main()
 {
 	ivec2 ipos = ivec2(rt_LaunchID.xy);
+
+	int half_width = global_ubo.width / 2;
+
+	if (push_constants.stereo == 1)
+	{
+		if (ipos.x >= half_width)
+		{
+			ipos.x -= half_width;
+		}
+
+		//half_width /= 2;
+	}
+
 	if(rt_LaunchID.z != 0)
-		ipos.x += global_ubo.width / 2;
+	{
+		ipos.x += half_width;
+	}
 
 	bool is_odd_checkerboard = (rt_LaunchID.z != 0) || (push_constants.gpu_index == 1);
 

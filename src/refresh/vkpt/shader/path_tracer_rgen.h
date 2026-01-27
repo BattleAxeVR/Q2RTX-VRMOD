@@ -130,13 +130,29 @@ ivec2 get_image_position()
 	ivec2 pos;
 
 	bool is_even_checkerboard = push_constants.gpu_index == 0 || push_constants.gpu_index < 0 && rt_LaunchID.z == 0;
-	if(global_ubo.pt_swap_checkerboard != 0)
-		is_even_checkerboard = !is_even_checkerboard;
 
-	if (is_even_checkerboard) {
+	if(global_ubo.pt_swap_checkerboard != 0)
+	{
+		is_even_checkerboard = !is_even_checkerboard;
+	}
+
+	if (is_even_checkerboard) 
+	{
 		pos.x = int(rt_LaunchID.x * 2) + int(rt_LaunchID.y & 1);
-	} else {
+	} 
+	else 
+	{
 		pos.x = int(rt_LaunchID.x * 2 + 1) - int(rt_LaunchID.y & 1);
+	}
+
+	if (push_constants.stereo == 1)
+	{
+		int half_width = global_ubo.width / 2;
+
+		if(pos.x >= half_width)
+		{
+			pos.x -= half_width;
+		}
 	}
 
 	pos.y = int(rt_LaunchID.y);

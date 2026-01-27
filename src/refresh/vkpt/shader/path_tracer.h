@@ -139,10 +139,10 @@ Converting skyboxes to local lights provides two benefits:
 #define GLOBAL_UBO_DESC_SET_IDX 1
 #include "global_ubo.h"
 
-
 layout (push_constant) uniform push_constant_block {
    int gpu_index;
    int bounce_index;
+   int stereo;
 } push_constants;
 
 struct RayPayloadGeometry {
