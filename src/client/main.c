@@ -19,6 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // cl_main.c  -- client main loop
 
 #include "client.h"
+#include "../refresh/vkpt/openxr/defines.h"
 
 cvar_t  *rcon_address;
 
@@ -36,6 +37,7 @@ cvar_t  *cl_warn_on_fps_rounding;
 cvar_t  *cl_maxfps;
 cvar_t  *cl_async;
 cvar_t  *r_maxfps;
+cvar_t  *r_stereo;
 cvar_t  *cl_autopause;
 
 cvar_t  *cl_kickangles;
@@ -2822,6 +2824,12 @@ static void CL_InitLocal(void)
     cl_shownet = Cvar_Get("cl_shownet", "0", 0);
     cl_showmiss = Cvar_Get("cl_showmiss", "0", 0);
     cl_showclamp = Cvar_Get("showclamp", "0", 0);
+#endif
+
+#if SUPPORT_OPENXR
+    r_stereo = Cvar_Get("r_stereo", "1", 0);
+#else
+    r_stereo = Cvar_Get("r_stereo", "0", 0);
 #endif
 
     cl_timeout = Cvar_Get("cl_timeout", "120", 0);
