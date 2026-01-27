@@ -116,24 +116,82 @@ void
 main()
 {
     vec2 uv = tex_coord;
-    if (spec_final_blit_water_warp != 0) {
-        uv += vec2(0.00666) * sin(uv.ts * vec2(M_PI * 10) + global_ubo.time);
-
-        // Warping will push 'uv' outside the rendered area near the borders, so clamp it
-        vec2 input_dim_inv = vec2(1) / push.input_dimensions;
-        uv = clamp(uv, 0.5 * input_dim_inv, vec2(1) - 1.5 * input_dim_inv);
-    }
-
-    uv *= push.input_dimensions / vec2(global_ubo.taa_image_width, global_ubo.taa_image_height);
 
     if (push.stereo == 1)
     {
-        uv.x *= 0.5f;
+        //uv *= push.input_dimensions / vec2(global_ubo.taa_image_width, global_ubo.taa_image_height);
 
-        if (push.view_id == 1)
+        vec3 color = vec3(0, 0, 0);
+
+        if (push.view_id == 0)
         {
-            uv.x += 0.5f;
+            // Left eye
+            uv.x *= 2.0f;
+            uv.x -= 0.25f;
+
+            if ((uv.x > 0.75) && (uv.x < 0.76))
+            {
+                color.b = 1.0f;
+            }
+            else if ((uv.x > 0.5) && (uv.x < 0.51))
+            {
+                color.g = 1.0f;
+            }
+            else if ((uv.x > 0.25) && (uv.x < 0.26))
+            {
+                color.r = 1.0f;
+            }
+            else
+            {  
+                color.r = 0.1f;
+                color.g = 0.1f;
+                color.b = 0.1f;
+            }
         }
+        else
+        {
+            // Right eye
+
+            uv.x *= 2.0f;
+            //uv.x += 0.5f;
+
+            if ((uv.x > 0.75) && (uv.x < 0.76))
+            {
+                color.b = 1.0f;
+            }
+            else if ((uv.x > 0.5) && (uv.x < 0.51))
+            {
+                color.g = 1.0f;
+            }
+            else if ((uv.x > 0.25) && (uv.x < 0.26))
+            {
+                color.r = 1.0f;
+            }
+            else
+            {  
+                color.r = 0.1f;
+                color.g = 0.1f;
+                color.b = 0.1f;
+            }
+        }
+
+        color = textureLod(final_blit_input_image, uv, 0).rgb;
+        
+        outColor = vec4(color, 1);
+        return;
+    }
+    else
+    {
+        if (spec_final_blit_water_warp != 0) {
+            uv += vec2(0.00666) * sin(uv.ts * vec2(M_PI * 10) + global_ubo.time);
+
+            // Warping will push 'uv' outside the rendered area near the borders, so clamp it
+            vec2 input_dim_inv = vec2(1) / push.input_dimensions;
+            uv = clamp(uv, 0.5 * input_dim_inv, vec2(1) - 1.5 * input_dim_inv);
+        }
+
+        uv *= push.input_dimensions / vec2(global_ubo.taa_image_width, global_ubo.taa_image_height);
+
     }
 
     vec3 color;
