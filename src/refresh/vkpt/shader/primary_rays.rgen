@@ -114,21 +114,9 @@ main()
 {
 	ivec2 ipos = ivec2(rt_LaunchID.xy);
 
-	int half_width = global_ubo.width / 2;
-
-	if (push_constants.stereo == 1)
-	{
-		if (ipos.x >= half_width)
-		{
-			ipos.x -= half_width;
-		}
-
-		//half_width /= 2;
-	}
-
 	if(rt_LaunchID.z != 0)
 	{
-		ipos.x += half_width;
+		ipos.x += global_ubo.width / 2;
 	}
 
 	bool is_odd_checkerboard = (rt_LaunchID.z != 0) || (push_constants.gpu_index == 1);
@@ -157,7 +145,8 @@ main()
 
 	Ray ray = get_primary_ray(inUV);
 
-	bool is_readback_pixel = all(equal(ipos, ivec2(global_ubo.width / 4, global_ubo.height / 2)));
+	bool is_readback_pixel = all(equal(image_position, ivec2(global_ubo.width / 4, global_ubo.height / 2)));
+
 	if(is_readback_pixel)
 	{
 		// this needs to happen somewhere...
