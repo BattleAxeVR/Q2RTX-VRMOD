@@ -2826,7 +2826,7 @@ static void CL_InitLocal(void)
     cl_showclamp = Cvar_Get("showclamp", "0", 0);
 #endif
 
-#if SUPPORT_OPENXR
+#if 1//SUPPORT_OPENXR
     r_stereo = Cvar_Get("r_stereo", "1", 0);
 #else
     r_stereo = Cvar_Get("r_stereo", "0", 0);
