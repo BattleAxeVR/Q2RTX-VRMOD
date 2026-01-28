@@ -552,14 +552,16 @@ static void cbutton_event(SDL_ControllerButtonEvent* event)
         key = K_ESCAPE;
         break;
     case SDL_CONTROLLER_BUTTON_LEFTSTICK:
-        return;
+        key = K_CTRL;
+        break;
     case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
-        return;
+        key = K_CTRL;
+        break;
     case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
-        key = K_SHIFT;
+        key = K_CTRL;
         break;
     case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
-        key = K_CTRL;
+        key = K_SHIFT;
         break;
     case SDL_CONTROLLER_BUTTON_DPAD_UP:
         key = K_UPARROW;
