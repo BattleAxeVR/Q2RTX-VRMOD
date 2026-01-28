@@ -3805,8 +3805,7 @@ R_Init_RTX(bool total)
     qvk.window = get_sdl_window();
 
 #if SUPPORT_GAMEPADS
-	const uint32_t flags = SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER;
-	SDL_Init(flags);
+	SDL_Init(SDL_INIT_GAMECONTROLLER);
 #endif
 
 	cvar_profiler = Cvar_Get("profiler", "0", 0);

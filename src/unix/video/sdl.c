@@ -525,16 +525,19 @@ static void key_event(SDL_KeyboardEvent *event)
 }
 
 #if SUPPORT_GAMEPADS
+
 static void cbutton_event(SDL_ControllerButtonEvent* event)
 {
     unsigned key;
 
     switch (event->button) 
     {
-    case SDL_CONTROLLER_BUTTON_A:
+    case SDL_CONTROLLER_BUTTON_INVALID:
+        return;
+    case SDL_CONTROLLER_BUTTON_B:
         key = K_SPACE;
         break;
-    case SDL_CONTROLLER_BUTTON_B:
+    case SDL_CONTROLLER_BUTTON_A:
         key = K_SPACE;
         break;
     case SDL_CONTROLLER_BUTTON_X:
@@ -593,24 +596,6 @@ static void cbutton_event(SDL_ControllerButtonEvent* event)
 
     Key_Event2(key, event->state, event->timestamp);
 }
-
-
-static void jbutton_event(SDL_JoyButtonEvent* event)
-{
-    unsigned key;
-
-    switch (event->button) 
-    {
-    case 0:
-        key = K_MOUSE1;
-        break;
-    default:
-        return;
-    }
-
-    Key_Event(key, event->state, event->timestamp);
-}
-
 #endif
 
 static void mouse_button_event(SDL_MouseButtonEvent *event)
@@ -680,20 +665,6 @@ static void pump_events(void)
             if (sdl.win_width && sdl.win_height)
                 UI_MouseEvent(event.motion.x * sdl.width / sdl.win_width, event.motion.y * sdl.height / sdl.win_height);
             break;
-#if SUPPORT_GAMEPADS
-        case SDL_CONTROLLERAXISMOTION:
-            break;
-        case SDL_CONTROLLERBUTTONDOWN:
-        case SDL_CONTROLLERBUTTONUP:
-            cbutton_event(&event.cbutton);
-            break;
-        case SDL_JOYAXISMOTION:
-            break;
-        case SDL_JOYBUTTONDOWN:
-        case SDL_JOYBUTTONUP:
-            jbutton_event(&event.jbutton);
-            break;
-#endif
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
             mouse_button_event(&event.button);
@@ -701,6 +672,12 @@ static void pump_events(void)
         case SDL_MOUSEWHEEL:
             mouse_wheel_event(&event.wheel);
             break;
+#if SUPPORT_GAMEPADS
+        case SDL_CONTROLLERBUTTONDOWN:
+        case SDL_CONTROLLERBUTTONUP:
+            cbutton_event(&event.cbutton);
+            break;
+#endif
         }
     }
 }
