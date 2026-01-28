@@ -2863,6 +2863,7 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 	ubo->projection_fov_scale[1] = fov_scale[1];
 	ubo->pt_projection = render_world ? cvar_pt_projection->integer : 0; // always use rectilinear projection when rendering the player setup view
 	ubo->current_frame_idx = qvk.frame_counter;
+
 	ubo->width = qvk.extent_render.width;
 	ubo->height = qvk.extent_render.height;
 	ubo->prev_width = qvk.extent_render_prev.width;
@@ -2879,6 +2880,20 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 	ubo->prev_gpu_slice_width = qvk.gpu_slice_width_prev;
 	ubo->screen_image_width = qvk.extent_screen_images.width;
 	ubo->screen_image_height = qvk.extent_screen_images.height;
+
+	if(stereo)
+	{
+		ubo->width /= 2;
+		ubo->prev_width /= 2;
+		ubo->inv_width *= 2.0f;
+		ubo->unscaled_width /= 2;
+		ubo->taa_image_width /= 2;
+		ubo->taa_output_width /= 2;
+		ubo->current_gpu_slice_width /= 2;
+		ubo->prev_gpu_slice_width /= 2;
+		ubo->screen_image_width /= 2;
+	}
+	
 	ubo->water_normal_texture = water_normal_texture - r_images;
 	ubo->pt_swap_checkerboard = 0;
 	ubo->ui_color_scale =
