@@ -125,6 +125,42 @@ env_map(vec3 direction, bool remove_sun)
 // depends on env_map
 #include "light_lists.h"
 
+int get_view_id()
+{
+#if 0
+	if(push_constants.stereo == 0)
+	{
+		return 0;
+	}
+
+	ivec2 pos;
+
+	bool is_even_checkerboard = push_constants.gpu_index == 0 || push_constants.gpu_index < 0 && rt_LaunchID.z == 0;
+
+	if(global_ubo.pt_swap_checkerboard != 0)
+	{
+		is_even_checkerboard = !is_even_checkerboard;
+	}
+
+	if (is_even_checkerboard) 
+	{
+		pos.x = int(rt_LaunchID.x * 2) + int(rt_LaunchID.y & 1);
+	} 
+	else 
+	{
+		pos.x = int(rt_LaunchID.x * 2 + 1) - int(rt_LaunchID.y & 1);
+	}
+
+	int half_width = global_ubo.width / 2;
+
+	if(pos.x >= half_width)
+	{
+		return 1;
+	}
+#endif
+	return 0;
+}
+
 ivec2 get_image_position()
 {
 	ivec2 pos;

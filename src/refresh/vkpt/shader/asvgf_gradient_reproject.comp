@@ -131,7 +131,10 @@ void reproject_pixel(ivec2 p, int field_left, int field_right)
 
 	// Compute the previous frame position of this surface
 	vec4 motion = texelFetch(TEX_PT_MOTION, p, 0);
+
 	vec2 pos_prev = ((vec2(p) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height);
+	//vec2 pos_prev = ((vec2(p) + vec2(0.5)) * vec2(global_ubo.inv_width * 4, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 4, global_ubo.prev_height); // stereo mode
+
 	ivec2 pp = ivec2(floor(pos_prev));
 
 	if(pp.x < field_left || pp.x >= field_right || pp.y >= global_ubo.prev_height)
@@ -175,6 +178,24 @@ void reproject_pixel(ivec2 p, int field_left, int field_right)
 	}
 }
 
+int get_view_id()
+{
+#if 0
+	//if(push_constants.stereo == 0)
+	{
+		//return 0;
+	}
+
+	ivec2 ipos = ivec2(gl_GlobalInvocationID);
+	
+	if (ipos.x >= global_ubo.width / 2)
+	{
+		return 1;
+	}
+#endif
+	return 0;
+}
+
 void
 main()
 {
@@ -182,14 +203,25 @@ main()
 
 	ivec2 ipos = ivec2(gl_GlobalInvocationID);
 	ivec2 pos_grad = ipos / GRAD_DWN;
-	int view_id = 0;
+	int view_id = get_view_id();
+
+	int prev_width = global_ubo.prev_width;
+	int prev_half_width = global_ubo.prev_width / 2;
+	int half_width = global_ubo.width / 2;
+
+	//if(push_constants.stereo == 1)
+	{
+		prev_width /= 2;
+		prev_half_width /= 2;
+		half_width /= 2;
+	}
 
 	int field_left = 0;
-	int field_right = global_ubo.prev_width / 2;
-	if (ipos.x >= global_ubo.width / 2)
+	int field_right = prev_half_width;
+	if (ipos.x >= half_width)
 	{
 		field_left = field_right;
-		field_right = global_ubo.prev_width;
+		field_right = prev_width;
 	}
 
 	reproject_pixel(ipos, field_left, field_right);

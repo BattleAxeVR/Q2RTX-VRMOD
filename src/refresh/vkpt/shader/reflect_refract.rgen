@@ -80,7 +80,7 @@ main()
 		ipos.x += half_width / 2;
 	}
 
-	int view_id = 0;
+	int view_id = get_view_id();
 	vec4 position_material = imageLoad(IMG_PT_SHADING_POSITION, ipos);
 	
 	vec3 position   = position_material.xyz;

@@ -142,7 +142,7 @@ main()
 		pixel_offset = global_ubo.sub_pixel_jitter;
 	}
 	
-	int view_id = 0;
+	int view_id = get_view_id();
 	const ivec2 image_position = get_image_position();
 	const vec2 pixel_center = vec2(image_position) + vec2(0.5);
 	const vec2 inUV = (pixel_center + pixel_offset) / vec2(get_image_size());

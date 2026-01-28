@@ -2816,9 +2816,17 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 	}
 
 	memcpy(ubo->V[LEFT], vkpt_refdef.view_matrix[LEFT], sizeof(float) * 16);
-	memcpy(ubo->P[LEFT], P, sizeof(float) * 16);
+	memcpy(ubo->P[LEFT], P[LEFT], sizeof(float) * 16);
 	memcpy(ubo->invV[LEFT], vkpt_refdef.view_matrix_inv[LEFT], sizeof(float) * 16);
 	inverse(P[LEFT], *ubo->invP[LEFT]);
+
+	if(stereo)
+	{
+		memcpy(ubo->V[RIGHT], vkpt_refdef.view_matrix[RIGHT], sizeof(float) * 16);
+		memcpy(ubo->P[RIGHT], P[RIGHT], sizeof(float) * 16);
+		memcpy(ubo->invV[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT], sizeof(float) * 16);
+		inverse(P[RIGHT], *ubo->invP[RIGHT]);
+	}
 
 	float vfov = fd->fov_y * (float)M_PI / 180.f;
 	float unscaled_aspect = (float)qvk.extent_unscaled.width / (float)qvk.extent_unscaled.height;
@@ -2977,6 +2985,7 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 	ubo->pt_max_log_sky_luminance = exp2f(ubo->pt_max_log_sky_luminance);
 
 	memcpy(ubo->cam_pos[LEFT], fd->vieworg, sizeof(float) * 3);
+	memcpy(ubo->cam_pos[RIGHT], fd->vieworg, sizeof(float) * 3);
 	ubo->cluster_debug_index = cluster_debug_index;
 
 	if (!temporal_frame_valid)

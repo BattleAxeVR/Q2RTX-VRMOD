@@ -39,6 +39,11 @@ layout(location = 1) out vec3 out_viewpos;
 
 #include "projection.glsl"
 
+int get_view_id()
+{
+	return 0;
+}
+
 void
 main()
 {
@@ -47,7 +52,7 @@ main()
 	view_pos.z = abs(view_pos.z);
 	vec2 screen_pos;
 	float dist;
-	int view_id = 0;
+	int view_id = get_view_id();
 	projection_view_to_screen(view_id, view_pos, screen_pos, dist, false);
 	screen_pos = screen_pos * 2 + vec2(-1, -1);
 	if (depth_test) {
