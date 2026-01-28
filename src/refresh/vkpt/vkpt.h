@@ -49,6 +49,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "shader/vertex_buffer.h"
 
 #include "openxr/defines.h"
+#include "openxr/xr_linear.h"
 
 #define LENGTH(a) ((sizeof (a)) / (sizeof(*(a))))
 

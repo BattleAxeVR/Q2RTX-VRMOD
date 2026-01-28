@@ -2752,10 +2752,54 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 	ubo->prev_taa_output_width = ubo->taa_output_width;
 	ubo->prev_taa_output_height = ubo->taa_output_height;
 
-#if SUPPORT_OPENXR
-	if(Is_OpenXR_Session_Running())
-	{
+	const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
 
+#if 1//SUPPORT_OPENXR
+	if(stereo)// && Is_OpenXR_Session_Running())
+	{
+		XrMatrix4x4f xr_proj[NUM_EYES] = { 0 };
+
+		//Hardcoded PSVR 2 defaults, for testing/debugging
+		const float UPWARD_FOV = DEG2RAD(53.0401382f);
+		const float OUTWARD_FOV = DEG2RAD(61.4999962f);
+		const float INWARD_FOV = DEG2RAD(43.4464722f);
+
+		//XrMatrix4x4f xr_proj[NUM_EYES] = { 0 };
+		XrFovf fov[NUM_EYES] = { 0 };
+
+		fov[LEFT].angleUp = UPWARD_FOV;
+		fov[LEFT].angleDown = -UPWARD_FOV;
+		fov[LEFT].angleLeft = -OUTWARD_FOV;
+		fov[LEFT].angleRight = INWARD_FOV;
+
+		fov[RIGHT].angleUp = UPWARD_FOV;
+		fov[RIGHT].angleDown = -UPWARD_FOV;
+		fov[RIGHT].angleLeft = -INWARD_FOV;
+		fov[RIGHT].angleRight = OUTWARD_FOV;
+
+		//XrMatrix4x4f_CreateProjectionFov(&xr_proj[LEFT], GRAPHICS_VULKAN, fov[LEFT], vkpt_refdef.z_near, vkpt_refdef.z_far);
+		//XrMatrix4x4f_CreateProjectionFov(&xr_proj[RIGHT], GRAPHICS_VULKAN, fov[RIGHT], vkpt_refdef.z_near, vkpt_refdef.z_far);
+
+		float nearz = vkpt_refdef.z_near;
+		float farz = vkpt_refdef.z_far;
+
+		float left_raw_proj[16] = { 0 };
+		create_projection_matrixXR(&fov[LEFT], left_raw_proj);
+
+		float right_raw_proj[16] = { 0 };
+		create_projection_matrixXR(&fov[RIGHT], right_raw_proj);
+
+		float viewport_proj[16] = {
+			[0] = (float)fd->width / (float)qvk.extent_unscaled.width,
+			[12] = (float)(fd->x * 2 + fd->width - (int)qvk.extent_unscaled.width) / (float)qvk.extent_unscaled.width,
+			[5] = (float)fd->height / (float)qvk.extent_unscaled.height,
+			[13] = -(float)(fd->y * 2 + fd->height - (int)qvk.extent_unscaled.height) / (float)qvk.extent_unscaled.height,
+			[10] = 1.f,
+			[15] = 1.f
+		};
+
+		mult_matrix_matrix(P[LEFT], viewport_proj, left_raw_proj);
+		mult_matrix_matrix(P[RIGHT], viewport_proj, right_raw_proj);
 	}
 	else
 #endif
@@ -2763,9 +2807,7 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 		float raw_proj[16];
 
 		float fov_x = fd->fov_x;
-
-		const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
-
+		
 		if(stereo)
 		{
 			fov_x *= 0.5f;

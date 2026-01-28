@@ -156,6 +156,46 @@ create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_x, fl
 }
 
 void
+create_projection_matrixXR(XrFovf* fov, mat4_t matrix)
+{
+	float znear = 1.0f;
+	float zfar = 4096.0f;
+	float xmin, xmax, ymin, ymax;
+	float width, height, depth;
+
+	ymax = znear * tanf(fov->angleUp);
+	ymin = -ymax;// znear* tanf(fov->angleDown);
+
+	xmax = znear * tanf(fov->angleRight);
+	xmin = -xmax;// znear* tanf(fov->angleLeft);
+
+	width = xmax - xmin;
+	height = ymax - ymin;
+	depth = zfar - znear;
+
+	matrix[0] = 2 * znear / width;
+	matrix[4] = 0;
+	matrix[8] = (xmax + xmin) / width;
+	matrix[12] = 0;
+
+	matrix[1] = 0;
+	matrix[5] = -2 * znear / height;
+	matrix[9] = (ymax + ymin) / height;
+	matrix[13] = 0;
+
+	matrix[2] = 0;
+	matrix[6] = 0;
+	matrix[10] = (zfar + znear) / depth;
+	matrix[14] = 2 * zfar * znear / depth;
+
+	matrix[3] = 0;
+	matrix[7] = 0;
+	matrix[11] = 1;
+	matrix[15] = 0;
+}
+
+
+void
 create_orthographic_matrix(mat4_t matrix, float xmin, float xmax,
 		float ymin, float ymax, float znear, float zfar)
 {
