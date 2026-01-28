@@ -18,6 +18,8 @@ void OpenXR_Update();
 void OpenXR_Shutdown();
 void OpenXR_Endframe(VkCommandBuffer* external_command_buffer);
 
+bool Is_OpenXR_Session_Running();
+
 #endif // SUPPORT_OPENXR
 
 #endif // OPENXR_C_INTERFACE_H

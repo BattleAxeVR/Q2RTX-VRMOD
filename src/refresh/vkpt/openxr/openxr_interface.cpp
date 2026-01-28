@@ -2919,6 +2919,11 @@ extern "C"
 	{
 		openxr_.end_frame(external_command_buffer);
 	}
+
+	bool Is_OpenXR_Session_Running()
+	{
+		return openxr_.is_session_running();
+	}
 }
 
 #endif // SUPPORT_OPENXR
