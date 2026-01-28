@@ -155,18 +155,19 @@ create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_x, fl
 	matrix[15] = 0;
 }
 
-void create_projection_matrixXR(XrFovf* fov, mat4_t matrix)
+void create_projection_matrixXR(float* znear_ptr, float* zfar_ptr, XrFovf* fov, mat4_t matrix)
 {
-	float znear = 1.0f;
-	float zfar = 4096.0f;
+	float znear = *znear_ptr;
+	float zfar = *zfar_ptr;
+
 	float xmin, xmax, ymin, ymax;
 	float width, height, depth;
 
 	ymax = znear * tanf(fov->angleUp);
-	ymin = znear* tanf(fov->angleDown);
+	ymin = znear * tanf(fov->angleDown);
 
 	xmax = znear * tanf(fov->angleRight);
-	xmin = znear* tanf(fov->angleLeft);
+	xmin = znear * tanf(fov->angleLeft);
 
 	width = xmax - xmin;
 	height = ymax - ymin;

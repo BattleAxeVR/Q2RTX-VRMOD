@@ -2778,10 +2778,10 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 		float farz = vkpt_refdef.z_far;
 
 		float left_raw_proj[16] = { 0 };
-		create_projection_matrixXR(&fov[LEFT], left_raw_proj);
+		create_projection_matrixXR(&nearz, &farz, &fov[LEFT], left_raw_proj);
 
 		float right_raw_proj[16] = { 0 };
-		create_projection_matrixXR(&fov[RIGHT], right_raw_proj);
+		create_projection_matrixXR(&nearz, &farz, &fov[RIGHT], right_raw_proj);
 
 		float viewport_proj[16] = {
 			[0] = (float)fd->width / (float)qvk.extent_unscaled.width,
