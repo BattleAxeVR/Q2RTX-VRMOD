@@ -57,7 +57,7 @@ layout(local_size_x = GROUP_SIZE_PIXELS, local_size_y = GROUP_SIZE_PIXELS, local
 // to avoid false positive gradients in the light penumbras, where a subpixel shift
 // that normally happens between frames can make a difference between a light sample
 // being visible or shadowed.
-void patch_position(ivec2 ipos, ivec2 found_pos_prev)
+void patch_position(int view_id, ivec2 ipos, ivec2 found_pos_prev)
 {
 	// Read the visibility buffer
 	uvec2 vis_buf = texelFetch(TEX_PT_VISBUF_PRIM_B, found_pos_prev, 0).xy;
@@ -112,7 +112,7 @@ void patch_position(ivec2 ipos, ivec2 found_pos_prev)
 	uint checkerboard_flags = int(imageLoad(IMG_PT_VIEW_DIRECTION, ipos).w);
 	if ((checkerboard_flags & CHECKERBOARD_FLAG_FIELD_MASK) == CHECKERBOARD_FLAG_PRIMARY)
 	{
-		vec3 view_direction = normalize(position - global_ubo.cam_pos.xyz);
+		vec3 view_direction = normalize(position - global_ubo.cam_pos[view_id].xyz);
 		imageStore(IMG_PT_VIEW_DIRECTION, ipos, vec4(view_direction, checkerboard_flags));
 	}
 }
@@ -182,6 +182,7 @@ main()
 
 	ivec2 ipos = ivec2(gl_GlobalInvocationID);
 	ivec2 pos_grad = ipos / GRAD_DWN;
+	int view_id = 0;
 
 	int field_left = 0;
 	int field_right = global_ubo.prev_width / 2;
@@ -263,5 +264,5 @@ main()
 	imageStore(IMG_PT_BASE_COLOR_A, ipos, texelFetch(TEX_PT_BASE_COLOR_B, found_pos_prev, 0));
 	imageStore(IMG_PT_METALLIC_A, ipos, texelFetch(TEX_PT_METALLIC_B, found_pos_prev, 0));
 
-	patch_position(ipos, found_pos_prev);
+	patch_position(view_id, ipos, found_pos_prev);
 }

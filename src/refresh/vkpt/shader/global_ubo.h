@@ -222,14 +222,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 	GLOBAL_UBO_VAR_LIST_DO(vec4,            world_half_size_inv) \
 	\
 	GLOBAL_UBO_VAR_LIST_DO(DynLightData,    dyn_light_data[MAX_LIGHT_SOURCES]) \
-	GLOBAL_UBO_VAR_LIST_DO(vec4,            cam_pos) \
-	GLOBAL_UBO_VAR_LIST_DO(mat4,            V) \
-	GLOBAL_UBO_VAR_LIST_DO(mat4,            invV) \
-	GLOBAL_UBO_VAR_LIST_DO(mat4,            V_prev) \
-	GLOBAL_UBO_VAR_LIST_DO(mat4,            P) \
-	GLOBAL_UBO_VAR_LIST_DO(mat4,            invP) \
-	GLOBAL_UBO_VAR_LIST_DO(mat4,            P_prev) \
-	GLOBAL_UBO_VAR_LIST_DO(mat4,            invP_prev) \
+	GLOBAL_UBO_VAR_LIST_DO(vec4,            cam_pos[2]) \
+	GLOBAL_UBO_VAR_LIST_DO(mat4,            V[2]) \
+	GLOBAL_UBO_VAR_LIST_DO(mat4,            invV[2]) \
+	GLOBAL_UBO_VAR_LIST_DO(mat4,            V_prev[2]) \
+	GLOBAL_UBO_VAR_LIST_DO(mat4,            P[2]) \
+	GLOBAL_UBO_VAR_LIST_DO(mat4,            invP[2]) \
+	GLOBAL_UBO_VAR_LIST_DO(mat4,            P_prev[2]) \
+	GLOBAL_UBO_VAR_LIST_DO(mat4,            invP_prev[2]) \
 	GLOBAL_UBO_VAR_LIST_DO(mat4,            environment_rotation_matrix) \
 	GLOBAL_UBO_VAR_LIST_DO(mat4,            shadow_map_VP) \
 	GLOBAL_UBO_VAR_LIST_DO(mat4,            security_camera_data[MAX_CAMERAS]) \

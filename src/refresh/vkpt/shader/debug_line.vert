@@ -47,7 +47,8 @@ main()
 	view_pos.z = abs(view_pos.z);
 	vec2 screen_pos;
 	float dist;
-	projection_view_to_screen(view_pos, screen_pos, dist, false);
+	int view_id = 0;
+	projection_view_to_screen(view_id, view_pos, screen_pos, dist, false);
 	screen_pos = screen_pos * 2 + vec2(-1, -1);
 	if (depth_test) {
 		gl_Position = vec4(screen_pos.x * view_pos.z, screen_pos.y * view_pos.z, 1, view_pos.z);

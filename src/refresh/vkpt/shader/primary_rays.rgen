@@ -32,11 +32,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "path_tracer_rgen.h"
 #include "projection.glsl"
 
-Ray
-get_primary_ray(vec2 screen_pos)
+Ray get_primary_ray(int view_id, vec2 screen_pos)
 {
-	vec3 view_dir = projection_screen_to_view(screen_pos, 1, false);
-	view_dir = normalize((global_ubo.invV * vec4(view_dir, 0)).xyz);
+	vec3 view_dir = projection_screen_to_view(view_id, screen_pos, 1, false);
+	view_dir = normalize((global_ubo.invV[view_id] * vec4(view_dir, 0)).xyz);
 
 	Ray ray;
 	ray.origin = vec3(0);
@@ -48,9 +47,9 @@ get_primary_ray(vec2 screen_pos)
 	{
 		// Camera basis
 
-		vec3 right = global_ubo.invV[0].xyz;
-		vec3 up = global_ubo.invV[1].xyz;
-		vec3 forward = global_ubo.invV[2].xyz;
+		vec3 right = global_ubo.invV[view_id][0].xyz;
+		vec3 up = global_ubo.invV[view_id][1].xyz;
+		vec3 forward = global_ubo.invV[view_id][2].xyz;
 
 		// Find the intersection of the focal plane with the ray.
 
@@ -89,7 +88,7 @@ get_primary_ray(vec2 screen_pos)
 		ray.direction = normalize(focal_point - ray.origin);
 	}
 
-	ray.origin += global_ubo.cam_pos.xyz;
+	ray.origin += global_ubo.cam_pos[view_id].xyz;
 
 	return ray;
 }
@@ -143,11 +142,12 @@ main()
 		pixel_offset = global_ubo.sub_pixel_jitter;
 	}
 	
+	int view_id = 0;
 	const ivec2 image_position = get_image_position();
 	const vec2 pixel_center = vec2(image_position) + vec2(0.5);
 	const vec2 inUV = (pixel_center + pixel_offset) / vec2(get_image_size());
 
-	Ray ray = get_primary_ray(inUV);
+	Ray ray = get_primary_ray(view_id, inUV);
 
 	bool is_readback_pixel = all(equal(image_position, ivec2(quarter_width, half_height)));
 
@@ -195,10 +195,10 @@ main()
 		}
 
 		// Compute a motion vector for the sky, because we don't want TAA to blur it
-		vec3 prev_view_dir = (global_ubo.V_prev * vec4(direction, 0)).xyz;
+		vec3 prev_view_dir = (global_ubo.V_prev[view_id] * vec4(direction, 0)).xyz;
 		vec2 prev_screen_pos;
 		float prev_distance;
-		projection_view_to_screen(prev_view_dir, prev_screen_pos, prev_distance, true);
+		projection_view_to_screen(view_id, prev_view_dir, prev_screen_pos, prev_distance, true);
 		vec2 motion = prev_screen_pos - inUV;
 
 		if (push_constants.stereo == 1)
@@ -212,7 +212,7 @@ main()
 		imageStore(IMG_PT_VIEW_DEPTH_A, ipos, vec4(PRIMARY_RAY_T_MAX));
 		imageStore(IMG_PT_GODRAYS_THROUGHPUT_DIST, ipos, vec4(1, 1, 1, PRIMARY_RAY_T_MAX));
 		imageStore(IMG_PT_VIEW_DIRECTION, ipos, vec4(direction, 0));
-		imageStore(IMG_PT_SHADING_POSITION, ipos, vec4(global_ubo.cam_pos.xyz + direction * PRIMARY_RAY_T_MAX, 0));
+		imageStore(IMG_PT_SHADING_POSITION, ipos, vec4(global_ubo.cam_pos[view_id].xyz + direction * PRIMARY_RAY_T_MAX, 0));
 		imageStore(IMG_PT_MOTION, ipos, vec4(motion, 0, 0));
 		imageStore(IMG_PT_VISBUF_PRIM_A, ipos, uvec4(0));
 		imageStore(IMG_PT_VISBUF_BARY_A, ipos, vec4(0));
@@ -251,9 +251,9 @@ main()
 		geo_normal = -geo_normal;
 	
 	/* compute view-space derivatives of depth and motion vectors */
-	Ray ray_0 = get_primary_ray(inUV);
-	Ray ray_x = get_primary_ray(inUV + vec2(1.0 / float(global_ubo.width), 0));
-	Ray ray_y = get_primary_ray(inUV + vec2(0, 1.0 / float(global_ubo.height)));
+	Ray ray_0 = get_primary_ray(view_id, inUV);
+	Ray ray_x = get_primary_ray(view_id, inUV + vec2(1.0 / float(global_ubo.width), 0));
+	Ray ray_y = get_primary_ray(view_id, inUV + vec2(0, 1.0 / float(global_ubo.height)));
 
 	float half_cone_angle = sqrt(1.0 - square(min(dot(ray_0.direction, ray_x.direction), dot(ray_0.direction, ray_y.direction))));
 
@@ -274,8 +274,9 @@ main()
 	
 	vec2 screen_pos_curr, screen_pos_prev;
 	float distance_curr, distance_prev;
-	projection_view_to_screen((global_ubo.V * vec4(pos_ws_curr, 1)).xyz, screen_pos_curr, distance_curr, false);
-	projection_view_to_screen((global_ubo.V_prev * vec4(pos_ws_prev, 1)).xyz, screen_pos_prev, distance_prev, true);
+	
+	projection_view_to_screen(view_id, (global_ubo.V[view_id] * vec4(pos_ws_curr, 1)).xyz, screen_pos_curr, distance_curr, false);
+	projection_view_to_screen(view_id, (global_ubo.V_prev[view_id] * vec4(pos_ws_prev, 1)).xyz, screen_pos_prev, distance_prev, true);
 	
 	vec3 motion;
 	motion.xy = screen_pos_prev - screen_pos_curr;
@@ -316,7 +317,7 @@ main()
     // Extinction in the primary ray
 	if(global_ubo.medium != MEDIUM_NONE)
 	{
-		throughput *= extinction(global_ubo.medium, length(position - global_ubo.cam_pos.xyz));
+		throughput *= extinction(global_ubo.medium, length(position - global_ubo.cam_pos[view_id].xyz));
 	}
 
 	uint material_id = triangle.material_id;
