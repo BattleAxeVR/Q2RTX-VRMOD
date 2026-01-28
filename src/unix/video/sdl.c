@@ -524,6 +524,92 @@ static void key_event(SDL_KeyboardEvent *event)
     Key_Event2(key, event->state, event->timestamp);
 }
 
+#if SUPPORT_GAMEPADS
+static void cbutton_event(SDL_ControllerButtonEvent* event)
+{
+    unsigned key;
+
+    switch (event->button) 
+    {
+    case SDL_CONTROLLER_BUTTON_A:
+        key = K_SPACE;
+        break;
+    case SDL_CONTROLLER_BUTTON_B:
+        key = K_SPACE;
+        break;
+    case SDL_CONTROLLER_BUTTON_X:
+        key = K_MOUSE1;
+        break;
+    case SDL_CONTROLLER_BUTTON_Y:
+        key = K_MWHEELUP;
+        break;
+    case SDL_CONTROLLER_BUTTON_BACK:
+        return;
+    case SDL_CONTROLLER_BUTTON_GUIDE:
+        return;
+    case SDL_CONTROLLER_BUTTON_START:
+        key = K_PAUSE;
+        break;
+    case SDL_CONTROLLER_BUTTON_LEFTSTICK:
+        return;
+    case SDL_CONTROLLER_BUTTON_RIGHTSTICK:
+        return;
+    case SDL_CONTROLLER_BUTTON_LEFTSHOULDER:
+        key = K_SHIFT;
+        break;
+    case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER:
+        key = K_CTRL;
+        break;
+    case SDL_CONTROLLER_BUTTON_DPAD_UP:
+        key = K_UPARROW;
+        break;
+    case SDL_CONTROLLER_BUTTON_DPAD_DOWN:
+        key = K_DOWNARROW;
+        break;
+    case SDL_CONTROLLER_BUTTON_DPAD_LEFT:
+        key = K_LEFTARROW;
+        break;
+    case SDL_CONTROLLER_BUTTON_DPAD_RIGHT:
+        key = K_RIGHTARROW;
+        break;
+    case SDL_CONTROLLER_BUTTON_MISC1:
+        return;
+    case SDL_CONTROLLER_BUTTON_PADDLE1:
+        return;
+    case SDL_CONTROLLER_BUTTON_PADDLE2:
+        return;
+    case SDL_CONTROLLER_BUTTON_PADDLE3:
+        return;
+    case SDL_CONTROLLER_BUTTON_PADDLE4:
+        break;
+    case SDL_CONTROLLER_BUTTON_TOUCHPAD:
+        return;
+    default:
+        return;
+    }
+
+    Key_Event2(key, event->state, event->timestamp);
+}
+
+
+static void jbutton_event(SDL_JoyButtonEvent* event)
+{
+    unsigned key;
+
+    switch (event->button) 
+    {
+    case 0:
+        key = K_MOUSE1;
+        break;
+    default:
+        return;
+    }
+
+    Key_Event(key, event->state, event->timestamp);
+}
+
+#endif
+
 static void mouse_button_event(SDL_MouseButtonEvent *event)
 {
     unsigned key;
@@ -596,13 +682,13 @@ static void pump_events(void)
             break;
         case SDL_CONTROLLERBUTTONDOWN:
         case SDL_CONTROLLERBUTTONUP:
-            Key_Event(K_MOUSE1, event.cbutton.state, event.cbutton.timestamp);
+            cbutton_event(&event.cbutton);
             break;
         case SDL_JOYAXISMOTION:
             break;
         case SDL_JOYBUTTONDOWN:
         case SDL_JOYBUTTONUP:
-            Key_Event(K_MOUSE1, event.jbutton.state, event.jbutton.timestamp);
+            jbutton_event(&event.jbutton);
             break;
 #endif
         case SDL_MOUSEBUTTONDOWN:
