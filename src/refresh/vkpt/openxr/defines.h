@@ -7,17 +7,6 @@
 
 #define SUPPORT_GAMEPADS 1
 
-#ifdef SUPPORT_OPENXR
-#undef SUPPORT_OPENXR // uncomment this to test 2D builds, it's faster/more reliable than CMAKE
-#endif
-
-#ifndef SUPPORT_OPENXR
-#define SUPPORT_OPENXR 0
-#endif
-
-#if SUPPORT_OPENXR
-
-#define NUM_COMMAND_BUFFERS 2
 #define INVALID_INDEX -1 
 
 #define LEFT 0
@@ -29,7 +18,18 @@
 #define NUM_HANDS 2
 #define NUM_CONTROLLERS 2
 
+#ifdef SUPPORT_OPENXR
+#undef SUPPORT_OPENXR // uncomment this to test 2D builds, it's faster/more reliable than CMAKE
+#endif
+
+#ifndef SUPPORT_OPENXR
+#define SUPPORT_OPENXR 0
+#endif
+
+#if SUPPORT_OPENXR
+
 // OPENXR Settings
+#define NUM_COMMAND_BUFFERS 2
 
 // Controller support
 #define SUPPORT_KHR_SIMPLE_CONTROLLERS 0

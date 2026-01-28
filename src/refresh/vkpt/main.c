@@ -2728,8 +2728,11 @@ prepare_camera(const vec3_t position, const vec3_t direction, mat4_t data)
 static void
 prepare_viewmatrix(refdef_t *fd)
 {
-	create_view_matrix(vkpt_refdef.view_matrix, fd);
-	inverse(vkpt_refdef.view_matrix, vkpt_refdef.view_matrix_inv);
+	create_view_matrix(vkpt_refdef.view_matrix[LEFT], fd);
+	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
+
+	create_view_matrix(vkpt_refdef.view_matrix[RIGHT], fd);
+	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 }
 
 extern cvar_t *r_stereo;
@@ -2739,7 +2742,7 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 {
 	const bsp_mesh_t* wm = &vkpt_refdef.bsp_mesh_world;
 
-	float P[16];
+	float P[NUM_EYES][16];
 
 	QVKUniformBuffer_t *ubo = &vkpt_refdef.uniform_buffer;
 	memcpy(ubo->V_prev, ubo->V, sizeof(float) * 16);
@@ -2749,6 +2752,13 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 	ubo->prev_taa_output_width = ubo->taa_output_width;
 	ubo->prev_taa_output_height = ubo->taa_output_height;
 
+#if SUPPORT_OPENXR
+	if(Is_OpenXR_Session_Running())
+	{
+
+	}
+	else
+#endif
 	{
 		float raw_proj[16];
 
@@ -2775,12 +2785,14 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 			[15] = 1.f
 		};
 
-		mult_matrix_matrix(P, viewport_proj, raw_proj);
+		mult_matrix_matrix(P[LEFT], viewport_proj, raw_proj);
+		mult_matrix_matrix(P[RIGHT], viewport_proj, raw_proj);
 	}
-	memcpy(ubo->V, vkpt_refdef.view_matrix, sizeof(float) * 16);
+
+	memcpy(ubo->V, vkpt_refdef.view_matrix[LEFT], sizeof(float) * 16);
 	memcpy(ubo->P, P, sizeof(float) * 16);
-	memcpy(ubo->invV, vkpt_refdef.view_matrix_inv, sizeof(float) * 16);
-	inverse(P, *ubo->invP);
+	memcpy(ubo->invV, vkpt_refdef.view_matrix_inv[LEFT], sizeof(float) * 16);
+	inverse(P[LEFT], *ubo->invP);
 
 	float vfov = fd->fov_y * (float)M_PI / 180.f;
 	float unscaled_aspect = (float)qvk.extent_unscaled.width / (float)qvk.extent_unscaled.height;

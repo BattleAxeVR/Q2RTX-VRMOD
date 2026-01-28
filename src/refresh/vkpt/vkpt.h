@@ -48,6 +48,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "shader/global_textures.h"
 #include "shader/vertex_buffer.h"
 
+#include "openxr/defines.h"
+
 #define LENGTH(a) ((sizeof (a)) / (sizeof(*(a))))
 
 #define LOG_FUNC_(f) do {} while(0)
@@ -436,8 +438,8 @@ typedef struct vkpt_refdef_s {
 	QVKUniformBuffer_t uniform_buffer;
 	InstanceBuffer uniform_instance_buffer;
 	refdef_t *fd;
-	float view_matrix[16];
-	float view_matrix_inv[16];
+	float view_matrix[NUM_EYES][16];
+	float view_matrix_inv[NUM_EYES][16];
 
 	float z_near, z_far;
 

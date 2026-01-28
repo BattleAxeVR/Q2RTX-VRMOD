@@ -103,8 +103,8 @@ static void VKPT_DrawDebugLines(VkCommandBuffer cmd_buf)
 	int numverts = 0;
 	LIST_FOR_EACH_SAFE(r_debug_line_t, l, next, &r_debug_lines_active, entry) {
 		vec3_t view_start, view_end;
-		mult_matrix_vector3(view_start, vkpt_refdef.view_matrix, l->start);
-		mult_matrix_vector3(view_end, vkpt_refdef.view_matrix, l->end);
+		mult_matrix_vector3(view_start, vkpt_refdef.view_matrix[LEFT], l->start);
+		mult_matrix_vector3(view_end, vkpt_refdef.view_matrix[LEFT], l->end);
 		if (!intersect_z_near(view_start, view_end))
 			// Cull line behind camera.
 			continue;

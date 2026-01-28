@@ -87,7 +87,7 @@ create_viewweapon_matrix(mat4_t matrix, entity_t *e)
 		/* Construct a matrix for the viewweapon entity so, after projection and all,
 		 * it appears to be rendered with the gun FOV (which may differ from the view FOV). */
 		mat4_t tmp;
-		mult_matrix_matrix(tmp, vkpt_refdef.view_matrix, matrix);
+		mult_matrix_matrix(tmp, vkpt_refdef.view_matrix[LEFT], matrix);
 
 		mat4_t adjust;
 		adjust[0] = tan(vkpt_refdef.fd->fov_x * M_PI / 360.0) / tan(gunfov_x * M_PI / 360.0);
@@ -113,7 +113,7 @@ create_viewweapon_matrix(mat4_t matrix, entity_t *e)
 		mat4_t tmp2;
 		mult_matrix_matrix(tmp2, adjust, tmp);
 
-		mult_matrix_matrix(matrix, vkpt_refdef.view_matrix_inv, tmp2);
+		mult_matrix_matrix(matrix, vkpt_refdef.view_matrix_inv[LEFT], tmp2);
 	}
 
 }
