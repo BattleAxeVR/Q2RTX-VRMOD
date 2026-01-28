@@ -2742,12 +2742,14 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 {
 	const bsp_mesh_t* wm = &vkpt_refdef.bsp_mesh_world;
 
-	float P[NUM_EYES][16];
+	float P[NUM_EYES][16] = { 0 };
 
 	QVKUniformBuffer_t *ubo = &vkpt_refdef.uniform_buffer;
+
 	memcpy(ubo->V_prev, ubo->V, sizeof(float) * 16);
 	memcpy(ubo->P_prev, ubo->P, sizeof(float) * 16);
 	memcpy(ubo->invP_prev, ubo->invP, sizeof(float) * 16);
+
 	ubo->cylindrical_hfov_prev = ubo->cylindrical_hfov;
 	ubo->prev_taa_output_width = ubo->taa_output_width;
 	ubo->prev_taa_output_height = ubo->taa_output_height;
