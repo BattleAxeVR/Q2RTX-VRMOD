@@ -2887,11 +2887,11 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 		ubo->prev_width /= 2;
 		ubo->inv_width *= 2.0f;
 		ubo->unscaled_width /= 2;
-		ubo->taa_image_width /= 2;
-		ubo->taa_output_width /= 2;
+		//ubo->taa_image_width /= 2;
+		//ubo->taa_output_width /= 2;
 		ubo->current_gpu_slice_width /= 2;
 		ubo->prev_gpu_slice_width /= 2;
-		ubo->screen_image_width /= 2;
+		//ubo->screen_image_width /= 2;
 	}
 	
 	ubo->water_normal_texture = water_normal_texture - r_images;
