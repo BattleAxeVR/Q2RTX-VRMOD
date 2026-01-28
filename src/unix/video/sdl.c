@@ -544,7 +544,8 @@ static void cbutton_event(SDL_ControllerButtonEvent* event)
         key = K_MWHEELUP;
         break;
     case SDL_CONTROLLER_BUTTON_BACK:
-        return;
+        key = K_ESCAPE;
+        break;
     case SDL_CONTROLLER_BUTTON_GUIDE:
         return;
     case SDL_CONTROLLER_BUTTON_START:
