@@ -2757,14 +2757,11 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 #if 1//SUPPORT_OPENXR
 	if(stereo)// && Is_OpenXR_Session_Running())
 	{
-		XrMatrix4x4f xr_proj[NUM_EYES] = { 0 };
-
 		//Hardcoded PSVR 2 defaults, for testing/debugging
 		const float UPWARD_FOV = DEG2RAD(53.0401382f);
 		const float OUTWARD_FOV = DEG2RAD(61.4999962f);
 		const float INWARD_FOV = DEG2RAD(43.4464722f);
 
-		//XrMatrix4x4f xr_proj[NUM_EYES] = { 0 };
 		XrFovf fov[NUM_EYES] = { 0 };
 
 		fov[LEFT].angleUp = UPWARD_FOV;
@@ -2776,9 +2773,6 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 		fov[RIGHT].angleDown = -UPWARD_FOV;
 		fov[RIGHT].angleLeft = -INWARD_FOV;
 		fov[RIGHT].angleRight = OUTWARD_FOV;
-
-		//XrMatrix4x4f_CreateProjectionFov(&xr_proj[LEFT], GRAPHICS_VULKAN, fov[LEFT], vkpt_refdef.z_near, vkpt_refdef.z_far);
-		//XrMatrix4x4f_CreateProjectionFov(&xr_proj[RIGHT], GRAPHICS_VULKAN, fov[RIGHT], vkpt_refdef.z_near, vkpt_refdef.z_far);
 
 		float nearz = vkpt_refdef.z_near;
 		float farz = vkpt_refdef.z_far;
