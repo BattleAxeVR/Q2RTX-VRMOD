@@ -2022,18 +2022,25 @@ static void process_regular_entity(
 {
 	InstanceBuffer* uniform_instance_buffer = &vkpt_refdef.uniform_instance_buffer;
 
-	float transform[16];
-	if (is_viewer_weapon)
-		create_viewweapon_matrix(transform, (entity_t *)entity);
+	float transform[16] = { 0 };
+
+	if(is_viewer_weapon)
+	{
+		create_viewweapon_matrix(transform, (entity_t*)entity);
+	}
 	else
+	{
 		create_entity_matrix(transform, (entity_t*)entity);
+	}
 	
 	int current_instance_index = *instance_count;
 	int current_animated_index = *animated_count;
 	int current_num_instanced_prim = *num_instanced_prim;
 
-	if (contains_transparent)
+	if(contains_transparent)
+	{
 		*contains_transparent = false;
+	}
 
 	int iqm_matrix_index = -1;
 	if (model->iqmData && model->iqmData->num_poses)
@@ -2221,36 +2228,56 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 		else
 		{
 			const model_t* model = MOD_ForHandle(entity->model);
-			if (model == NULL || model->meshes == NULL)
-				continue;
 
-			if (entity->flags & RF_VIEWERMODEL)
+			if(model == NULL || model->meshes == NULL)
+			{
+				continue;
+			}
+
+			if(entity->flags & RF_VIEWERMODEL)
+			{
 				viewer_model_indices[viewer_model_num++] = i;
-			else if (entity->flags & RF_WEAPONMODEL)
+			}
+			else if(entity->flags & RF_WEAPONMODEL)
+			{
 				viewer_weapon_indices[viewer_weapon_num++] = i;
-			else if (model->model_class == MCLASS_EXPLOSION || model->model_class == MCLASS_FLASH)
+			}
+			else if(model->model_class == MCLASS_EXPLOSION || model->model_class == MCLASS_FLASH)
+			{
 				explosion_indices[explosion_num++] = i;
+			}
 			else
 			{
 				bool contains_transparent = false;
 				bool contains_masked = false;
+
 				process_regular_entity(entity, model, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 					MESH_FILTER_OPAQUE, &contains_transparent, &contains_masked, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 
-				if (contains_transparent)
+				if(contains_transparent)
+				{
 					transparent_model_indices[transparent_model_num++] = i;
-				if (contains_masked)
+				}
+
+				if(contains_masked)
+				{
 					masked_model_indices[masked_model_num++] = i;
+				}
 			}
 
 			if (model->num_light_polys > 0)
 			{
-				float transform[16];
+				float transform[16] = { 0 };
 				const bool is_viewer_weapon = (entity->flags & RF_WEAPONMODEL) != 0;
-				if (is_viewer_weapon)
+
+				if(is_viewer_weapon)
+				{
 					create_viewweapon_matrix(transform, (entity_t*)entity);
+				}
 				else
+				{
 					create_entity_matrix(transform, (entity_t*)entity);
+				}
 
 				instance_model_lights(model->num_light_polys, model->light_polys, transform);
 			}
@@ -2304,11 +2331,14 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 	{
 		const entity_t* entity = vkpt_refdef.fd->entities + viewer_weapon_indices[i];
 		const model_t* model = MOD_ForHandle(entity->model);
+
 		process_regular_entity(entity, model, true, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 			MESH_FILTER_ALL, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 
-		if (info_hand->integer == 1)
+		if(info_hand->integer == 1)
+		{
 			upload_info->weapon_left_handed = true;
+		}
 	}
 
 	upload_info->viewer_weapon_prim_count = num_instanced_prim - upload_info->viewer_weapon_prim_offset;
@@ -2331,8 +2361,11 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 	memset(instance_buffer->model_prev_to_current, -1, sizeof(instance_buffer->model_prev_to_current));
 	
 	model_entity_id_count[entity_frame_num] = model_instance_idx;
-	for(int i = 0; i < model_entity_id_count[entity_frame_num]; i++) {
-		for(int j = 0; j < model_entity_id_count[!entity_frame_num]; j++) {
+
+	for(int i = 0; i < model_entity_id_count[entity_frame_num]; i++) 
+	{
+		for(int j = 0; j < model_entity_id_count[!entity_frame_num]; j++) 
+		{
 			entity_hash_t hash;
 			memcpy(&hash, &model_entity_ids[entity_frame_num][i], sizeof(entity_hash_t));
 
@@ -2481,10 +2514,14 @@ VkDescriptorSet qvk_get_current_desc_set_textures()
 
 static void process_render_feedback(ref_feedback_t *feedback, mleaf_t* viewleaf, bool* sun_visible, float* adapted_luminance)
 {
-	if (viewleaf)
+	if(viewleaf)
+	{
 		feedback->viewcluster = viewleaf->cluster;
+	}
 	else
+	{
 		feedback->viewcluster = -1;
+	}
 
 	{
 		static char const * unknown = "<unknown>";
@@ -2497,9 +2534,11 @@ static void process_render_feedback(ref_feedback_t *feedback, mleaf_t* viewleaf,
 			int material_id = readback.material & MATERIAL_INDEX_MASK;
 			feedback->view_material_index = material_id;
 			pbr_material_t const* material = MAT_ForIndex(material_id);
+
 			if (material)
 			{
 				image_t const* image = material->image_base;
+
 				if (image)
 				{
 					view_material = image->name;
@@ -2508,7 +2547,10 @@ static void process_render_feedback(ref_feedback_t *feedback, mleaf_t* viewleaf,
 			}
 		}
 		else
+		{
 			feedback->view_material_index = -1;
+		}
+
 		strcpy(feedback->view_material, view_material);
 		strcpy(feedback->view_material_override, view_material_override);
 
@@ -2618,10 +2660,16 @@ static void evaluate_reference_mode(reference_mode_t* ref_mode)
 
 		ref_mode->enable_accumulation = false;
 		ref_mode->enable_denoiser = !!cvar_flt_enable->integer;
-		if (cvar_pt_num_bounce_rays->value == 0.5f)
+
+		if(cvar_pt_num_bounce_rays->value == 0.5f)
+		{
 			ref_mode->num_bounce_rays = 0.5f;
+		}
 		else
+		{
 			ref_mode->num_bounce_rays = max(0, min(2, round(cvar_pt_num_bounce_rays->value)));
+		}
+
 		ref_mode->temporal_blend_factor = 0.f;
 		ref_mode->reflect_refract = max(0, cvar_pt_reflect_refract->integer);
 	}
@@ -2634,12 +2682,15 @@ static void evaluate_taa_settings(const reference_mode_t* ref_mode)
 	qvk.effective_aa_mode = AA_MODE_OFF;
 	qvk.extent_taa_output = qvk.extent_render;
 
-	if (!ref_mode->enable_denoiser)
+	if(!ref_mode->enable_denoiser)
+	{
 		return;
+	}
 
 	int flt_taa = cvar_flt_taa->integer;
 	// FSR RCAS needs upscaled input; if EASU was disabled, force to TAAU
 	bool force_upscaling = vkpt_fsr_is_enabled() && vkpt_fsr_needs_upscale();
+
 	if(force_upscaling)
 	{
 		flt_taa = AA_MODE_UPSCALE;
@@ -2684,10 +2735,14 @@ static void prepare_camera(const vec3_t position, const vec3_t direction, mat4_t
 	VectorCopy(direction, forward);
 	VectorNormalize(forward);
 
-	if (fabsf(forward[2]) < 0.99f)
+	if(fabsf(forward[2]) < 0.99f)
+	{
 		VectorSet(up, 0.f, 0.f, 1.f);
+	}
 	else
+	{
 		VectorSet(up, 0.f, 1.f, 0.f);
+	}
 
 	CrossProduct(forward, up, right);
 	CrossProduct(right, forward, up);
