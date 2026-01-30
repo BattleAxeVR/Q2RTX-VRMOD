@@ -2713,10 +2713,7 @@ static void prepare_viewmatrix(refdef_t *fd)
 	const float ipd = fabs(cl_ipd->value);
 
 	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
-	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
-
 	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
-	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 
 #if SUPPORT_OPENXR
 	if(stereo)
@@ -2725,6 +2722,9 @@ static void prepare_viewmatrix(refdef_t *fd)
 		GetViewMatrix(RIGHT, true, vkpt_refdef.view_matrix[RIGHT]);
 	}
 #endif
+
+	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
+	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 }
 
 
