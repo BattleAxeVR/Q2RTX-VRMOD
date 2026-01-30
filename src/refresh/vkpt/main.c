@@ -4841,6 +4841,7 @@ void vkpt_submit_command_buffer(
 	for (int ngroup = 0; ngroup < LENGTH(groups); ngroup++)
 	{
 		cmd_buf_group_t* group = groups[ngroup];
+
 		for (int i = 0; i < MAX_FRAMES_IN_FLIGHT * group->count_per_frame; i++)
 		{
 			if (group->buffers[i] == cmd_buf)
@@ -4853,10 +4854,7 @@ void vkpt_submit_command_buffer(
 #endif
 }
 
-void vkpt_submit_command_buffer_simple(
-	VkCommandBuffer cmd_buf,
-	VkQueue queue,
-	bool all_gpus)
+void vkpt_submit_command_buffer_simple(VkCommandBuffer cmd_buf,	VkQueue queue, bool all_gpus)
 {
 	vkpt_submit_command_buffer(cmd_buf, queue, all_gpus ? (1 << qvk.device_count) - 1 : 1, 0, NULL, NULL, NULL, 0, NULL, NULL, 0);
 }
