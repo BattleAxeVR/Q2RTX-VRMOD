@@ -132,8 +132,16 @@ void reproject_pixel(ivec2 p, int field_left, int field_right)
 	// Compute the previous frame position of this surface
 	vec4 motion = texelFetch(TEX_PT_MOTION, p, 0);
 
-	vec2 pos_prev = ((vec2(p) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height);
-	//vec2 pos_prev = ((vec2(p) + vec2(0.5)) * vec2(global_ubo.inv_width * 4, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 4, global_ubo.prev_height); // stereo mode
+	vec2 pos_prev;
+
+	if (global_ubo.stereo == 1)
+	{
+		pos_prev = ((vec2(p) + vec2(0.5)) * vec2(global_ubo.inv_width * 4, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 4, global_ubo.prev_height); // stereo mode
+	}
+	else
+	{
+		pos_prev = ((vec2(p) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height);
+	}
 
 	ivec2 pp = ivec2(floor(pos_prev));
 
@@ -180,15 +188,18 @@ void reproject_pixel(ivec2 p, int field_left, int field_right)
 
 int get_view_id()
 {
-#if 0
-	//if(global_ubo.stereo == 0)
+#if 1
+	if(global_ubo.stereo == 0)
 	{
-		//return 0;
+		return 0;
 	}
 
-	ivec2 ipos = ivec2(gl_GlobalInvocationID);
+	int pos_x = int(gl_GlobalInvocationID.x);
+
+	int width = int(global_ubo.width);
+	int half_width = 10;//width / 4;// / 2;
 	
-	if (ipos.x >= global_ubo.width)
+	if (pos_x >= half_width)
 	{
 		return 1;
 	}
@@ -199,21 +210,29 @@ int get_view_id()
 void
 main()
 {
-	// First pass: the entire thread group is busy matching pixels with the previous frame
 
-	ivec2 ipos = ivec2(gl_GlobalInvocationID);
-	ivec2 pos_grad = ipos / GRAD_DWN;
+	return;
+
+	#if 0
+	// First pass: the entire thread group is busy matching pixels with the previous frame
+	ivec2 ipos =  ivec2(gl_GlobalInvocationID);
+
 	int view_id = get_view_id();
 
 	if (view_id == 1)
 	{
 		return;
 	}
-
+	
 	int prev_width = global_ubo.prev_width;
 	int prev_half_width = global_ubo.prev_width / 2;
 	int half_width = global_ubo.width / 2;
-
+	
+	if (view_id == 1)
+	{
+		//ipos.x -= global_ubo.width;
+	}
+	
 #if 0
 	if(global_ubo.stereo == 1)
 	{
@@ -223,8 +242,11 @@ main()
 	}
 #endif
 
+	ivec2 pos_grad = ipos / GRAD_DWN;
+
 	int field_left = 0;
 	int field_right = prev_half_width;
+
 	if (ipos.x >= half_width)
 	{
 		field_left = field_right;
@@ -279,6 +301,11 @@ main()
 		}
 	}
 
+	if (view_id == 1)
+	{
+		//pos_grad.x += global_ubo.width;// / 2;
+	}
+
 	if (!found)
 	{
 		imageStore(IMG_ASVGF_GRAD_SMPL_POS_A, pos_grad, uvec4(0));
@@ -298,10 +325,16 @@ main()
 
 	imageStore(IMG_ASVGF_GRAD_HF_SPEC_PING, pos_grad, vec4(found_prev_lum, 0, 0));
 
+	if (view_id == 1)
+	{
+		//ipos.x += global_ubo.width;// / 2;
+	}
+
 	imageStore(IMG_ASVGF_RNG_SEED_A, ipos, texelFetch(TEX_ASVGF_RNG_SEED_B, found_pos_prev, 0));
 	imageStore(IMG_PT_NORMAL_A, ipos, texelFetch(TEX_PT_NORMAL_B, found_pos_prev, 0));
 	imageStore(IMG_PT_BASE_COLOR_A, ipos, texelFetch(TEX_PT_BASE_COLOR_B, found_pos_prev, 0));
 	imageStore(IMG_PT_METALLIC_A, ipos, texelFetch(TEX_PT_METALLIC_B, found_pos_prev, 0));
 
 	patch_position(view_id, ipos, found_pos_prev);
+	#endif
 }

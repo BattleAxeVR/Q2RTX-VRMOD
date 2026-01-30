@@ -67,8 +67,16 @@ vec2 get_lf_gradient(ivec2 ipos)
 	// Find the same surface on the pvreious frame
 	vec4 motion = texelFetch(TEX_PT_MOTION, ipos, 0);
 
-    ivec2 pos_prev = ivec2(((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height));
-	//ivec2 pos_prev = ivec2(((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 4, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 4, global_ubo.prev_height)); // stereo mode
+	ivec2 pos_prev;
+
+	if (global_ubo.stereo == 1)
+	{
+		pos_prev = ivec2(((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 4, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 4, global_ubo.prev_height)); // stereo mode
+	}
+	else
+	{
+		pos_prev = ivec2(((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height));
+	}
 
 	// Boundaries for the checkerboard field, either left or right half of the screen
 	int field_left = 0;

@@ -140,21 +140,38 @@ main()
     bool sample_across_fields = !is_checkerboarded_surface && (global_ubo.current_gpu_slice_width == global_ubo.width);
 
     vec2 pos_prev;
-    if (sample_across_fields)
-    {
-    	// Reprojection in flat-screen coordinates
-		pos_prev = ((vec2(checker_to_flat(ipos, global_ubo.width)) + vec2(0.5)) * vec2(global_ubo.inv_width, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width, global_ubo.prev_height);
-		//pos_prev = ((vec2(checker_to_flat(ipos, global_ubo.width / 2)) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height); // stereo mode
-	}
-	else   
-	{
-		// Reprojection in checkerboarded coordinates
-		pos_prev = ((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height);
-		//pos_prev = ((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 4, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 4, global_ubo.prev_height); // stereo mode
-	}
+	float motion_length;
 
-	float motion_length = length(motion.xy * vec2(global_ubo.width, global_ubo.height));
-	//float motion_length = length(motion.xy * vec2(global_ubo.width / 2, global_ubo.height)); // stereo mode
+	if (global_ubo.stereo == 1)
+	{
+		if (sample_across_fields)
+		{
+    		// Reprojection in flat-screen coordinates
+			pos_prev = ((vec2(checker_to_flat(ipos, global_ubo.width / 2)) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height); // stereo mode
+		}
+		else   
+		{
+			// Reprojection in checkerboarded coordinates
+			pos_prev = ((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 4, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 4, global_ubo.prev_height); // stereo mode
+		}
+
+		motion_length = length(motion.xy * vec2(global_ubo.width / 2, global_ubo.height)); // stereo mode
+	}
+	else
+	{
+		if (sample_across_fields)
+		{
+    		// Reprojection in flat-screen coordinates
+			pos_prev = ((vec2(checker_to_flat(ipos, global_ubo.width)) + vec2(0.5)) * vec2(global_ubo.inv_width, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width, global_ubo.prev_height);
+		}
+		else   
+		{
+			// Reprojection in checkerboarded coordinates
+			pos_prev = ((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height);
+		}
+
+		motion_length = length(motion.xy * vec2(global_ubo.width, global_ubo.height));
+	}
 
 	// Load the parameters of the target pixel
 	float depth_curr;
@@ -182,25 +199,28 @@ main()
 		vec2 subpix = fract(pos_prev - vec2(0.5) - pos_ld);
 
 		int field_left = 0;
+		int field_right = 0;
 
-#if 0
-		// stereo mode
-		int field_right = sample_across_fields ? global_ubo.prev_width / 2 : (global_ubo.prev_width / 4);
+		if (global_ubo.stereo == 1)
+	    {
+			field_right = sample_across_fields ? global_ubo.prev_width / 2 : (global_ubo.prev_width / 4); // stereo mode
 
-		if (!sample_across_fields && ipos.x >= global_ubo.width / 4)
-		{
-			field_left = field_right;
-			field_right = global_ubo.prev_width / 2;
-		}
-#else
-		int field_right = sample_across_fields ? global_ubo.prev_width : (global_ubo.prev_width / 2);
+			if (!sample_across_fields && ipos.x >= global_ubo.width / 4)
+			{
+				field_left = field_right;
+				field_right = global_ubo.prev_width / 2;
+			}
+	    }
+	    else
+	    {
+			field_right = sample_across_fields ? global_ubo.prev_width : (global_ubo.prev_width / 2);
 
-		if (!sample_across_fields && ipos.x >= global_ubo.width / 2)
-		{
-			field_left = field_right;
-			field_right = global_ubo.prev_width;
-		}
-#endif
+			if (!sample_across_fields && ipos.x >= global_ubo.width / 2)
+			{
+				field_left = field_right;
+				field_right = global_ubo.prev_width;
+			}
+	    }
 
 		// Bilinear/bilateral filter
 		const ivec2 off[4] = { { 0, 0 }, { 1, 0 }, { 0, 1 }, { 1, 1 } };
@@ -220,8 +240,14 @@ main()
 			{
 				// If we're sampling both checker fields, `p` is calculated in flat coordinates,
 				// so translate it back into checkerboarded coordinates to load the G-buffer data
-				p = flat_to_checker(p, global_ubo.prev_width);
-				//p = flat_to_checker(p, global_ubo.prev_width / 2); // stereo mode
+				if (global_ubo.stereo == 1)
+				{
+					p = flat_to_checker(p, global_ubo.prev_width / 2); // stereo mode
+				}
+				else
+				{
+					p = flat_to_checker(p, global_ubo.prev_width);
+				}
 			}
 
 			float depth_prev = texelFetch(TEX_PT_VIEW_DEPTH_B, p, 0).x;
