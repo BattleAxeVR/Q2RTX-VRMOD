@@ -225,10 +225,23 @@ void create_orthographic_matrix(mat4_t matrix, float xmin, float xmax, float ymi
 	matrix[15] = 1;
 }
 
-void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, refdef_t *fd)
+void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd, mat4_t view_matrix, refdef_t *fd)
 {
 	vec3_t viewaxis[3];
 	AnglesToAxis(fd->viewangles, viewaxis);
+
+	if(zero_out_pitch)
+	{
+		vec3_t viewangles = { 0 };
+		viewangles[YAW] = fd->viewangles[YAW];
+		viewangles[ROLL] = fd->viewangles[ROLL];
+
+		AnglesToAxis(viewangles, viewaxis);
+	}
+	else
+	{
+		AnglesToAxis(fd->viewangles, viewaxis);
+	}
 
 	view_matrix[0]  = -viewaxis[1][0];
 	view_matrix[4]  = -viewaxis[1][1];

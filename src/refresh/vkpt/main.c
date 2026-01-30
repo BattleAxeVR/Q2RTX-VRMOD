@@ -2767,8 +2767,10 @@ static void prepare_viewmatrix(refdef_t *fd)
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 	const float ipd = fabs(cl_ipd->value);
 
-	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
-	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
+	const bool zero_out_pitch = (stereo && ZERO_OUT_PITCH);
+
+	create_view_matrix(zero_out_pitch, stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
+	create_view_matrix(zero_out_pitch, stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
 
 #if SUPPORT_OPENXR
 	if(stereo)
@@ -3061,8 +3063,10 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	ubo->pt_num_bounce_rays = ref_mode->num_bounce_rays;
 	ubo->pt_reflect_refract = ref_mode->reflect_refract;
 
-	if (ref_mode->num_bounce_rays < 1.f)
+	if(ref_mode->num_bounce_rays < 1.f)
+	{
 		ubo->pt_specular_mis = 0; // disable MIS if there are no specular rays
+	}
 
 	ubo->pt_min_log_sky_luminance = exp2f(ubo->pt_min_log_sky_luminance);
 	ubo->pt_max_log_sky_luminance = exp2f(ubo->pt_max_log_sky_luminance);
@@ -3076,10 +3080,10 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 		GetEyePosition(LEFT, ubo->cam_pos[LEFT], 0);
 		GetEyePosition(RIGHT, ubo->cam_pos[RIGHT], 0);
 #else
-		create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
+		create_view_matrix(true, stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
 		inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
 
-		create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
+		create_view_matrix(true, stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
 		inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 
 		vec3_t viewaxis[3] = {0};
