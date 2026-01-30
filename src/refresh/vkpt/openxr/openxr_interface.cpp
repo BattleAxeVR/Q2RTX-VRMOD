@@ -2988,11 +2988,36 @@ extern "C"
 		if(append)
 		{
 			XrMatrix4x4f local_matrix = {};
-			XrMatrix4x4f_CreateFromRigidTransform(&local_matrix, &openxr_.aim_pose_LS_[hand_id]);
+			XrMatrix4x4f_CreateIdentity(&local_matrix);
+
+			//local_matrix.m[12] = 50.0f; // + X is forward
+			//local_matrix.m[13] = 50.0f; // +Y is to the right
+			//local_matrix.m[14] = 50.0f; // +Z = UP, 10cm
+
+			const float tracking_scale_forward = 10.0f;
+			const float tracking_scale = 50.0f;
+
+			local_matrix.m[12] = -openxr_.aim_pose_LS_[hand_id].position.z * tracking_scale_forward; // + X is forward
+			local_matrix.m[13] = (hand_id == LEFT) ? openxr_.aim_pose_LS_[hand_id].position.x * tracking_scale : -openxr_.aim_pose_LS_[hand_id].position.x * tracking_scale; // +Y is to the right
+			local_matrix.m[14] = openxr_.aim_pose_LS_[hand_id].position.y * tracking_scale; // +Z = UP, 10cm
+
+			//openxr_.aim_pose_LS_[hand_id].orientation.x = 0.0f;
+			//openxr_.aim_pose_LS_[hand_id].orientation.y = 0.0f;
+			//openxr_.aim_pose_LS_[hand_id].orientation.z = 0.0f;
+			//openxr_.aim_pose_LS_[hand_id].orientation.w = 0.0f;
+
+			//openxr_.aim_pose_LS_[hand_id].position.x = 0.0f;
+			//openxr_.aim_pose_LS_[hand_id].position.y = 0.0f;
+			//openxr_.aim_pose_LS_[hand_id].position.z = 0.0f;
+
+			//XrMatrix4x4f_CreateFromRigidTransform(&local_matrix, &openxr_.aim_pose_LS_[hand_id]);
+
+			//XrMatrix4x4f local_matrixT = {};
+			//XrMatrix4x4f_Transpose(&local_matrixT, &local_matrix);
 
 			XrMatrix4x4f orig_hand_matrix = {};
 			memcpy(&orig_hand_matrix, matrix_ptr, sizeof(float) * 16);
-			XrMatrix4x4f_Multiply((XrMatrix4x4f*)matrix_ptr, &local_matrix, &orig_hand_matrix);
+			XrMatrix4x4f_Multiply((XrMatrix4x4f*)matrix_ptr,  &orig_hand_matrix, &local_matrix);
 		}
 		else
 		{
