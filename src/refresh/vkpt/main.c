@@ -2691,6 +2691,7 @@ static void prepare_camera(const vec3_t position, const vec3_t direction, mat4_t
 
 	CrossProduct(forward, up, right);
 	CrossProduct(right, forward, up);
+
 	VectorNormalize(up);
 	VectorNormalize(right);
 
@@ -2716,6 +2717,14 @@ static void prepare_viewmatrix(refdef_t *fd)
 
 	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
 	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
+
+#if SUPPORT_OPENXR
+	if(stereo)
+	{
+		GetViewMatrix(LEFT, true, vkpt_refdef.view_matrix[LEFT]);
+		GetViewMatrix(RIGHT, true, vkpt_refdef.view_matrix[RIGHT]);
+	}
+#endif
 }
 
 
@@ -2742,25 +2751,29 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 	const float ipd = fabs(cl_ipd->value);
 
-#if 1//SUPPORT_OPENXR
-	if(stereo)// && Is_OpenXR_Session_Running())
+	if(stereo|| SUPPORT_OPENXR)
 	{
-		//Hardcoded PSVR 2 defaults, for testing/debugging
-		const float UPWARD_FOV = DEG2RAD(53.0401382f);
-		const float OUTWARD_FOV = DEG2RAD(61.4999962f);
-		const float INWARD_FOV = DEG2RAD(43.4464722f);
-
 		XrFovf fov[NUM_EYES] = { 0 };
 
-		fov[LEFT].angleUp = UPWARD_FOV;
-		fov[LEFT].angleDown = -UPWARD_FOV;
-		fov[LEFT].angleLeft = -OUTWARD_FOV;
-		fov[LEFT].angleRight = INWARD_FOV;
+#if SUPPORT_OPENXR
+		if(!GetFov(LEFT, &fov[LEFT]) || !GetFov(RIGHT, &fov[RIGHT]))
+#endif
+		{
+			//Hardcoded PSVR 2 defaults, for testing/debugging/fallback
+			const float UPWARD_FOV = DEG2RAD(53.0401382f);
+			const float OUTWARD_FOV = DEG2RAD(61.4999962f);
+			const float INWARD_FOV = DEG2RAD(43.4464722f);
 
-		fov[RIGHT].angleUp = UPWARD_FOV;
-		fov[RIGHT].angleDown = -UPWARD_FOV;
-		fov[RIGHT].angleLeft = -INWARD_FOV;
-		fov[RIGHT].angleRight = OUTWARD_FOV;
+			fov[LEFT].angleUp = UPWARD_FOV;
+			fov[LEFT].angleDown = -UPWARD_FOV;
+			fov[LEFT].angleLeft = -OUTWARD_FOV;
+			fov[LEFT].angleRight = INWARD_FOV;
+
+			fov[RIGHT].angleUp = UPWARD_FOV;
+			fov[RIGHT].angleDown = -UPWARD_FOV;
+			fov[RIGHT].angleLeft = -INWARD_FOV;
+			fov[RIGHT].angleRight = OUTWARD_FOV;
+		}
 
 		float nearz = vkpt_refdef.z_near;
 		float farz = vkpt_refdef.z_far;
@@ -2772,7 +2785,6 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 		create_projection_matrixXR(&nearz, &farz, &fov[RIGHT], P[RIGHT]);
 	}
 	else
-#endif
 	{
 		float raw_proj[16];
 
@@ -2995,26 +3007,11 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	memcpy(ubo->cam_pos[LEFT], fd->vieworg, sizeof(float) * 3);
 	memcpy(ubo->cam_pos[RIGHT], fd->vieworg, sizeof(float) * 3);
 
-	if(stereo && (ipd > 0.0f))
+	if(stereo && ((ipd > 0.0f)|| SUPPORT_OPENXR))
 	{
-#if 1
-		const vec4_t zero_vec = { 0.0f, 0.0f, 0.0f, 1.0f };
-		vec4_t view_pos_WS[NUM_EYES] = { 0 };
-
-		mult_matrix_vector(view_pos_WS[LEFT], vkpt_refdef.view_matrix_inv[LEFT], zero_vec);
-		mult_matrix_vector(view_pos_WS[LEFT], vkpt_refdef.view_matrix_inv[RIGHT], zero_vec);
-
-		ubo->cam_pos[LEFT][0] += view_pos_WS[LEFT][0];
-		//ubo->cam_pos[LEFT][1] += view_pos_WS[LEFT][1];
-		//ubo->cam_pos[LEFT][2] += view_pos_WS[LEFT][2];
-
-		ubo->cam_pos[RIGHT][0] += view_pos_WS[RIGHT][0];
-		//ubo->cam_pos[RIGHT][1] += view_pos_WS[RIGHT][1];
-		//ubo->cam_pos[RIGHT][2] += view_pos_WS[RIGHT][2];
-
-		//memcpy(ubo->cam_pos[LEFT], view_pos_WS[LEFT], sizeof(float) * 3);
-		//memcpy(ubo->cam_pos[RIGHT], view_pos_WS[RIGHT], sizeof(float) * 3);
-
+#if SUPPORT_OPENXR
+		GetEyePosition(LEFT, ubo->cam_pos[LEFT], 0);
+		GetEyePosition(RIGHT, ubo->cam_pos[RIGHT], 0);
 #else
 		create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
 		inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
