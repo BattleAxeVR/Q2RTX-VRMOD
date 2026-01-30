@@ -2924,6 +2924,44 @@ extern "C"
 	{
 		return openxr_.is_session_running();
 	}
+
+	bool GetViewMatrix(const int view_id, float* matrix_ptr)
+	{
+		if(!openxr_.is_session_running() || !matrix_ptr)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		XrMatrix4x4f_CreateFromRigidTransform((XrMatrix4x4f*)matrix_ptr, &xr_view.pose);
+		return true;
+	}
+
+	bool GetFov(const int view_id, XrFovf* fov_ptr)
+	{
+		if(!openxr_.is_session_running() || !fov_ptr)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		XrFovf& fov = *fov_ptr;
+		fov = xr_view.fov;
+
+		return true;
+	}
 }
 
 #endif // SUPPORT_OPENXR

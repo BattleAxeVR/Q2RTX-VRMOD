@@ -289,6 +289,17 @@ public:
 
 	bool get_system_properties();
 
+	bool get_view(const int eye, XrView& view)
+	{
+		if(xr_views_.size() < (eye + 1))
+		{
+			return false;
+		}
+
+		view = xr_views_[eye];
+		return true;
+	}
+
 private:
 	bool initialized_ = false;
 
