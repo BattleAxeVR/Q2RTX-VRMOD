@@ -2925,7 +2925,7 @@ extern "C"
 		return openxr_.is_session_running();
 	}
 
-	bool GetViewMatrix(const int view_id, float* matrix_ptr)
+	bool GetViewMatrix(const int view_id, const bool append, float* matrix_ptr)
 	{
 		if(!openxr_.is_session_running() || !matrix_ptr)
 		{
@@ -2939,7 +2939,20 @@ extern "C"
 			return false;
 		}
 
-		XrMatrix4x4f_CreateFromRigidTransform((XrMatrix4x4f*)matrix_ptr, &xr_view.pose);
+		if(append)
+		{
+			XrMatrix4x4f local_matrix = {};
+			XrMatrix4x4f_CreateFromRigidTransform(&local_matrix, &xr_view.pose);
+
+			XrMatrix4x4f orig_view_matrix = {};
+			memcpy(&orig_view_matrix, matrix_ptr, sizeof(float) * 16);
+			XrMatrix4x4f_Multiply((XrMatrix4x4f*)matrix_ptr, &local_matrix, &orig_view_matrix);
+		}
+		else
+		{
+			XrMatrix4x4f_CreateFromRigidTransform((XrMatrix4x4f*)matrix_ptr, &xr_view.pose);
+		}
+		
 		return true;
 	}
 

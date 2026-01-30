@@ -20,7 +20,7 @@ void OpenXR_Endframe(VkCommandBuffer* external_command_buffer);
 
 bool Is_OpenXR_Session_Running();
 
-bool GetViewMatrix(const int view_id, float* matrix_ptr);
+bool GetViewMatrix(const int view_id, const bool append, float* matrix_ptr);
 bool GetFov(const int view_id, XrFovf* fov_ptr);
 
 #endif // SUPPORT_OPENXR
