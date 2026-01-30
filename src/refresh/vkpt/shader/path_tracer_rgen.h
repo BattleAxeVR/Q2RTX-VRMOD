@@ -133,39 +133,21 @@ int get_view_id()
 		return 0;
 	}
 
-	ivec2 pos;
-
-	bool is_even_checkerboard = push_constants.gpu_index == 0 || push_constants.gpu_index < 0 && rt_LaunchID.z == 0;
-
-	if(global_ubo.pt_swap_checkerboard != 0)
-	{
-		is_even_checkerboard = !is_even_checkerboard;
-	}
-
-	if (is_even_checkerboard) 
-	{
-		pos.x = int(rt_LaunchID.x * 2) + int(rt_LaunchID.y & 1);
-	} 
-	else 
-	{
-		pos.x = int(rt_LaunchID.x * 2 + 1) - int(rt_LaunchID.y & 1);
-	}
+	int pos_x = int(rt_LaunchID.x);
 
 #if 1
-	//if (global_ubo.width != rt_LaunchSize.x)
-
-	if(pos.x >= (rt_LaunchSize.x))
-	{
-		return 1;
-	}
+	int width = int(rt_LaunchSize.x);
 #else
-	if(pos.x >= (global_ubo.width / 2))
+	int width = int(global_ubo.width);
+#endif
+
+	int half_width = width / 2;
+
+	if(pos_x >= half_width)
 	{
 		return 1;
 	}
-#endif
-	
-	
+
 #endif
 	return 0;
 }
@@ -193,17 +175,15 @@ ivec2 get_image_position()
 	if (push_constants.stereo == 1)
 	{
 #if 1
-		int half_width = int(rt_LaunchSize.x / 2);
+		int width = int(rt_LaunchSize.x);
 #else
-		int half_width = int(global_ubo.width / 2);
+		int width = int(global_ubo.width);
 #endif
 
-		if(pos.x >= half_width)
+		if(pos.x >= width)
 		{
-			pos.x -= half_width;
+			pos.x -= width;
 		}
-
-		//pos.x *= 2;
 	}
 
 	pos.y = int(rt_LaunchID.y);
