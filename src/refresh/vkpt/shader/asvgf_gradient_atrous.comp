@@ -44,11 +44,15 @@ layout(push_constant, std140) uniform IterationInfo {
 
 
 // Blur the gradients
-vec2
-filter_image(sampler2D img)
+vec2 filter_image(sampler2D img)
 {
 	ivec2 ipos = ivec2(gl_GlobalInvocationID);
 	ivec2 grad_size = ivec2(global_ubo.current_gpu_slice_width, global_ubo.height) / GRAD_DWN;
+
+	if (global_ubo.stereo == 1)
+	{	
+		//grad_size.x /= 2;
+	}
 
 	vec2 color_center = texelFetch(img, ipos, 0).xy;
 	

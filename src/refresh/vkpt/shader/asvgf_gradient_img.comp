@@ -68,41 +68,50 @@ vec2 get_lf_gradient(ivec2 ipos)
 	vec4 motion = texelFetch(TEX_PT_MOTION, ipos, 0);
 
 	ivec2 pos_prev;
+	
+	// Boundaries for the checkerboard field, either left or right half of the screen
+	int field_left = 0;
+	int field_right = 0;
 
 	if (global_ubo.stereo == 1)
 	{
-		pos_prev = ivec2(((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 4, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 4, global_ubo.prev_height)); // stereo mode
+		ivec2 ipos_copy = ipos;
+
+		if (ipos_copy.x > global_ubo.width / 2)
+		{
+			ipos_copy.x -= global_ubo.width / 2;
+		}
+
+		pos_prev = ivec2(((vec2(ipos_copy) + vec2(0.5)) * vec2(global_ubo.inv_width * 4, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 4, global_ubo.prev_height)); // stereo mode
+
+		field_right = global_ubo.prev_width / 4;
+
+		if(ipos_copy.x >= global_ubo.width / 4)
+		{
+			//field_left = field_right;
+			//field_right = global_ubo.prev_width / 2;
+		}
 	}
 	else
 	{
 		pos_prev = ivec2(((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height));
-	}
 
-	// Boundaries for the checkerboard field, either left or right half of the screen
-	int field_left = 0;
-
-#if 1
-	// stereo mode
-	int field_right = global_ubo.prev_width / 4;
-
-	if(ipos.x >= global_ubo.width / 4)
-	{
-		field_left = field_right;
 		field_right = global_ubo.prev_width / 2;
-	}
-#else
-	int field_right = global_ubo.prev_width / 2;
 
-	if(ipos.x >= global_ubo.width / 2)
-	{
-		field_left = field_right;
-		field_right = global_ubo.prev_width;
+		if(ipos.x >= global_ubo.width / 2)
+		{
+			field_left = field_right;
+			field_right = global_ubo.prev_width;
+		}
+
+		// Ignore if the surface was outside of the screen
+		if(pos_prev.x < field_left || pos_prev.x >= field_right || pos_prev.y < 0 || pos_prev.y >= global_ubo.height)
+			return vec2(0, 0);
 	}
-#endif
 
 	// Ignore if the surface was outside of the screen
-	if(pos_prev.x < field_left || pos_prev.x >= field_right || pos_prev.y < 0 || pos_prev.y >= global_ubo.height)
-		return vec2(0, 0);
+	//if(pos_prev.x < field_left || pos_prev.x >= field_right || pos_prev.y < 0 || pos_prev.y >= global_ubo.height)
+	//	return vec2(0, 0);
 
 	// Get the current path tracer output and the temporally accumulated history.
 	// Ignore disocclusion, doesn't seem to be necessary here as there is a huge blur pass
@@ -115,9 +124,11 @@ vec2 get_lf_gradient(ivec2 ipos)
 	return vec2(lum_curr, lum_prev);
 }
 
-void
-main()
+void main()
 {
+	return;
+
+#if 0
 	ivec2 ipos = ivec2(gl_GlobalInvocationID);
 	if(any(greaterThanEqual(ipos, ivec2(global_ubo.current_gpu_slice_width, global_ubo.height) / GRAD_DWN)))
 		return;
@@ -168,4 +179,5 @@ main()
 
 	imageStore(IMG_ASVGF_GRAD_LF_PING, ipos, vec4(grad_lf, 0, 0));
 	imageStore(IMG_ASVGF_GRAD_HF_SPEC_PING, ipos, vec4(grad_hf, grad_spec, 0, 0));
+#endif
 }

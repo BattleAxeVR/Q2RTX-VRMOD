@@ -137,19 +137,21 @@ main()
 
     // If it's a regular (non-split) surface and we're running on a single GPU,
     // we can access both checkerboard fields to get higher sampling quality
-    bool sample_across_fields = !is_checkerboarded_surface && (global_ubo.current_gpu_slice_width == global_ubo.width);
+    bool sample_across_fields = !is_checkerboarded_surface && (global_ubo.stereo == 0) && (global_ubo.current_gpu_slice_width == global_ubo.width);
 
     vec2 pos_prev;
 	float motion_length;
 
 	if (global_ubo.stereo == 1)
 	{
+#if 0
 		if (sample_across_fields)
 		{
     		// Reprojection in flat-screen coordinates
 			pos_prev = ((vec2(checker_to_flat(ipos, global_ubo.width / 2)) + vec2(0.5)) * vec2(global_ubo.inv_width * 2, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 2, global_ubo.prev_height); // stereo mode
 		}
 		else   
+#endif
 		{
 			// Reprojection in checkerboarded coordinates
 			pos_prev = ((vec2(ipos) + vec2(0.5)) * vec2(global_ubo.inv_width * 4, global_ubo.inv_height) + motion.xy) * vec2(global_ubo.prev_width / 4, global_ubo.prev_height); // stereo mode
