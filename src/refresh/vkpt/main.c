@@ -2965,14 +2965,22 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 	int camera_cluster_contents = viewleaf ? viewleaf->contents : 0;
 
-	if (camera_cluster_contents & CONTENTS_WATER)
+	if(camera_cluster_contents & CONTENTS_WATER)
+	{
 		ubo->medium = MEDIUM_WATER;
-	else if (camera_cluster_contents & CONTENTS_SLIME)
+	}
+	else if(camera_cluster_contents & CONTENTS_SLIME)
+	{
 		ubo->medium = MEDIUM_SLIME;
-	else if (camera_cluster_contents & CONTENTS_LAVA)
+	}
+	else if(camera_cluster_contents & CONTENTS_LAVA)
+	{
 		ubo->medium = MEDIUM_LAVA;
+	}
 	else
+	{
 		ubo->medium = MEDIUM_NONE;
+	}
 
 	ubo->time = fd->time;
 	ubo->num_static_primitives = 0;
@@ -3025,10 +3033,10 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 		switch (cvar_pt_dof->integer)
 		{
-		case 0: enable_dof = false; break;
-		case 1: enable_dof = ref_mode->enable_accumulation; break;
-		case 2: enable_dof = !ref_mode->enable_denoiser; break;
-		default: enable_dof = true; break;
+			case 0: enable_dof = false; break;
+			case 1: enable_dof = ref_mode->enable_accumulation; break;
+			case 2: enable_dof = !ref_mode->enable_denoiser; break;
+			default: enable_dof = true; break;
 		}
 
 		if (cvar_pt_projection->integer != 0)
@@ -3172,13 +3180,13 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	ubo->num_cameras = wm->num_cameras;
 }
 
-
-/* renders the map ingame */
-void
-R_RenderFrame_RTX(refdef_t *fd)
+// renders the map ingame
+void R_RenderFrame_RTX(refdef_t *fd)
 {
-	if (!qvk.swap_chain)
+	if(!qvk.swap_chain)
+	{
 		return;
+	}
 
 	vkpt_refdef.fd = fd;
 	bool render_world = (fd->rdflags & RDF_NOWORLDMODEL) == 0;
@@ -3196,10 +3204,14 @@ R_RenderFrame_RTX(refdef_t *fd)
 
 	if (!temporal_frame_valid)
 	{
-		if (vkpt_refdef.fd && vkpt_refdef.fd->lightstyles)
+		if(vkpt_refdef.fd && vkpt_refdef.fd->lightstyles)
+		{
 			memcpy(vkpt_refdef.prev_lightstyles, vkpt_refdef.fd->lightstyles, sizeof(vkpt_refdef.prev_lightstyles));
+		}
 		else
+		{
 			memset(vkpt_refdef.prev_lightstyles, 0, sizeof(vkpt_refdef.prev_lightstyles));
+		}
 	}
 
 	mleaf_t* viewleaf = bsp_world_model ? BSP_PointLeaf(bsp_world_model->nodes, fd->vieworg) : NULL;
@@ -3211,11 +3223,15 @@ R_RenderFrame_RTX(refdef_t *fd)
 
 	// Sometimes, the readback returns 1.0 luminance instead of the real value.
 	// Ignore these mysterious spikes.
-	if (adapted_luminance != 1.0f) 
+	if(adapted_luminance != 1.0f)
+	{
 		prev_adapted_luminance = adapted_luminance;
+	}
 	
-	if (prev_adapted_luminance <= 0.f)
+	if(prev_adapted_luminance <= 0.f)
+	{
 		prev_adapted_luminance = 0.005f;
+	}
 
 	LOG_FUNC();
 	if (!vkpt_refdef.bsp_mesh_world_loaded && render_world)
@@ -3228,12 +3244,15 @@ R_RenderFrame_RTX(refdef_t *fd)
 	prepare_sky_matrix(fd->time, sky_matrix);
 
 	sun_light_t sun_light = { 0 };
+
 	if (render_world)
 	{
 		vkpt_evaluate_sun_light(&sun_light, sky_matrix, fd->time);
 
-		if (!vkpt_physical_sky_needs_update())
+		if(!vkpt_physical_sky_needs_update())
+		{
 			sun_light.visible = sun_light.visible && sun_visible_prev;
+		}
 	}
 
 	reference_mode_t ref_mode;
@@ -3272,30 +3291,42 @@ R_RenderFrame_RTX(refdef_t *fd)
 	prepare_ubo(fd, viewleaf, &ref_mode, sky_matrix, render_world);
 	ubo->prev_adapted_luminance = prev_adapted_luminance;
 
-	if (cvar_tm_blend_enable->integer)
+	if(cvar_tm_blend_enable->integer)
+	{
 		Vector4Copy(fd->blend, ubo->fs_blend_color);
+	}
 	else
+	{
 		Vector4Set(ubo->fs_blend_color, 0.f, 0.f, 0.f, 0.f);
+	}
 
 	ubo->weapon_left_handed = upload_info.weapon_left_handed;
 	ubo->stereo = (int)cl_stereo->value;
 
-	if (vkpt_refdef.fd->rdflags & RDF_IRGOGGLES)
+	if(vkpt_refdef.fd->rdflags & RDF_IRGOGGLES)
+	{
 		Vector4Set(ubo->fs_colorize, 1.f, 0.f, 0.f, 0.8f);
+	}
 	else
+	{
 		Vector4Set(ubo->fs_colorize, 0.f, 0.f, 0.f, 0.f);
+	}
 
 	vkpt_physical_sky_update_ubo(ubo, &sun_light, render_world);
 	vkpt_bloom_update(ubo, frame_time, ubo->medium != MEDIUM_NONE, qvk.frame_menu_mode);
 
 	if(update_world_animations)
+	{
 		bsp_mesh_animate_light_polys(&vkpt_refdef.bsp_mesh_world);
+	}
+
 	vec3_t sky_radiance;
 	VectorScale(avg_envmap_color, ubo->pt_env_scale, sky_radiance);
 	vkpt_light_buffer_upload_to_staging(render_world, &vkpt_refdef.bsp_mesh_world, bsp_world_model, num_model_lights, model_lights, sky_radiance);
 	
 	float shadowmap_view_proj[16];
 	float shadowmap_depth_scale;
+
 	vkpt_shadow_map_setup(
 		&sun_light,
 		vkpt_refdef.bsp_mesh_world.world_aabb.mins,
@@ -3312,8 +3343,10 @@ R_RenderFrame_RTX(refdef_t *fd)
 		shadowmap_view_proj,
 		shadowmap_depth_scale);
 
-	if (vkpt_debugdraw_have())
+	if(vkpt_debugdraw_have())
+	{
 		vkpt_debugdraw_prepare();
+	}
 
 	bool god_rays_enabled = vkpt_god_rays_enabled(&sun_light) && render_world;
 
@@ -3425,8 +3458,11 @@ R_RenderFrame_RTX(refdef_t *fd)
 			qvkCmdBeginDebugUtilsLabelEXT(lines_cmd_buf, &label);
 		}
 		vkpt_debugdraw_draw(lines_cmd_buf);
-		if (qvkCmdEndDebugUtilsLabelEXT != NULL)
+
+		if(qvkCmdEndDebugUtilsLabelEXT != NULL)
+		{
 			qvkCmdEndDebugUtilsLabelEXT(lines_cmd_buf);
+		}
 
 		vkpt_submit_command_buffer_simple(lines_cmd_buf, qvk.queue_graphics, false);
 	}
@@ -3564,8 +3600,7 @@ static void temporal_cvar_changed(cvar_t *self)
 	temporal_frame_valid = false;
 }
 
-static void
-recreate_swapchain(void)
+static void recreate_swapchain(void)
 {
 	vkDeviceWaitIdle(qvk.device);
 	vkpt_destroy_all(VKPT_INIT_SWAPCHAIN_RECREATE);
@@ -3622,10 +3657,14 @@ static void drs_process(void)
 	{
 		num_valid_frames = 0;
 
-		if (is_accumulation_rendering_active())
+		if(is_accumulation_rendering_active())
+		{
 			drs_effective_scale = max(100, scr_viewsize->integer);
+		}
 		else
+		{
 			drs_effective_scale = 0;
+		}
 
 		return;
 	}
@@ -3638,10 +3677,16 @@ static void drs_process(void)
 	}
 
 	int last_scale = drs_current_scale;
+
 	if(!last_scale)
+	{
 		last_scale = cvar_drs_last_scale->integer;
+	}
+
 	if(!last_scale)
+	{
 		last_scale = scr_viewsize->integer;
+	}
 
 	if (!drs_last_frame_world)
 	{
@@ -3657,28 +3702,37 @@ static void drs_process(void)
 	double ms = vkpt_get_profiler_result(PROFILER_FRAME_TIME);
 
 	// 0ms frame may happen if we just played a cinematic
-	if (ms <= 0 || ms > 1000)
+	if(ms <= 0 || ms > 1000)
+	{
 		return;
+	}
 
 	valid_frame_times[num_valid_frames] = ms;
 	num_valid_frames++;
 
-	if (num_valid_frames < SCALING_FRAMES)
+	if(num_valid_frames < SCALING_FRAMES)
+	{
 		return;
+	}
 
 	num_valid_frames = 0;
 
 	qsort(valid_frame_times, SCALING_FRAMES, sizeof(double), compare_doubles);
 
 	double representative_time = 0;
+
 	for(int i = 1; i < SCALING_FRAMES - 1; i++)
+	{
 		representative_time += valid_frame_times[i];
+	}
+
 	representative_time /= (SCALING_FRAMES - 2);
 
 	double target_time = 1000.0 / cvar_drs_target->value;
 	double f = cvar_drs_gain->value * (1.0 - representative_time / target_time) - 1.0;
 
 	int scale = drs_effective_scale;
+
 	if (representative_time < target_time * cvar_drs_adjust_up->value)
 	{
 		f += 0.5;
@@ -3696,8 +3750,7 @@ static void drs_process(void)
 	drs_effective_scale = drs_current_scale;
 }
 
-void
-R_BeginFrame_RTX(void)
+void R_BeginFrame_RTX(void)
 {
 	LOG_FUNC();
 
@@ -3726,6 +3779,7 @@ R_BeginFrame_RTX(void)
 	}
 
 	drs_process();
+
 	if (vkpt_refdef.fd)
 	{
 		vkpt_refdef.fd->feedback.resolution_scale = (drs_effective_scale != 0) ? drs_effective_scale : scr_viewsize->integer;
@@ -3744,8 +3798,10 @@ R_BeginFrame_RTX(void)
 
 retry:;
 
-	if (!qvk.swap_chain) // we're minimized, don't render
+	if(!qvk.swap_chain) // we're minimized, don't render
+	{
 		return;
+	}
 
 #ifdef VKPT_DEVICE_GROUPS
 	VkAcquireNextImageInfoKHR acquire_info = {
@@ -3766,11 +3822,13 @@ retry:;
 		recreate_swapchain();
 		goto retry;
 	}
-	else if(res_swapchain != VK_SUCCESS) {
+	else if(res_swapchain != VK_SUCCESS) 
+	{
 		Com_EPrintf("Error %d in vkAcquireNextImageKHR\n", res_swapchain);
 	}
 
-	if (qvk.wait_for_idle_frames) {
+	if (qvk.wait_for_idle_frames) 
+	{
 		vkDeviceWaitIdle(qvk.device);
 		qvk.wait_for_idle_frames--;
 	}
@@ -3799,8 +3857,7 @@ retry:;
 	SCR_SetHudAlpha(1.f);
 }
 
-void
-R_EndFrame_RTX(void)
+void R_EndFrame_RTX(void)
 {
 	LOG_FUNC();
 
@@ -3856,6 +3913,7 @@ R_EndFrame_RTX(void)
 
 	VkSemaphore signal_semaphores[VKPT_MAX_GPUS];
 	uint32_t signal_device_indices[VKPT_MAX_GPUS];
+
 	for (int gpu = 0; gpu < qvk.device_count; gpu++)
 	{
 		signal_semaphores[gpu] = qvk.semaphores[qvk.current_frame_index][gpu].render_finished;
@@ -3869,7 +3927,6 @@ R_EndFrame_RTX(void)
 		LENGTH(wait_semaphores), wait_semaphores, wait_stages, wait_device_indices,
 		qvk.device_count, signal_semaphores, signal_device_indices,
 		qvk.fences_frame_sync[qvk.current_frame_index]);
-
 
 #ifdef VKPT_IMAGE_DUMPS
 	if (cvar_dump_image->integer) {
@@ -3918,14 +3975,15 @@ R_EndFrame_RTX(void)
 #endif
 
 	VkResult res_present = vkQueuePresentKHR(qvk.queue_graphics, &present_info);
-	if(res_present == VK_ERROR_OUT_OF_DATE_KHR || res_present == VK_SUBOPTIMAL_KHR) {
+
+	if(res_present == VK_ERROR_OUT_OF_DATE_KHR || res_present == VK_SUBOPTIMAL_KHR) 
+	{
 		recreate_swapchain();
 	}
 	qvk.frame_counter++;
 }
 
-void
-R_ModeChanged_RTX(int width, int height, int flags)
+void R_ModeChanged_RTX(int width, int height, int flags)
 {
 	Com_DPrintf("mode changed %d %d\n", width, height);
 
@@ -3936,11 +3994,12 @@ R_ModeChanged_RTX(int width, int height, int flags)
 	qvk.wait_for_idle_frames = MAX_FRAMES_IN_FLIGHT * 2;
 }
 
-static void
-vkpt_show_pvs(void)
+static void vkpt_show_pvs(void)
 {
-	if (!vkpt_refdef.fd)
+	if(!vkpt_refdef.fd)
+	{
 		return;
+	}
 
 	if (vkpt_refdef.fd->feedback.lookatcluster < 0)
 	{
@@ -3953,7 +4012,8 @@ vkpt_show_pvs(void)
 	cluster_debug_index = vkpt_refdef.fd->feedback.lookatcluster;
 }
 
-static float halton(int base, int index) {
+static float halton(int base, int index) 
+{
 	float f = 1.f;
 	float r = 0.f;
 	int i = index;
@@ -3975,13 +4035,13 @@ static void ray_tracing_api_g(genctx_t *ctx)
 	Prompt_AddMatch(ctx, "pipeline");
 }
 
-/* called when the library is loaded */
-ref_type_t
-R_Init_RTX(bool total)
+// called when the library is loaded
+ref_type_t R_Init_RTX(bool total)
 {
 	registration_sequence = 1;
 
-	if (!vid.init(GAPI_VULKAN)) {
+	if (!vid.init(GAPI_VULKAN)) 
+	{
 		Com_Error(ERR_FATAL, "VID_Init failed\n");
 		return REF_TYPE_NONE;
 	}
@@ -4137,7 +4197,8 @@ R_Init_RTX(bool total)
 	IMG_GetPalette();
 	MOD_Init();
 	
-	if(!init_vulkan()) {
+	if(!init_vulkan()) 
+	{
 		Com_Error(ERR_FATAL, "Couldn't initialize Vulkan.\n");
 		return REF_TYPE_NONE;
 	}
@@ -4159,7 +4220,8 @@ R_Init_RTX(bool total)
 	vkpt_fog_init();
 	vkpt_cameras_init();
 
-	for (int i = 0; i < 256; i++) {
+	for (int i = 0; i < 256; i++) 
+	{
 		qvk.sintab[i] = sinf(i * (2 * M_PI / 255));
 	}
 
@@ -4172,9 +4234,8 @@ R_Init_RTX(bool total)
 	return REF_TYPE_VKPT;
 }
 
-/* called before the library is unloaded */
-void
-R_Shutdown_RTX(bool total)
+// called before the library is unloaded
+void R_Shutdown_RTX(bool total)
 {
 #if SUPPORT_OPENXR
 	OpenXR_Shutdown();
@@ -4208,7 +4269,8 @@ R_Shutdown_RTX(bool total)
 	_VK(vkpt_destroy_all(VKPT_INIT_DEFAULT));
 	vkpt_destroy_shader_modules();
 
-	if(destroy_vulkan()) {
+	if(destroy_vulkan()) 
+	{
 		Com_EPrintf("destroy_vulkan failed\n");
 	}
 
@@ -4218,11 +4280,9 @@ R_Shutdown_RTX(bool total)
 }
 
 // for screenshots
-void
-IMG_ReadPixels_RTX(screenshot_t *s)
+void IMG_ReadPixels_RTX(screenshot_t *s)
 {
-	if (qvk.surf_format.format != VK_FORMAT_B8G8R8A8_SRGB &&
-		qvk.surf_format.format != VK_FORMAT_R8G8B8A8_SRGB)
+	if (qvk.surf_format.format != VK_FORMAT_B8G8R8A8_SRGB && qvk.surf_format.format != VK_FORMAT_R8G8B8A8_SRGB)
 	{
 		Com_EPrintf("IMG_ReadPixels: unsupported swap chain format (%d)!\n", qvk.surf_format.format);
 		return;
@@ -4294,7 +4354,8 @@ IMG_ReadPixels_RTX(screenshot_t *s)
 	vkpt_submit_command_buffer_simple(cmd_buf, qvk.queue_graphics, false);
 	vkpt_wait_idle(qvk.queue_graphics, &qvk.cmd_buffers_graphics);
 
-	VkImageSubresource subresource = {
+	VkImageSubresource subresource = 
+	{
 		.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
 		.arrayLayer = 0,
 		.mipLevel = 0
@@ -4347,8 +4408,7 @@ IMG_ReadPixels_RTX(screenshot_t *s)
 	s->rowbytes = pitch;
 }
 
-void
-IMG_ReadPixelsHDR_RTX(screenshot_t *s)
+void IMG_ReadPixelsHDR_RTX(screenshot_t *s)
 {
 	if (qvk.surf_format.format != VK_FORMAT_R16G16B16A16_SFLOAT)
 	{
@@ -4360,7 +4420,8 @@ IMG_ReadPixelsHDR_RTX(screenshot_t *s)
 
 	VkImage swap_chain_image = qvk.swap_chain_images[qvk.current_swap_chain_image_index];
 
-	VkImageSubresourceRange subresource_range = {
+	VkImageSubresourceRange subresource_range = 
+	{
 		.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
 		.baseMipLevel = 0,
 		.levelCount = 1,
@@ -4386,7 +4447,8 @@ IMG_ReadPixelsHDR_RTX(screenshot_t *s)
 		.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
 	);
 
-	VkImageCopy img_copy_region = {
+	VkImageCopy img_copy_region = 
+	{
 		.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 },
 		.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 },
 		.extent = { qvk.extent_unscaled.width, qvk.extent_unscaled.height, 1 }
@@ -4456,8 +4518,7 @@ IMG_ReadPixelsHDR_RTX(screenshot_t *s)
 	s->rowbytes = pitch * sizeof(float);
 }
 
-void
-R_SetSky_RTX(const char *name, float rotate, int autorotate, const vec3_t axis)
+void R_SetSky_RTX(const char *name, float rotate, int autorotate, const vec3_t axis)
 {
 	int     i;
 	char    pathname[MAX_QPATH];
@@ -4472,12 +4533,16 @@ R_SetSky_RTX(const char *name, float rotate, int autorotate, const vec3_t axis)
 
 	int avg_color[3] = { 0 };
 	int w_prev, h_prev;
-	for (i = 0; i < 6; i++) {
+
+	for (i = 0; i < 6; i++) 
+	{
 		Q_concat(pathname, sizeof(pathname), "env/", name, suf[i], ".tga");
 		FS_NormalizePath(pathname);
+
 		image_t *img = IMG_Find(pathname, IT_SKY, IF_NONE);
 
-		if(img == R_NOTEXTURE) {
+		if(img == R_NOTEXTURE) 
+		{
 			if(data) {
 				Z_Free(data);
 			}
@@ -4489,7 +4554,9 @@ R_SetSky_RTX(const char *name, float rotate, int autorotate, const vec3_t axis)
 		}
 
 		size_t s = img->upload_width * img->upload_height * 4;
-		if(!data) {
+
+		if(!data) 
+		{
 			data = Z_Malloc(s * 6);
 			w_prev = img->upload_width;
 			h_prev = img->upload_height;
@@ -4528,10 +4595,10 @@ R_SetSky_RTX(const char *name, float rotate, int autorotate, const vec3_t axis)
 }
 
 void R_AddDecal_RTX(decal_t *d)
-{ }
+{ 
+}
 
-void
-R_BeginRegistration_RTX(const char *name)
+void R_BeginRegistration_RTX(const char *name)
 {
 	registration_sequence++;
 	LOG_FUNC();
@@ -4543,13 +4610,15 @@ R_BeginRegistration_RTX(const char *name)
 	Com_AddConfigFile("maps/default.cfg", 0);
 	Com_AddConfigFile(va("maps/%s.cfg", name), 0);
 
-	if(vkpt_refdef.bsp_mesh_world_loaded) {
+	if(vkpt_refdef.bsp_mesh_world_loaded) 
+	{
 		vkpt_vertex_buffer_cleanup_bsp_mesh(&vkpt_refdef.bsp_mesh_world);
 		bsp_mesh_destroy(&vkpt_refdef.bsp_mesh_world);
 		vkpt_refdef.bsp_mesh_world_loaded = 0;
 	}
 
-	if(bsp_world_model) {
+	if(bsp_world_model) 
+	{
 		BSP_Free(bsp_world_model);
 		bsp_world_model = NULL;
 	}
@@ -4557,15 +4626,21 @@ R_BeginRegistration_RTX(const char *name)
 	char bsp_path[MAX_QPATH];
 	Q_concat(bsp_path, sizeof(bsp_path), "maps/", name, ".bsp");
 	bsp_t *bsp;
+
 	int ret = BSP_Load(bsp_path, &bsp);
-	if(!bsp) {
+
+	if(!bsp) 
+	{
 		Com_Error(ERR_DROP, "%s: couldn't load %s: %s", __func__, bsp_path, Q_ErrorString(ret));
 	}
-	if (!bsp->vis) {
+
+	if (!bsp->vis) 
+	{
 		Hunk_Free(&bsp->hunk);
 		Z_Free(bsp);
 		Com_Error(ERR_DROP, "BSP not vis'd; this is required for Q2RTX.");
 	}
+
 	bsp_world_model = bsp;
 	bsp_mesh_register_textures(bsp);
 	bsp_mesh_create_from_bsp(&vkpt_refdef.bsp_mesh_world, bsp, name);
@@ -4592,8 +4667,7 @@ R_BeginRegistration_RTX(const char *name)
 	drs_last_frame_world = false;
 }
 
-void
-R_EndRegistration_RTX(void)
+void R_EndRegistration_RTX(void)
 {
 	LOG_FUNC();
 	
@@ -4658,7 +4732,6 @@ VkCommandBuffer vkpt_begin_command_buffer(cmd_buf_group_t* group)
 	_VK(vkResetCommandBuffer(cmd_buf, 0));
 	_VK(vkBeginCommandBuffer(cmd_buf, &begin_info));
 
-
 #ifdef USE_DEBUG
 	void** begin_addr = group->buffer_begin_addrs + group->count_per_frame * qvk.current_frame_index + group->used_this_frame;
 
@@ -4678,8 +4751,10 @@ VkCommandBuffer vkpt_begin_command_buffer(cmd_buf_group_t* group)
 
 void vkpt_free_command_buffers(cmd_buf_group_t* group)
 {
-	if (group->count_per_frame == 0)
+	if(group->count_per_frame == 0)
+	{
 		return;
+	}
 
 	vkFreeCommandBuffers(qvk.device, group->command_pool, group->count_per_frame * MAX_FRAMES_IN_FLIGHT, group->buffers);
 
@@ -4728,7 +4803,8 @@ void vkpt_submit_command_buffer(
 {
 	_VK(vkEndCommandBuffer(cmd_buf));
 
-	VkSubmitInfo submit_info = {
+	VkSubmitInfo submit_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.waitSemaphoreCount = wait_semaphore_count,
 		.pWaitSemaphores = wait_semaphores,
@@ -4740,7 +4816,8 @@ void vkpt_submit_command_buffer(
 	};
 
 #ifdef VKPT_DEVICE_GROUPS
-	VkDeviceGroupSubmitInfo device_group_submit_info = {
+	VkDeviceGroupSubmitInfo device_group_submit_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_DEVICE_GROUP_SUBMIT_INFO,
 		.pNext = NULL,
 		.waitSemaphoreCount = wait_semaphore_count,
@@ -4751,7 +4828,8 @@ void vkpt_submit_command_buffer(
 		.pSignalSemaphoreDeviceIndices = signal_device_indices,
 	};
 
-	if (qvk.device_count > 1) {
+	if (qvk.device_count > 1) 
+	{
 		submit_info.pNext = &device_group_submit_info;
 	}
 #endif
