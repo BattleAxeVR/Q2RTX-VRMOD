@@ -143,6 +143,12 @@ main()
 	}
 	
 	int view_id = get_view_id();
+
+	if (view_id == 1)
+	{
+		//return;
+	}
+
 	const ivec2 image_position = get_image_position();
 	const vec2 pixel_center = vec2(image_position) + vec2(0.5);
 	const vec2 inUV = (pixel_center + pixel_offset) / vec2(get_image_size());
