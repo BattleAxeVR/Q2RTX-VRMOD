@@ -244,14 +244,14 @@ vkpt_asvgf_filter(VkCommandBuffer cmd_buf, bool enable_lf)
 
 	BEGIN_PERF_MARKER(cmd_buf, PROFILER_ASVGF_RECONSTRUCT_GRADIENT);
 
-	/* create gradient image */
+	// create gradient image
 	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_asvgf[GRADIENT_IMAGE]);
-	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_COMPUTE,
-		pipeline_layout_general, 0, LENGTH(desc_sets), desc_sets, 0, 0);
-	vkCmdDispatch(cmd_buf,
-			(qvk.gpu_slice_width / GRAD_DWN + 15) / 16,
-			(qvk.extent_render.height / GRAD_DWN + 15) / 16,
-			1);
+	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_layout_general, 0, LENGTH(desc_sets), desc_sets, 0, 0);
+
+	const uint32_t groupCountX = (qvk.gpu_slice_width / GRAD_DWN + 15) / 16;
+	const uint32_t groupCountY = (qvk.extent_render.height / GRAD_DWN + 15) / 16;
+
+	vkCmdDispatch(cmd_buf, groupCountX, groupCountY, 1);
 
 	// XXX BARRIERS!!!
 	BARRIER_COMPUTE(cmd_buf, qvk.images[VKPT_IMG_ASVGF_GRAD_LF_PING]);
@@ -268,13 +268,13 @@ vkpt_asvgf_filter(VkCommandBuffer cmd_buf, bool enable_lf)
 			i
 		};
 
-		vkCmdPushConstants(cmd_buf, pipeline_layout_atrous,
-			VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(push_constants), push_constants);
+		vkCmdPushConstants(cmd_buf, pipeline_layout_atrous, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(push_constants), push_constants);
 
-		vkCmdDispatch(cmd_buf,
-				(qvk.gpu_slice_width / GRAD_DWN + 15) / 16,
-				(qvk.extent_render.height / GRAD_DWN + 15) / 16,
-				1);
+		const uint32_t groupCountX = (qvk.gpu_slice_width / GRAD_DWN + 15) / 16;
+		const uint32_t groupCountY = (qvk.extent_render.height / GRAD_DWN + 15) / 16;
+
+		vkCmdDispatch(cmd_buf, groupCountX, groupCountY, 1);
+
 		BARRIER_COMPUTE(cmd_buf, qvk.images[VKPT_IMG_ASVGF_GRAD_LF_PING + !(i & 1)]);
 		BARRIER_COMPUTE(cmd_buf, qvk.images[VKPT_IMG_ASVGF_GRAD_HF_SPEC_PING + !(i & 1)]);
 
@@ -380,15 +380,14 @@ vkpt_compositing(VkCommandBuffer cmd_buf)
 
 	BEGIN_PERF_MARKER(cmd_buf, PROFILER_COMPOSITING);
 
-	/* create gradient image */
+	// create gradient image
 	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_asvgf[COMPOSITING]);
-	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_COMPUTE,
-		pipeline_layout_general, 0, LENGTH(desc_sets), desc_sets, 0, 0);
+	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_layout_general, 0, LENGTH(desc_sets), desc_sets, 0, 0);
 
-	vkCmdDispatch(cmd_buf,
-		(qvk.gpu_slice_width + 15) / 16,
-		(qvk.extent_render.height + 15) / 16,
-		1);
+	const uint32_t groupCountX = (qvk.gpu_slice_width + 15) / 16;
+	const uint32_t groupCountY = (qvk.extent_render.height + 15) / 16;
+
+	vkCmdDispatch(cmd_buf, groupCountX, groupCountY, 1);
 
 	END_PERF_MARKER(cmd_buf, PROFILER_COMPOSITING);
 
