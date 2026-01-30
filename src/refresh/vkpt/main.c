@@ -2708,10 +2708,13 @@ static void prepare_camera(const vec3_t position, const vec3_t direction, mat4_t
 
 static void prepare_viewmatrix(refdef_t *fd)
 {
-	create_view_matrix(vkpt_refdef.view_matrix[LEFT], fd);
+	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+	const float ipd = cl_ipd->value;
+
+	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
 	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
 
-	create_view_matrix(vkpt_refdef.view_matrix[RIGHT], fd);
+	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
 	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 }
 

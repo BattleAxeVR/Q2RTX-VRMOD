@@ -19,8 +19,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "vkpt.h"
 
-static void
-internal_create_entity_matrix(mat4_t matrix, entity_t *e, bool mirror)
+static void internal_create_entity_matrix(mat4_t matrix, entity_t *e, bool mirror)
 {
 	vec3_t axis[3];
 	vec3_t origin;
@@ -59,14 +58,12 @@ internal_create_entity_matrix(mat4_t matrix, entity_t *e, bool mirror)
 	matrix[15] = 1.0f;
 }
 
-void
-create_entity_matrix(mat4_t matrix, entity_t *e)
+void create_entity_matrix(mat4_t matrix, entity_t *e)
 {
 	internal_create_entity_matrix(matrix, e, false);
 }
 
-void
-create_viewweapon_matrix(mat4_t matrix, entity_t *e)
+void create_viewweapon_matrix(mat4_t matrix, entity_t *e)
 {
 	extern cvar_t   *info_hand;
 	extern cvar_t   *cl_adjustfov;
@@ -118,8 +115,7 @@ create_viewweapon_matrix(mat4_t matrix, entity_t *e)
 
 }
 
-void
-create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_x, float fov_y)
+void create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_x, float fov_y)
 {
 	float xmin, xmax, ymin, ymax;
 	float width, height, depth;
@@ -195,9 +191,7 @@ void create_projection_matrixXR(float* znear_ptr, float* zfar_ptr, XrFovf* fov, 
 }
 
 
-void
-create_orthographic_matrix(mat4_t matrix, float xmin, float xmax,
-		float ymin, float ymax, float znear, float zfar)
+void create_orthographic_matrix(mat4_t matrix, float xmin, float xmax, float ymin, float ymax, float znear, float zfar)
 {
 	float width, height, depth;
 
@@ -226,8 +220,7 @@ create_orthographic_matrix(mat4_t matrix, float xmin, float xmax,
 	matrix[15] = 1;
 }
 
-void
-create_view_matrix(mat4_t matrix, refdef_t *fd)
+void create_view_matrix(int stereo, int view_id, float ipd, mat4_t matrix, refdef_t *fd)
 {
 	vec3_t viewaxis[3];
 	AnglesToAxis(fd->viewangles, viewaxis);
@@ -235,26 +228,50 @@ create_view_matrix(mat4_t matrix, refdef_t *fd)
 	matrix[0]  = -viewaxis[1][0];
 	matrix[4]  = -viewaxis[1][1];
 	matrix[8]  = -viewaxis[1][2];
-	matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
+	matrix[12] = 0.0f;
 
 	matrix[1]  = viewaxis[2][0];
 	matrix[5]  = viewaxis[2][1];
 	matrix[9]  = viewaxis[2][2];
-	matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
+	matrix[13] = 0.0f;
 
 	matrix[2]  = viewaxis[0][0];
 	matrix[6]  = viewaxis[0][1];
 	matrix[10] = viewaxis[0][2];
-	matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
+	matrix[14] = 0.0f;
 
 	matrix[3]  = 0;
 	matrix[7]  = 0;
 	matrix[11] = 0;
 	matrix[15] = 1;
+
+	float abs_ipd = fabs(ipd);
+
+	if(stereo && (abs_ipd > 0.0f))
+	{
+		const float ipd_offset_mag = (view_id == LEFT) ? (-abs_ipd * 0.5f) : (abs_ipd * 0.5f);
+		const vec4_t ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 1.0f };
+		vec4_t ipd_offset_WS = { 0 };
+
+		mult_matrix_vector(ipd_offset_WS, matrix, ipd_offset_LS);
+
+		matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
+		matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
+		matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
+
+		matrix[12] += DotProduct(viewaxis[1], ipd_offset_WS);
+		matrix[13] -= DotProduct(viewaxis[2], ipd_offset_WS);
+		matrix[14] -= DotProduct(viewaxis[1], ipd_offset_WS);
+	}
+	else
+	{
+		matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
+		matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
+		matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
+	}
 }
 
-void
-inverse(const mat4_t m, mat4_t inv)
+void inverse(const mat4_t m, mat4_t inv)
 {
 	inv[0] = m[5]  * m[10] * m[15] -
 	         m[5]  * m[11] * m[14] -
@@ -376,8 +393,7 @@ inverse(const mat4_t m, mat4_t inv)
 		inv[i] = inv[i] * det;
 }
 
-void
-mult_matrix_matrix(mat4_t p, const mat4_t a, const mat4_t b)
+void mult_matrix_matrix(mat4_t p, const mat4_t a, const mat4_t b)
 {
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 4; j++) {
@@ -390,8 +406,7 @@ mult_matrix_matrix(mat4_t p, const mat4_t a, const mat4_t b)
 	}
 }
 
-void
-mult_matrix_vector(vec4_t v, const mat4_t a, const vec4_t b)
+void mult_matrix_vector(vec4_t v, const mat4_t a, const vec4_t b)
 {
 	int j;
 	for (j = 0; j < 4; j++) {
