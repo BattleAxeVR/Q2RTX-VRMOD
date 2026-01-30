@@ -220,30 +220,30 @@ void create_orthographic_matrix(mat4_t matrix, float xmin, float xmax, float ymi
 	matrix[15] = 1;
 }
 
-void create_view_matrix(int stereo, int view_id, float ipd, mat4_t matrix, refdef_t *fd)
+void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, refdef_t *fd)
 {
 	vec3_t viewaxis[3];
 	AnglesToAxis(fd->viewangles, viewaxis);
 
-	matrix[0]  = -viewaxis[1][0];
-	matrix[4]  = -viewaxis[1][1];
-	matrix[8]  = -viewaxis[1][2];
-	matrix[12] = 0.0f;
+	view_matrix[0]  = -viewaxis[1][0];
+	view_matrix[4]  = -viewaxis[1][1];
+	view_matrix[8]  = -viewaxis[1][2];
+	view_matrix[12] = 0.0f;
 
-	matrix[1]  = viewaxis[2][0];
-	matrix[5]  = viewaxis[2][1];
-	matrix[9]  = viewaxis[2][2];
-	matrix[13] = 0.0f;
+	view_matrix[1]  = viewaxis[2][0];
+	view_matrix[5]  = viewaxis[2][1];
+	view_matrix[9]  = viewaxis[2][2];
+	view_matrix[13] = 0.0f;
 
-	matrix[2]  = viewaxis[0][0];
-	matrix[6]  = viewaxis[0][1];
-	matrix[10] = viewaxis[0][2];
-	matrix[14] = 0.0f;
+	view_matrix[2]  = viewaxis[0][0];
+	view_matrix[6]  = viewaxis[0][1];
+	view_matrix[10] = viewaxis[0][2];
+	view_matrix[14] = 0.0f;
 
-	matrix[3]  = 0;
-	matrix[7]  = 0;
-	matrix[11] = 0;
-	matrix[15] = 1;
+	view_matrix[3]  = 0;
+	view_matrix[7]  = 0;
+	view_matrix[11] = 0;
+	view_matrix[15] = 1;
 
 	float abs_ipd = fabs(ipd);
 
@@ -253,21 +253,21 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t matrix, refde
 		const vec4_t ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 1.0f };
 		vec4_t ipd_offset_WS = { 0 };
 
-		mult_matrix_vector(ipd_offset_WS, matrix, ipd_offset_LS);
+		mult_matrix_vector(ipd_offset_WS, view_matrix, ipd_offset_LS); // todo: this should be inverted
 
-		matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
-		matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
-		matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
+		view_matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
+		view_matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
+		view_matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
 
-		matrix[12] += DotProduct(viewaxis[1], ipd_offset_WS);
-		matrix[13] -= DotProduct(viewaxis[2], ipd_offset_WS);
-		matrix[14] -= DotProduct(viewaxis[1], ipd_offset_WS);
+		view_matrix[12] += DotProduct(viewaxis[1], ipd_offset_WS);
+		view_matrix[13] -= DotProduct(viewaxis[2], ipd_offset_WS);
+		view_matrix[14] -= DotProduct(viewaxis[1], ipd_offset_WS);
 	}
 	else
 	{
-		matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
-		matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
-		matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
+		view_matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
+		view_matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
+		view_matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
 	}
 }
 
