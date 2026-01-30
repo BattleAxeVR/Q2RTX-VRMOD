@@ -2709,7 +2709,7 @@ static void prepare_camera(const vec3_t position, const vec3_t direction, mat4_t
 static void prepare_viewmatrix(refdef_t *fd)
 {
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
-	const float ipd = cl_ipd->value;
+	const float ipd = fabs(cl_ipd->value);
 
 	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
 	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
@@ -2740,6 +2740,7 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	ubo->prev_taa_output_height = ubo->taa_output_height;
 
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+	const float ipd = fabs(cl_ipd->value);
 
 #if 1//SUPPORT_OPENXR
 	if(stereo)// && Is_OpenXR_Session_Running())
@@ -2993,6 +2994,80 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 	memcpy(ubo->cam_pos[LEFT], fd->vieworg, sizeof(float) * 3);
 	memcpy(ubo->cam_pos[RIGHT], fd->vieworg, sizeof(float) * 3);
+
+	if(stereo && (ipd > 0.0f))
+	{
+#if 1
+		const vec4_t zero_vec = { 0.0f, 0.0f, 0.0f, 1.0f };
+		vec4_t view_pos_WS[NUM_EYES] = { 0 };
+
+		mult_matrix_vector(view_pos_WS[LEFT], vkpt_refdef.view_matrix_inv[LEFT], zero_vec);
+		mult_matrix_vector(view_pos_WS[LEFT], vkpt_refdef.view_matrix_inv[RIGHT], zero_vec);
+
+		ubo->cam_pos[LEFT][0] += view_pos_WS[LEFT][0];
+		//ubo->cam_pos[LEFT][1] += view_pos_WS[LEFT][1];
+		//ubo->cam_pos[LEFT][2] += view_pos_WS[LEFT][2];
+
+		ubo->cam_pos[RIGHT][0] += view_pos_WS[RIGHT][0];
+		//ubo->cam_pos[RIGHT][1] += view_pos_WS[RIGHT][1];
+		//ubo->cam_pos[RIGHT][2] += view_pos_WS[RIGHT][2];
+
+		//memcpy(ubo->cam_pos[LEFT], view_pos_WS[LEFT], sizeof(float) * 3);
+		//memcpy(ubo->cam_pos[RIGHT], view_pos_WS[RIGHT], sizeof(float) * 3);
+
+#else
+		create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
+		inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
+
+		create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
+		inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
+
+		vec3_t viewaxis[3] = {0};
+		AnglesToAxis(fd->viewangles, viewaxis);
+
+		mat4_t view_matrix = {0};
+		view_matrix[0]  = -viewaxis[1][0];
+		view_matrix[4]  = -viewaxis[1][1];
+		view_matrix[8]  = -viewaxis[1][2];
+		view_matrix[12] = 0.0f;
+
+		view_matrix[1]  = viewaxis[2][0];
+		view_matrix[5]  = viewaxis[2][1];
+		view_matrix[9]  = viewaxis[2][2];
+		view_matrix[13] = 0.0f;
+
+		view_matrix[2]  = viewaxis[0][0];
+		view_matrix[6]  = viewaxis[0][1];
+		view_matrix[10] = viewaxis[0][2];
+		view_matrix[14] = 0.0f;
+
+		view_matrix[3]  = 0;
+		view_matrix[7]  = 0;
+		view_matrix[11] = 0;
+		view_matrix[15] = 1;
+
+		const float ipd_offset_mag_left = (-ipd * 0.5f);
+		const float ipd_offset_mag_right = (ipd * 0.5f);
+
+		const vec4_t ipd_offset_left_LS = { ipd_offset_mag_left, 0.0f, 0.0f, 1.0f };
+		const vec4_t ipd_offset_right_LS = { ipd_offset_mag_right, 0.0f, 0.0f, 1.0f };
+
+		vec4_t ipd_offset_left_WS = { 0 };
+		vec4_t ipd_offset_right_WS = { 0 };
+
+		mult_matrix_vector(ipd_offset_left_WS, view_matrix, ipd_offset_left_LS);
+		mult_matrix_vector(ipd_offset_right_WS, view_matrix, ipd_offset_right_LS);
+
+		ubo->cam_pos[LEFT][0] += ipd_offset_left_WS[0];
+		ubo->cam_pos[LEFT][1] += ipd_offset_left_WS[1];
+		ubo->cam_pos[LEFT][2] += ipd_offset_left_WS[2];
+
+		ubo->cam_pos[RIGHT][0] += ipd_offset_right_WS[0];
+		ubo->cam_pos[RIGHT][1] += ipd_offset_right_WS[1];
+		ubo->cam_pos[RIGHT][2] += ipd_offset_right_WS[2];
+#endif
+	}
+	
 	ubo->cluster_debug_index = cluster_debug_index;
 
 	if (!temporal_frame_valid)
@@ -3120,11 +3195,14 @@ R_RenderFrame_RTX(refdef_t *fd)
 	world_anim_frame = new_world_anim_frame;
 
 	num_model_lights = 0;
+
 	EntityUploadInfo upload_info = { 0 };
 	vkpt_pt_reset_instances();
 	vkpt_shadow_map_reset_instances();
 	prepare_viewmatrix(fd);
+
 	prepare_entities(&upload_info);
+
 	if (bsp_world_model && render_world)
 	{
 		vkpt_pt_instance_model_blas(&vkpt_refdef.bsp_mesh_world.geom_opaque,      g_identity_transform, VERTEX_BUFFER_WORLD, -1, 0);
