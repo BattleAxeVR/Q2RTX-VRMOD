@@ -2727,9 +2727,13 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 	QVKUniformBuffer_t *ubo = &vkpt_refdef.uniform_buffer;
 
-	memcpy(ubo->V_prev, ubo->V, sizeof(float) * 16);
-	memcpy(ubo->P_prev, ubo->P, sizeof(float) * 16);
-	memcpy(ubo->invP_prev, ubo->invP, sizeof(float) * 16);
+	memcpy(ubo->V_prev[LEFT], ubo->V[LEFT], sizeof(float) * 16);
+	memcpy(ubo->P_prev[LEFT], ubo->P[LEFT], sizeof(float) * 16);
+	memcpy(ubo->invP_prev[LEFT], ubo->invP[LEFT], sizeof(float) * 16);
+
+	memcpy(ubo->V_prev[RIGHT], ubo->V[RIGHT], sizeof(float) * 16);
+	memcpy(ubo->P_prev[RIGHT], ubo->P[RIGHT], sizeof(float) * 16);
+	memcpy(ubo->invP_prev[RIGHT], ubo->invP[RIGHT], sizeof(float) * 16);
 
 	ubo->cylindrical_hfov_prev = ubo->cylindrical_hfov;
 	ubo->prev_taa_output_width = ubo->taa_output_width;
