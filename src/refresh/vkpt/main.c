@@ -3163,6 +3163,7 @@ R_RenderFrame_RTX(refdef_t *fd)
 		Vector4Set(ubo->fs_blend_color, 0.f, 0.f, 0.f, 0.f);
 
 	ubo->weapon_left_handed = upload_info.weapon_left_handed;
+	ubo->stereo = (int)r_stereo->value;
 
 	if (vkpt_refdef.fd->rdflags & RDF_IRGOGGLES)
 		Vector4Set(ubo->fs_colorize, 1.f, 0.f, 0.f, 0.8f);

@@ -207,7 +207,7 @@ main()
 		projection_view_to_screen(view_id, prev_view_dir, prev_screen_pos, prev_distance, true);
 		vec2 motion = prev_screen_pos - inUV;
 
-		if (push_constants.stereo == 1)
+		if (global_ubo.stereo == 1)
 		{
 			motion.x *= 0.5f;
 		}
@@ -288,7 +288,7 @@ main()
 	motion.xy = screen_pos_prev - screen_pos_curr;
 	motion.z = distance_prev - distance_curr;
 
-	if (push_constants.stereo == 1)
+	if (global_ubo.stereo == 1)
 	{
 		motion.x *= 0.5f;
 	}

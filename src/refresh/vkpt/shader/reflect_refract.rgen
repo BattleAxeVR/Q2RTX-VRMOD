@@ -67,7 +67,7 @@ main()
 	int width = global_ubo.width;
 	int half_width = width;
 
-	if (push_constants.stereo == 1)
+	if (global_ubo.stereo == 1)
 	{
 		if (ipos.x >= width)
 		{
@@ -636,7 +636,7 @@ main()
 		motion.z = -motion.z;
 		distance_curr = -distance_curr;
 
-		if (push_constants.stereo == 1)
+		if (global_ubo.stereo == 1)
 		{
 			motion.x *= 0.5f;
 		}
@@ -651,7 +651,7 @@ main()
 		vec4 motion = imageLoad(IMG_PT_MOTION, ipos);
 		motion.z = -motion.z;
 
-		if (push_constants.stereo == 1)
+		if (global_ubo.stereo == 1)
 		{
 			motion.x *= 0.5f;
 		}

@@ -123,7 +123,6 @@ static QvkGeometryInstance_t g_instances[MAX_TLAS_INSTANCES];
 typedef struct {
 	int gpu_index;
 	int bounce;
-	int stereo;
 } pt_push_constants_t;
 
 #define MEM_BARRIER_BUILD_ACCEL(cmd_buf, ...) \
@@ -1047,7 +1046,6 @@ vkpt_pt_trace_primary_rays(VkCommandBuffer cmd_buf)
 	BEGIN_PERF_MARKER(cmd_buf, PROFILER_PRIMARY_RAYS);
 
 	int width = qvk.extent_render.width / 2;
-	const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
 
 	for(int i = 0; i < qvk.device_count; i++)
 	{
@@ -1056,7 +1054,6 @@ vkpt_pt_trace_primary_rays(VkCommandBuffer cmd_buf)
 		pt_push_constants_t push;
 		push.gpu_index = qvk.device_count == 1 ? -1 : i;
 		push.bounce = 0;
-		push.stereo = stereo;
 
 		dispatch_rays(cmd_buf, PIPELINE_PRIMARY_RAYS, push, width, qvk.extent_render.height, qvk.device_count == 1 ? 2 : 1);
 	}
@@ -1091,8 +1088,6 @@ vkpt_pt_trace_reflections(VkCommandBuffer cmd_buf, int bounce)
 
 	int width = qvk.extent_render.width / 2;
 
-	const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
-
 	for (int i = 0; i < qvk.device_count; i++)
     {
         set_current_gpu(cmd_buf, i);
@@ -1102,7 +1097,6 @@ vkpt_pt_trace_reflections(VkCommandBuffer cmd_buf, int bounce)
         pt_push_constants_t push;
         push.gpu_index = qvk.device_count == 1 ? -1 : i;
         push.bounce = bounce;
-        push.stereo = stereo;
 
         dispatch_rays(cmd_buf, pipeline, push, width, qvk.extent_render.height, qvk.device_count == 1 ? 2 : 1);
 	}
@@ -1131,8 +1125,6 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 
 	int width = qvk.extent_render.width / 2;
 
-	const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
-
 	for (int i = 0; i < qvk.device_count; i++)
 	{
 		set_current_gpu(cmd_buf, i);
@@ -1142,7 +1134,6 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 		pt_push_constants_t push;
 		push.gpu_index = qvk.device_count == 1 ? -1 : i;
 		push.bounce = 0;
-		push.stereo = stereo;
 
 		dispatch_rays(cmd_buf, pipeline, push, width, qvk.extent_render.height, qvk.device_count == 1 ? 2 : 1);
 	}
@@ -1189,7 +1180,6 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 				pt_push_constants_t push;
 				push.gpu_index = qvk.device_count == 1 ? -1 : i;
 				push.bounce = 0;
-				push.stereo = stereo;
 
 				dispatch_rays(cmd_buf, pipeline, push, width, height, qvk.device_count == 1 ? 2 : 1);
 

@@ -146,7 +146,7 @@ main()
 
 	int half_width = global_ubo.width / 2;
 
-	if (push_constants.stereo == 1)
+	if (global_ubo.stereo == 1)
 	{
 		if (ipos.x >= half_width)
 		{

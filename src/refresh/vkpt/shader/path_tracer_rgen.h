@@ -128,7 +128,7 @@ env_map(vec3 direction, bool remove_sun)
 int get_view_id()
 {
 #if 1
-	if(push_constants.stereo == 0)
+	if(global_ubo.stereo == 0)
 	{
 		return 0;
 	}
@@ -172,7 +172,7 @@ ivec2 get_image_position()
 		pos.x = int(rt_LaunchID.x * 2 + 1) - int(rt_LaunchID.y & 1);
 	}
 
-	if (push_constants.stereo == 1)
+	if (global_ubo.stereo == 1)
 	{
 #if 1
 		int width = int(rt_LaunchSize.x);
@@ -192,7 +192,7 @@ ivec2 get_image_position()
 
 ivec2 get_image_size()
 {
-	if(push_constants.stereo == 1)
+	if(global_ubo.stereo == 1)
 	{
 		return ivec2(global_ubo.width / 2, global_ubo.height);
 		//return ivec2(rt_LaunchSize.x / 2, rt_LaunchSize.y);

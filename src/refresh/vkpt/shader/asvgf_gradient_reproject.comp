@@ -181,7 +181,7 @@ void reproject_pixel(ivec2 p, int field_left, int field_right)
 int get_view_id()
 {
 #if 0
-	//if(push_constants.stereo == 0)
+	//if(global_ubo.stereo == 0)
 	{
 		//return 0;
 	}
@@ -215,7 +215,7 @@ main()
 	int half_width = global_ubo.width / 2;
 
 #if 0
-	if(push_constants.stereo == 1)
+	if(global_ubo.stereo == 1)
 	{
 		prev_width /= 2;
 		prev_half_width /= 2;

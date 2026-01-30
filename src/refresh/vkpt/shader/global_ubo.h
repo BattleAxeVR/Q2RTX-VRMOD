@@ -236,6 +236,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 	GLOBAL_UBO_VAR_LIST_DO(ShaderFogVolume, fog_volumes[MAX_FOG_VOLUMES]) \
 	\
 	GLOBAL_UBO_VAR_LIST_DO(int,             weapon_left_handed) \
+	GLOBAL_UBO_VAR_LIST_DO(int,             stereo) \
 	GLOBAL_UBO_VAR_LIST_DO(float,           ui_color_scale) \
 	\
 	UBO_CVAR_LIST // WARNING: Do not put any other members into global_ubo after this: the CVAR list is not vec4-aligned
