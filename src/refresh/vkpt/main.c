@@ -2756,7 +2756,7 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 
 	const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
 
-#if 1//SUPPORT_OPENXR
+#if 0//1//SUPPORT_OPENXR
 	if(stereo)// && Is_OpenXR_Session_Running())
 	{
 		//Hardcoded PSVR 2 defaults, for testing/debugging
