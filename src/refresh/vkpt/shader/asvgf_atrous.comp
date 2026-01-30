@@ -57,16 +57,6 @@ void filter_image(
 {
 	ivec2 ipos = ivec2(gl_GlobalInvocationID);
 
-	if (global_ubo.stereo == 1)
-	{
-		if (ipos.x > (global_ubo.width))// / 2))
-		{
-			//ipos.x -= global_ubo.width / 2;
-			//return;
-			//ipos.x = 0;
-		}
-	}
-
 	vec3 color_center_hf = unpackRGBE(texelFetch(img_hf, ipos, 0).x);
 	vec3 color_center_spec = unpackRGBE(texelFetch(img_spec, ipos, 0).x);
 	vec2 moments_center = texelFetch(img_moments, ipos, 0).xy;
@@ -77,6 +67,16 @@ void filter_image(
 		filtered_spec = color_center_spec;
 		filtered_moments = moments_center;
 		return;
+	}
+
+	int view_id = 0;
+
+	if (global_ubo.stereo == 1)
+	{
+		if (ipos.x > (global_ubo.width / 2))
+		{
+			view_id = 1;
+		}
 	}
 
 	vec3 normal_center = decode_normal(texelFetch(TEX_PT_NORMAL_A, ipos, 0).x);
@@ -131,27 +131,48 @@ void filter_image(
 
 	if (global_ubo.stereo == 1)
 	{
-		field_right = global_ubo.width / 4; // stereo mode
+		if (view_id == 0)
+		{
+			// Left Eye
+			field_right = global_ubo.width / 4;
+
+			if(ipos.x >= field_right)
+			{
+				field_left = field_right;
+				field_right = global_ubo.width / 2;
+			}
+		}
+		else
+		{
+			// Right Eye
+			field_left = global_ubo.width / 2;
+			field_right = global_ubo.width * 3 / 4;
+
+			if(ipos.x >= field_right)
+			{
+				field_left = field_right;
+				field_right = global_ubo.width;
+			}
+		}
+
+		if(ipos.x >= field_right)
+		{
+			field_left = field_right;
+			field_right = global_ubo.width / 2;
+		}
 	}
 	else
 	{
 		field_right = global_ubo.width / 2;
-	}
 
-	if(ipos.x >= field_right)
-	{
-		field_left = field_right;
-
-		if (global_ubo.stereo == 1)
+		if(ipos.x >= field_right)
 		{
-			field_right = global_ubo.width / 2; // stereo mode
-		}
-		else
-		{
+			field_left = field_right;
 			field_right = global_ubo.width;
 		}
 	}
 
+	
 	// Add some jitter to sample positions to hide the a-trous filter aliasing patterns
 	ivec2 jitter;
 	{
@@ -225,9 +246,19 @@ void filter_image(
 		}
 	}
 
+	// Temp hack for debugging
+	if(view_id == 1)
+	{
+		filtered_hf = color_center_hf;
+		filtered_spec = color_center_spec;
+		filtered_moments = moments_center;
+		return;
+	}
+
 	filtered_hf = sum_color_hf / sum_w_hf;
 	filtered_spec = sum_color_spec / sum_w_spec;
 	filtered_moments = sum_moments / sum_w_hf;
+
 }
 
 // Bilinear/bilateral interpolation of the LF channel data.
