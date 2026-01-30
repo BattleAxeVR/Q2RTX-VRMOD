@@ -518,11 +518,13 @@ static void CL_AdjustAngles(int msec)
     else
         speed = msec * 0.001f;
 
-    if (!(in_strafe.state & 1)) {
+    if (!(in_strafe.state & 1)) 
+    {
         cl.viewangles[YAW] -= speed * cl_yawspeed->value * CL_KeyState(&in_right);
         cl.viewangles[YAW] += speed * cl_yawspeed->value * CL_KeyState(&in_left);
     }
-    if (in_klook.state & 1) {
+    if (in_klook.state & 1) 
+    {
         cl.viewangles[PITCH] -= speed * cl_pitchspeed->value * CL_KeyState(&in_forward);
         cl.viewangles[PITCH] += speed * cl_pitchspeed->value * CL_KeyState(&in_back);
     }
@@ -622,10 +624,15 @@ static void CL_ClampPitch(void)
     pitch = SHORT2ANGLE(cl.frame.ps.pmove.delta_angles[PITCH]);
     angle = cl.viewangles[PITCH] + pitch;
 
-    if (angle < -180)
+    if(angle < -180)
+    {
         angle += 360; // wrapped
-    if (angle > 180)
+    }
+
+    if(angle > 180)
+    {
         angle -= 360; // wrapped
+    }
 
     angle = Q_clipf(angle, -89, 89);
     cl.viewangles[PITCH] = angle - pitch;
@@ -643,7 +650,8 @@ void CL_UpdateCmd(int msec)
 {
     VectorClear(cl.localmove);
 
-    if (sv_paused->integer) {
+    if (sv_paused->integer) 
+    {
         return;
     }
 
@@ -677,16 +685,21 @@ static void m_autosens_changed(cvar_t *self)
 {
     float fov;
 
-    if (self->value > 90.0f && self->value <= 179.0f)
+    if(self->value > 90.0f && self->value <= 179.0f)
+    {
         fov = self->value;
+    }
     else
+    {
         fov = 90.0f;
+    }
 
     autosens_x = 1.0f / fov;
     autosens_y = 1.0f / V_CalcFov(fov, 4, 3);
 }
 
-static const cmdreg_t c_input[] = {
+static const cmdreg_t c_input[] = 
+{
     { "centerview", IN_CenterView },
     { "+moveup", IN_UpDown },
     { "-moveup", IN_UpUp },
@@ -749,9 +762,6 @@ void CL_RegisterInput(void)
     cl_sidespeed = Cvar_Get("cl_sidespeed", "200", 0);
     cl_yawspeed = Cvar_Get("cl_yawspeed", "140", 0);
     cl_pitchspeed = Cvar_Get("cl_pitchspeed", "150", CVAR_CHEAT);
-#if SUPPORT_OPENXR
-    cl_pitchspeed->value = 0.0f;
-#endif
     cl_anglespeedkey = Cvar_Get("cl_anglespeedkey", "1.5", CVAR_CHEAT);
     cl_run = Cvar_Get("cl_run", "1", CVAR_ARCHIVE);
 
@@ -788,27 +798,36 @@ void CL_FinalizeCmd(void)
     Cbuf_Frame(&cmd_buffer);
     Cbuf_Frame(&cl_cmdbuf);
 
-    if (cls.state != ca_active) {
+    if (cls.state != ca_active) 
+    {
         goto clear; // not talking to a server
     }
 
-    if (sv_paused->integer) {
+    if (sv_paused->integer) 
+    {
         goto clear;
     }
 
 //
 // figure button bits
 //
-    if (in_attack.state & 3)
+    if(in_attack.state & 3)
+    {
         cl.cmd.buttons |= BUTTON_ATTACK;
-    if (in_use.state & 3)
-        cl.cmd.buttons |= BUTTON_USE;
+    }
 
-    if (cls.key_dest == KEY_GAME && Key_AnyKeyDown()) {
+    if(in_use.state & 3)
+    {
+        cl.cmd.buttons |= BUTTON_USE;
+    }
+
+    if (cls.key_dest == KEY_GAME && Key_AnyKeyDown()) 
+    {
         cl.cmd.buttons |= BUTTON_ANY;
     }
 
-    if (cl.cmd.msec > 250) {
+    if (cl.cmd.msec > 250) 
+    {
         cl.cmd.msec = 100;        // time was unreasonable
     }
 
@@ -869,25 +888,32 @@ static inline bool ready_to_send(void)
 {
     unsigned msec;
 
-    if (cl.sendPacketNow) {
+    if (cl.sendPacketNow) 
+    {
         return true;
     }
-    if (cls.netchan.message.cursize || cls.netchan.reliable_ack_pending) {
+    if (cls.netchan.message.cursize || cls.netchan.reliable_ack_pending) 
+    {
         return true;
     }
     if (!cl_maxpackets->integer) {
         return true;
     }
 
-    if (cl_maxpackets->integer < 10) {
+    if (cl_maxpackets->integer < 10) 
+    {
         Cvar_Set("cl_maxpackets", "10");
     }
 
     msec = 1000 / cl_maxpackets->integer;
-    if (msec) {
+
+    if (msec) 
+    {
         msec = 100 / (100 / msec);
     }
-    if (cls.realtime - cl.lastTransmitTime < msec) {
+
+    if (cls.realtime - cl.lastTransmitTime < msec) 
+    {
         return false;
     }
 
@@ -896,11 +922,13 @@ static inline bool ready_to_send(void)
 
 static inline bool ready_to_send_hacked(void)
 {
-    if (!cl_fuzzhack->integer) {
+    if (!cl_fuzzhack->integer) 
+    {
         return true; // packet drop hack disabled
     }
 
-    if (cl.cmdNumber - cl.lastTransmitCmdNumberReal > 2) {
+    if (cl.cmdNumber - cl.lastTransmitCmdNumberReal > 2) 
+    {
         return true; // can't drop more than 2 cmds
     }
 
@@ -928,7 +956,8 @@ static void CL_SendDefaultCmd(void)
     cl.lastTransmitCmdNumber = cl.cmdNumber;
 
     // see if we are ready to send this packet
-    if (!ready_to_send_hacked()) {
+    if (!ready_to_send_hacked()) 
+    {
         cls.netchan.outgoing_sequence++; // just drop the packet
         return;
     }
@@ -942,18 +971,25 @@ static void CL_SendDefaultCmd(void)
     // save the position for a checksum byte
     checksumIndex = 0;
     version = 0;
-    if (cls.serverProtocol <= PROTOCOL_VERSION_DEFAULT) {
+
+    if (cls.serverProtocol <= PROTOCOL_VERSION_DEFAULT) 
+    {
         checksumIndex = msg_write.cursize;
         SZ_GetSpace(&msg_write, 1);
-    } else if (cls.serverProtocol == PROTOCOL_VERSION_R1Q2) {
+    } 
+    else if (cls.serverProtocol == PROTOCOL_VERSION_R1Q2) 
+    {
         version = cls.protocolVersion;
     }
 
     // let the server know what the last frame we
     // got was, so the next message can be delta compressed
-    if (cl_nodelta->integer || !cl.frame.valid /*|| cls.demowaiting*/) {
+    if (cl_nodelta->integer || !cl.frame.valid /*|| cls.demowaiting*/) 
+    {
         MSG_WriteLong(-1);   // no compression
-    } else {
+    } 
+    else 
+    {
         MSG_WriteLong(cl.frame.number);
     }
 
@@ -988,7 +1024,8 @@ static void CL_SendDefaultCmd(void)
     //
     cursize = cls.netchan.Transmit(&cls.netchan, msg_write.cursize, msg_write.data, 1);
 #if USE_DEBUG
-    if (cl_showpackets->integer) {
+    if (cl_showpackets->integer) 
+    {
         Com_Printf("%zu ", cursize);
     }
 #endif
@@ -1012,7 +1049,8 @@ static void CL_SendBatchedCmd(void)
     byte *patch;
 
     // see if we are ready to send this packet
-    if (!ready_to_send()) {
+    if (!ready_to_send()) 
+    {
         return;
     }
 
@@ -1034,9 +1072,12 @@ static void CL_SendBatchedCmd(void)
 
     // let the server know what the last frame we
     // got was, so the next message can be delta compressed
-    if (cl_nodelta->integer || !cl.frame.valid /*|| cls.demowaiting*/) {
+    if (cl_nodelta->integer || !cl.frame.valid /*|| cls.demowaiting*/) 
+    {
         *patch = clc_move_nodelta; // no compression
-    } else {
+    } 
+    else 
+    {
         *patch = clc_move_batched;
         MSG_WriteLong(cl.frame.number);
     }
@@ -1054,19 +1095,25 @@ static void CL_SendBatchedCmd(void)
     oldcmd = NULL;
     totalCmds = 0;
     totalMsec = 0;
-    for (i = seq - numDups; i <= seq; i++) {
+
+    for (i = seq - numDups; i <= seq; i++) 
+    {
         oldest = &cl.history[(i - 1) & CMD_MASK];
         history = &cl.history[i & CMD_MASK];
 
         numCmds = history->cmdNumber - oldest->cmdNumber;
-        if (numCmds >= MAX_PACKET_USERCMDS) {
+
+        if (numCmds >= MAX_PACKET_USERCMDS) 
+        {
             Com_WPrintf("%s: MAX_PACKET_USERCMDS exceeded\n", __func__);
             SZ_Clear(&msg_write);
             break;
         }
         totalCmds += numCmds;
         MSG_WriteBits(numCmds, 5);
-        for (j = oldest->cmdNumber + 1; j <= history->cmdNumber; j++) {
+
+        for (j = oldest->cmdNumber + 1; j <= history->cmdNumber; j++) 
+        {
             cmd = &cl.cmds[j & CMD_MASK];
             totalMsec += cmd->msec;
             bits = MSG_WriteDeltaUsercmd_Enhanced(oldcmd, cmd);
@@ -1088,11 +1135,16 @@ static void CL_SendBatchedCmd(void)
     //
     cursize = cls.netchan.Transmit(&cls.netchan, msg_write.cursize, msg_write.data, 1);
 #if USE_DEBUG
-    if (cl_showpackets->integer == 1) {
+    if (cl_showpackets->integer == 1) 
+    {
         Com_Printf("%zu(%i) ", cursize, totalCmds);
-    } else if (cl_showpackets->integer == 2) {
+    } 
+    else if (cl_showpackets->integer == 2) 
+    {
         Com_Printf("%zu(%i) ", cursize, totalMsec);
-    } else if (cl_showpackets->integer == 3) {
+    } 
+    else if (cl_showpackets->integer == 3) 
+    {
         Com_Printf(" | ");
     }
 #endif
@@ -1117,7 +1169,8 @@ static void CL_SendKeepAlive(void)
 
     cursize = cls.netchan.Transmit(&cls.netchan, 0, "", 1);
 #if USE_DEBUG
-    if (cl_showpackets->integer) {
+    if (cl_showpackets->integer) 
+    {
         Com_Printf("%zu ", cursize);
     }
 #endif
@@ -1129,41 +1182,52 @@ static void CL_SendUserinfo(void)
     cvar_t *var;
     int i;
 
-    if (cls.userinfo_modified == MAX_PACKET_USERINFOS) {
+    if (cls.userinfo_modified == MAX_PACKET_USERINFOS) 
+    {
         size_t len = Cvar_BitInfo(userinfo, CVAR_USERINFO);
         Com_DDPrintf("%s: %u: full update\n", __func__, com_framenum);
         MSG_WriteByte(clc_userinfo);
         MSG_WriteData(userinfo, len + 1);
         MSG_FlushTo(&cls.netchan.message);
-    } else if (cls.serverProtocol == PROTOCOL_VERSION_Q2PRO) {
-        Com_DDPrintf("%s: %u: %d updates\n", __func__, com_framenum,
-                     cls.userinfo_modified);
-        for (i = 0; i < cls.userinfo_modified; i++) {
+    } 
+    else if (cls.serverProtocol == PROTOCOL_VERSION_Q2PRO) 
+    {
+        Com_DDPrintf("%s: %u: %d updates\n", __func__, com_framenum, cls.userinfo_modified);
+
+        for (i = 0; i < cls.userinfo_modified; i++) 
+        {
             var = cls.userinfo_updates[i];
             MSG_WriteByte(clc_userinfo_delta);
             MSG_WriteString(var->name);
-            if (var->flags & CVAR_USERINFO) {
+
+            if (var->flags & CVAR_USERINFO) 
+            {
                 MSG_WriteString(var->string);
-            } else {
+            } 
+            else 
+            {
                 // no longer in userinfo
                 MSG_WriteString(NULL);
             }
         }
         MSG_FlushTo(&cls.netchan.message);
-    } else {
-        Com_WPrintf("%s: update count is %d, should never happen.\n",
-                    __func__, cls.userinfo_modified);
+    } 
+    else 
+    {
+        Com_WPrintf("%s: update count is %d, should never happen.\n",__func__, cls.userinfo_modified);
     }
 }
 
 static void CL_SendReliable(void)
 {
-    if (cls.userinfo_modified) {
+    if (cls.userinfo_modified) 
+    {
         CL_SendUserinfo();
         cls.userinfo_modified = 0;
     }
 
-    if (cls.netchan.message.overflowed) {
+    if (cls.netchan.message.overflowed) 
+    {
         SZ_Clear(&cls.netchan.message);
         Com_Error(ERR_DROP, "Reliable message overflowed");
     }
@@ -1171,21 +1235,25 @@ static void CL_SendReliable(void)
 
 void CL_SendCmd(void)
 {
-    if (cls.state < ca_connected) {
+    if (cls.state < ca_connected) 
+    {
         return; // not talking to a server
     }
 
     // generate usercmds while playing a demo, but do not send them
-    if (cls.demo.playback) {
+    if (cls.demo.playback) 
+    {
         return;
     }
 
-    if (cls.state != ca_active || sv_paused->integer) {
+    if (cls.state != ca_active || sv_paused->integer) 
+    {
         // send a userinfo update if needed
         CL_SendReliable();
 
         // just keepalive or update reliable
-        if (cls.netchan.ShouldUpdate(&cls.netchan)) {
+        if (cls.netchan.ShouldUpdate(&cls.netchan)) 
+        {
             CL_SendKeepAlive();
         }
 
@@ -1194,16 +1262,20 @@ void CL_SendCmd(void)
     }
 
     // are there any new usercmds to send after all?
-    if (cl.lastTransmitCmdNumber == cl.cmdNumber) {
+    if (cl.lastTransmitCmdNumber == cl.cmdNumber) 
+    {
         return; // nothing to send
     }
 
     // send a userinfo update if needed
     CL_SendReliable();
 
-    if (cls.serverProtocol == PROTOCOL_VERSION_Q2PRO && cl_batchcmds->integer) {
+    if (cls.serverProtocol == PROTOCOL_VERSION_Q2PRO && cl_batchcmds->integer) 
+    {
         CL_SendBatchedCmd();
-    } else {
+    } 
+    else 
+    {
         CL_SendDefaultCmd();
     }
 
