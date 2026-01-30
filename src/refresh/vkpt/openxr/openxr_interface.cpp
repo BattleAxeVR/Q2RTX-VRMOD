@@ -2925,6 +2925,32 @@ extern "C"
 		return openxr_.is_session_running();
 	}
 
+	bool GetEyePosition(const int view_id, float* eye_pos_vec3, float* tracking_to_world_matrix)
+	{
+		if(!openxr_.is_session_running() || !tracking_to_world_matrix)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		if(tracking_to_world_matrix)
+		{
+
+		}
+		else
+		{
+			memcpy(&eye_pos_vec3, &xr_view.pose.position, sizeof(float) * 3);
+		}
+
+		return true;
+	}
+
 	bool GetViewMatrix(const int view_id, const bool append, float* matrix_ptr)
 	{
 		if(!openxr_.is_session_running() || !matrix_ptr)
