@@ -112,7 +112,7 @@ void patch_position(int view_id, ivec2 ipos, ivec2 found_pos_prev)
 	uint checkerboard_flags = int(imageLoad(IMG_PT_VIEW_DIRECTION, ipos).w);
 	if ((checkerboard_flags & CHECKERBOARD_FLAG_FIELD_MASK) == CHECKERBOARD_FLAG_PRIMARY)
 	{
-		vec3 view_direction = normalize(position - global_ubo.cam_pos[view_id].xyz);
+		vec3 view_direction = normalize(position - global_ubo.cam_pos_left.xyz);
 		imageStore(IMG_PT_VIEW_DIRECTION, ipos, vec4(view_direction, checkerboard_flags));
 	}
 }
