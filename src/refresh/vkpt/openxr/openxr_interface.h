@@ -153,7 +153,7 @@ public:
 	int display_time_offset_us_ = 0;
 
 	XrTime get_predicted_display_time() const;
-	
+
 	HMDView& get_hmd_view();
 	const HMDView& get_hmd_view() const;
 
@@ -300,14 +300,22 @@ public:
 		return true;
 	}
 
-private:
-	bool initialized_ = false;
 
 	HMDView hmd_view_;
-	//float2 thumbsticks_[NUM_SIDES] = { float2_zero, float2_zero };
+	float thumbsticks_[NUM_CONTROLLERS][2] = { };
 
-	float triggers_[NUM_SIDES] = { 0.0f, 0.0f };
-	float grips_[NUM_SIDES] = { 0.0f, 0.0f };
+	XrPosef grip_pose_LS_[NUM_CONTROLLERS] = {};
+	bool grip_pose_valid_[NUM_CONTROLLERS] = { false, false };
+
+	XrPosef aim_pose_LS_[NUM_CONTROLLERS] = {};
+	bool aim_pose_valid_[NUM_CONTROLLERS] = { false, false };
+
+	float triggers_[NUM_CONTROLLERS] = { 0.0f, 0.0f };
+	float grips_[NUM_CONTROLLERS] = { 0.0f, 0.0f };
+
+
+private:
+	bool initialized_ = false;
 
 	XrInstance xr_instance_{ XR_NULL_HANDLE };
 	XrSession xr_session_{ XR_NULL_HANDLE };

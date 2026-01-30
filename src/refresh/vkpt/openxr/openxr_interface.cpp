@@ -2224,58 +2224,34 @@ bool OpenXR::update_controller_poses(XrTime predicted_display_time)
 		return false;
 	}
 
-#if 0
-
-	const PlayerBase& player_base = engine_.get_player_base();
-	const Pose& player_pose = player_base.pose_;
-
-	VR_Manager& vr_manager = engine_.get_vr_manager();
-
 	for(int hand = LEFT; hand < NUM_HANDS; hand++)
 	{
 #if SUPPORT_GRIP_POSE
-		Pose& grip_pose_LS = vr_manager.vr_controllers_[hand].grip_pose_LS_;
-
-		XrSpaceLocation gripSpaceLocation{ XR_TYPE_SPACE_LOCATION };
-		XrResult locate_res = xrLocateSpace(xr_input_.gripSpace[hand], xr_app_space_, predicted_display_time, &gripSpaceLocation);
-
-		if(XR_UNQUALIFIED_SUCCESS(locate_res))
 		{
-			if(is_xr_pose_valid(gripSpaceLocation.locationFlags))
+			XrSpaceLocation gripSpaceLocation{ XR_TYPE_SPACE_LOCATION };
+			XrResult locate_res = xrLocateSpace(xr_input_.gripSpace[hand], xr_app_space_, predicted_display_time, &gripSpaceLocation);
+
+			if(XR_UNQUALIFIED_SUCCESS(locate_res))
 			{
-				grip_pose_LS = tv_convert_xr_pose_to_pose(gripSpaceLocation.pose);
-
-#if USE_RECENTERING
-				if(vr_manager.apply_recentering_)
+				if(is_xr_pose_valid(gripSpaceLocation.locationFlags))
 				{
-					grip_pose_LS.position_ += vr_manager.head_centering_offset_.position_;
-					grip_pose_LS.rotation_ = grip_pose_LS.rotation_ * vr_manager.head_centering_offset_.rotation_;
-					grip_pose_LS.rotation_.normalize();
+					grip_pose_LS_[hand] = gripSpaceLocation.pose;
+					grip_pose_valid_[hand] = true;
 				}
-#endif
-
-#if APPLY_GRIP_ROTATION_CORRECTION
-				if(vr_manager.apply_grip_correction_)
+				else
 				{
-					float3 grip_rotation_offset_rad = deg2rad(vr_manager.grip_rotation_offset_deg_);
-					Quat grip_rotation(grip_rotation_offset_rad);
-					grip_pose_LS.rotation_ = grip_pose_LS.rotation_ * grip_rotation;
-					grip_pose_LS.rotation_.normalize();
+					grip_pose_valid_[hand] = false;
 				}
-#endif
 			}
-		}
-		else
-		{
-			grip_pose_LS.is_valid_ = false;
-			grip_pose_LS.show_ = false;
+			else
+			{
+				grip_pose_valid_[hand] = false;
+			}
 		}
 #endif
 
 #if SUPPORT_AIM_POSE
 		{
-			Pose& aim_pose_LS = vr_manager.vr_controllers_[hand].aim_pose_LS_;
-
 			XrSpaceLocation aimSpaceLocation{ XR_TYPE_SPACE_LOCATION };
 			XrResult locate_res = xrLocateSpace(xr_input_.aimSpace[hand], xr_app_space_, predicted_display_time, &aimSpaceLocation);
 
@@ -2283,38 +2259,21 @@ bool OpenXR::update_controller_poses(XrTime predicted_display_time)
 			{
 				if(is_xr_pose_valid(aimSpaceLocation.locationFlags))
 				{
-					aim_pose_LS = tv_convert_xr_pose_to_pose(aimSpaceLocation.pose);
-
-#if USE_RECENTERING
-					if(vr_manager.apply_recentering_)
-					{
-						aim_pose_LS.position_ += vr_manager.head_centering_offset_.position_;
-						aim_pose_LS.rotation_ = aim_pose_LS.rotation_ * vr_manager.head_centering_offset_.rotation_;
-						aim_pose_LS.rotation_.normalize();
-					}
-#endif
-
-#if APPLY_AIM_ROTATION_CORRECTION
-					if(vr_manager.apply_aim_correction_)
-					{
-						float3 aim_rotation_offset_rad = deg2rad(vr_manager.aim_rotation_offset_deg_);
-						Quat aim_rotation(aim_rotation_offset_rad);
-						aim_pose_LS.rotation_ = aim_pose_LS.rotation_ * aim_rotation;
-						aim_pose_LS.rotation_.normalize();
-					}
-#endif
+					aim_pose_LS_[hand] = aimSpaceLocation.pose;
+					aim_pose_valid_[hand] = true;
+				}
+				else
+				{
+					aim_pose_valid_[hand] = false;
 				}
 			}
 			else
 			{
-				aim_pose_LS.is_valid_ = false;
-				aim_pose_LS.show_ = false;
+				aim_pose_valid_[hand] = false;
 			}
 		}
 #endif
 	}
-
-#endif
 
 	return true;
 }
@@ -2629,7 +2588,6 @@ void OpenXR::update_trigger(const uint hand, const float trigger_value)
 	}
 
 	triggers_[hand] = trigger_value;
-	//engine_.get_vr_manager().vr_controllers_[hand].analog_[VRAnalogID::VRAnalog_Trigger].set_value(trigger_value);
 }
 
 
@@ -2652,7 +2610,6 @@ void OpenXR::update_grip(const uint hand, const float grip_value)
 	}
 
 	grips_[hand] = grip_value;
-	//engine_.get_vr_manager().vr_controllers_[hand].analog_[VRAnalogID::VRAnalog_Grip].set_value(grip_value);
 }
 
 float OpenXR::get_grip(const uint hand) const
@@ -2674,13 +2631,6 @@ std::vector<std::string> OpenXR::GetGraphicsInstanceExtensions() const
 {
 	return {XR_KHR_VULKAN_ENABLE_EXTENSION_NAME};
 }
-
-/*
-XrBaseInStructure* OpenXR::GetInstanceCreateExtension() const
-{
-	return nullptr;
-}*/
-
 
 void OpenXR::log_layers_and_extensions()
 {
@@ -2927,7 +2877,7 @@ extern "C"
 
 	bool GetEyePosition(const int view_id, float* eye_pos_vec3, float* tracking_to_world_matrix)
 	{
-		if(!openxr_.is_session_running() || !tracking_to_world_matrix)
+		if(!openxr_.is_session_running())
 		{
 			return false;
 		}
@@ -2998,6 +2948,56 @@ extern "C"
 
 		XrFovf& fov = *fov_ptr;
 		fov = xr_view.fov;
+
+		return true;
+	}
+
+	bool GetHandPosition(const int hand_id, float* hand_pos_vec3, float* tracking_to_world_matrix)
+	{
+		if(!openxr_.is_session_running())
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.aim_pose_valid_[hand_id])
+		{
+			return false;
+		}
+
+		if(tracking_to_world_matrix)
+		{
+
+		}
+		else
+		{
+			memcpy(&hand_pos_vec3, &xr_view.pose.position, sizeof(float) * 3);
+		}
+
+		return true;
+	}
+
+	bool GetHandMatrix(const int hand_id, const bool append, float* matrix_ptr)
+	{
+		if(!openxr_.is_session_running() || !matrix_ptr || !openxr_.aim_pose_valid_[hand_id])
+		{
+			return false;
+		}
+
+		if(append)
+		{
+			XrMatrix4x4f local_matrix = {};
+			XrMatrix4x4f_CreateFromRigidTransform(&local_matrix, &openxr_.aim_pose_LS_[hand_id]);
+
+			XrMatrix4x4f orig_hand_matrix = {};
+			memcpy(&orig_hand_matrix, matrix_ptr, sizeof(float) * 16);
+			XrMatrix4x4f_Multiply((XrMatrix4x4f*)matrix_ptr, &local_matrix, &orig_hand_matrix);
+		}
+		else
+		{
+			XrMatrix4x4f_CreateFromRigidTransform((XrMatrix4x4f*)matrix_ptr, &openxr_.aim_pose_LS_[hand_id]);
+		}
 
 		return true;
 	}
