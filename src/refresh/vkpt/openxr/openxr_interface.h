@@ -313,7 +313,6 @@ public:
 	float triggers_[NUM_CONTROLLERS] = { 0.0f, 0.0f };
 	float grips_[NUM_CONTROLLERS] = { 0.0f, 0.0f };
 
-
 private:
 	bool initialized_ = false;
 
