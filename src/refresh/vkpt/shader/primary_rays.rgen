@@ -34,29 +34,15 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 Ray get_primary_ray(int view_id, vec2 screen_pos)
 {
-	//vec3 view_dir = projection_screen_to_view(view_id, screen_pos, 1, false);
-	//view_dir = normalize((global_ubo.invV[view_id] * vec4(view_dir, 0)).xyz);
+	vec3 view_dir = projection_screen_to_view(view_id, screen_pos, 1, false);
+	view_dir = normalize((global_ubo.invV[view_id] * vec4(view_dir, 0)).xyz);
 
-	vec3 view_dir;
-
-	if (view_id == 0)
-	{
-		view_dir = projection_screen_to_view(0, screen_pos, 1, false);
-		view_dir = normalize((global_ubo.invV_left * vec4(view_dir, 0)).xyz);
-	}
-	else
-	{
-		view_dir = projection_screen_to_view(0, screen_pos, 1, false);
-		view_dir = normalize((global_ubo.invV_right * vec4(view_dir, 0)).xyz);
-	}
-	
 	Ray ray;
 	ray.origin = vec3(0);
 	ray.direction = view_dir;
 	ray.t_min = 0;
 	ray.t_max = PRIMARY_RAY_T_MAX;
 
-#if 0
 	if(global_ubo.pt_aperture > 0)
 	{
 		// Camera basis
@@ -101,9 +87,8 @@ Ray get_primary_ray(int view_id, vec2 screen_pos)
 		ray.origin = offset;
 		ray.direction = normalize(focal_point - ray.origin);
 	}
-#endif
 
-	ray.origin += global_ubo.cam_pos_left.xyz;
+	ray.origin += global_ubo.cam_pos[view_id].xyz;
 
 	return ray;
 }
@@ -216,7 +201,7 @@ main()
 		}
 
 		// Compute a motion vector for the sky, because we don't want TAA to blur it
-		vec3 prev_view_dir = (global_ubo.V_prev_left * vec4(direction, 0)).xyz;
+		vec3 prev_view_dir = (global_ubo.V_prev[view_id] * vec4(direction, 0)).xyz;
 		vec2 prev_screen_pos;
 		float prev_distance;
 		projection_view_to_screen(view_id, prev_view_dir, prev_screen_pos, prev_distance, true);
@@ -233,7 +218,7 @@ main()
 		imageStore(IMG_PT_VIEW_DEPTH_A, ipos, vec4(PRIMARY_RAY_T_MAX));
 		imageStore(IMG_PT_GODRAYS_THROUGHPUT_DIST, ipos, vec4(1, 1, 1, PRIMARY_RAY_T_MAX));
 		imageStore(IMG_PT_VIEW_DIRECTION, ipos, vec4(direction, 0));
-		imageStore(IMG_PT_SHADING_POSITION, ipos, vec4(global_ubo.cam_pos_left.xyz + direction * PRIMARY_RAY_T_MAX, 0));
+		imageStore(IMG_PT_SHADING_POSITION, ipos, vec4(global_ubo.cam_pos[view_id].xyz + direction * PRIMARY_RAY_T_MAX, 0));
 		imageStore(IMG_PT_MOTION, ipos, vec4(motion, 0, 0));
 		imageStore(IMG_PT_VISBUF_PRIM_A, ipos, uvec4(0));
 		imageStore(IMG_PT_VISBUF_BARY_A, ipos, vec4(0));
@@ -296,8 +281,8 @@ main()
 	vec2 screen_pos_curr, screen_pos_prev;
 	float distance_curr, distance_prev;
 	
-	projection_view_to_screen(view_id, (global_ubo.V_left * vec4(pos_ws_curr, 1)).xyz, screen_pos_curr, distance_curr, false);
-	projection_view_to_screen(view_id, (global_ubo.V_prev_left * vec4(pos_ws_prev, 1)).xyz, screen_pos_prev, distance_prev, true);
+	projection_view_to_screen(view_id, (global_ubo.V[view_id] * vec4(pos_ws_curr, 1)).xyz, screen_pos_curr, distance_curr, false);
+	projection_view_to_screen(view_id, (global_ubo.V_prev[view_id] * vec4(pos_ws_prev, 1)).xyz, screen_pos_prev, distance_prev, true);
 	
 	vec3 motion;
 	motion.xy = screen_pos_prev - screen_pos_curr;
@@ -338,7 +323,7 @@ main()
     // Extinction in the primary ray
 	if(global_ubo.medium != MEDIUM_NONE)
 	{
-		throughput *= extinction(global_ubo.medium, length(position - global_ubo.cam_pos_left.xyz));
+		throughput *= extinction(global_ubo.medium, length(position - global_ubo.cam_pos[view_id].xyz));
 	}
 
 	uint material_id = triangle.material_id;

@@ -2727,13 +2727,9 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 	QVKUniformBuffer_t *ubo = &vkpt_refdef.uniform_buffer;
 
-	memcpy(ubo->V_prev_left, ubo->V_left, sizeof(float) * 16);
-	memcpy(ubo->P_prev_left, ubo->P_left, sizeof(float) * 16);
-	memcpy(ubo->invP_prev_left, ubo->invP_left, sizeof(float) * 16);
-
-	memcpy(ubo->V_prev_right, ubo->V_right, sizeof(float) * 16);
-	memcpy(ubo->P_prev_right, ubo->P_right, sizeof(float) * 16);
-	memcpy(ubo->invP_prev_right, ubo->invP_right, sizeof(float) * 16);
+	memcpy(ubo->V_prev, ubo->V, sizeof(float) * 16);
+	memcpy(ubo->P_prev, ubo->P, sizeof(float) * 16);
+	memcpy(ubo->invP_prev, ubo->invP, sizeof(float) * 16);
 
 	ubo->cylindrical_hfov_prev = ubo->cylindrical_hfov;
 	ubo->prev_taa_output_width = ubo->taa_output_width;
@@ -2800,17 +2796,17 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 		mult_matrix_matrix(P[RIGHT], viewport_proj, raw_proj);
 	}
 
-	memcpy(ubo->V_left, vkpt_refdef.view_matrix[LEFT], sizeof(float) * 16);
-	memcpy(ubo->P_left, P[LEFT], sizeof(float) * 16);
-	memcpy(ubo->invV_left, vkpt_refdef.view_matrix_inv[LEFT], sizeof(float) * 16);
-	inverse(P[LEFT], *ubo->invP_left);
+	memcpy(ubo->V[LEFT], vkpt_refdef.view_matrix[LEFT], sizeof(float) * 16);
+	memcpy(ubo->P[LEFT], P[LEFT], sizeof(float) * 16);
+	memcpy(ubo->invV[LEFT], vkpt_refdef.view_matrix_inv[LEFT], sizeof(float) * 16);
+	inverse(P[LEFT], *ubo->invP[LEFT]);
 
 	if(stereo)
 	{
-		memcpy(ubo->V_right, vkpt_refdef.view_matrix[RIGHT], sizeof(float) * 16);
-		memcpy(ubo->P_left, P[RIGHT], sizeof(float) * 16);
-		memcpy(ubo->invV_right, vkpt_refdef.view_matrix_inv[RIGHT], sizeof(float) * 16);
-		inverse(P[RIGHT], *ubo->invP_right);
+		memcpy(ubo->V[RIGHT], vkpt_refdef.view_matrix[RIGHT], sizeof(float) * 16);
+		memcpy(ubo->P[RIGHT], P[RIGHT], sizeof(float) * 16);
+		memcpy(ubo->invV[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT], sizeof(float) * 16);
+		inverse(P[RIGHT], *ubo->invP[RIGHT]);
 	}
 
 	float vfov = fd->fov_y * (float)M_PI / 180.f;
@@ -2991,9 +2987,8 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	ubo->pt_min_log_sky_luminance = exp2f(ubo->pt_min_log_sky_luminance);
 	ubo->pt_max_log_sky_luminance = exp2f(ubo->pt_max_log_sky_luminance);
 
-	memcpy(ubo->cam_pos_left, fd->vieworg, sizeof(float) * 3);
-	memcpy(ubo->cam_pos_right, fd->vieworg, sizeof(float) * 3);
-
+	memcpy(ubo->cam_pos[LEFT], fd->vieworg, sizeof(float) * 3);
+	memcpy(ubo->cam_pos[RIGHT], fd->vieworg, sizeof(float) * 3);
 	ubo->cluster_debug_index = cluster_debug_index;
 
 	if (!temporal_frame_valid)
@@ -3178,8 +3173,8 @@ R_RenderFrame_RTX(refdef_t *fd)
 	vkpt_god_rays_prepare_ubo(
 		ubo,
 		&vkpt_refdef.bsp_mesh_world.world_aabb,
-		*ubo->P_left,
-		*ubo->V_left,
+		*ubo->P[LEFT],
+		*ubo->V[LEFT],
 		shadowmap_view_proj,
 		shadowmap_depth_scale);
 
@@ -3229,7 +3224,7 @@ R_RenderFrame_RTX(refdef_t *fd)
 	{
 		VkCommandBuffer trace_cmd_buf = vkpt_begin_command_buffer(&qvk.cmd_buffers_graphics);
 
-		update_transparency(trace_cmd_buf, *ubo->V_left, fd->particles, fd->num_particles, fd->entities, fd->num_entities);
+		update_transparency(trace_cmd_buf, *ubo->V[LEFT], fd->particles, fd->num_particles, fd->entities, fd->num_entities);
 
 		// Copy the UBO contents from the staging buffer.
 		// Actual contents are uploaded to the staging UBO below, right before executing the command buffer.

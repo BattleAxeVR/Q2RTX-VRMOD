@@ -33,9 +33,9 @@ bool rectilinear_forward(int view_id, vec3 view_pos, out vec2 screen_pos, out fl
 {
 	vec4 clip_pos;
 	if (previous)
-		clip_pos = global_ubo.P_prev_left * vec4(view_pos, 1);
+		clip_pos = global_ubo.P_prev[view_id] * vec4(view_pos, 1);
 	else
-		clip_pos = global_ubo.P_left * vec4(view_pos, 1);
+		clip_pos = global_ubo.P[view_id] * vec4(view_pos, 1);
 
 	vec3 normalized = clip_pos.xyz / clip_pos.w;
 	screen_pos.xy = normalized.xy * 0.5 + vec2(0.5);
@@ -49,9 +49,9 @@ vec3 rectlinear_reverse(int view_id, vec2 screen_pos, float distance, bool previ
 	vec4 clip_pos = vec4(screen_pos.xy * 2.0 - vec2(1.0), 1, 1);
 	vec3 view_dir;
 	if (previous)
-		view_dir = normalize((global_ubo.invP_prev_left * clip_pos).xyz);
+		view_dir = normalize((global_ubo.invP_prev[view_id] * clip_pos).xyz);
 	else
-		view_dir = normalize((global_ubo.invP_left * clip_pos).xyz);
+		view_dir = normalize((global_ubo.invP[view_id] * clip_pos).xyz);
 
 	return view_dir * distance;
 }
@@ -61,9 +61,9 @@ bool cylindrical_forward(int view_id, vec3 view_pos, out vec2 screen_pos, out fl
 	float cylindrical_hfov = previous ? global_ubo.cylindrical_hfov_prev : global_ubo.cylindrical_hfov;
 	float y = view_pos.y / length(view_pos.xz);
 	if (previous)
-		y *= global_ubo.P_prev_left[1][1];
+		y *= global_ubo.P_prev[view_id][1][1];
 	else
-		y *= global_ubo.P_left[1][1];
+		y *= global_ubo.P[view_id][1][1];
 	screen_pos.y = y * 0.5 + 0.5;
 
 	float angle = atan(view_pos.x, view_pos.z);
@@ -80,9 +80,9 @@ vec3 cylindrical_reverse(int view_id, vec2 screen_pos, float distance, bool prev
 	vec4 clip_pos = vec4(0, screen_pos.y * 2.0 - 1.0, 1, 1);
 	vec3 view_dir;
 	if (previous)
-		view_dir = (global_ubo.invP_prev_left * clip_pos).xyz;
+		view_dir = (global_ubo.invP_prev[view_id] * clip_pos).xyz;
 	else
-		view_dir = (global_ubo.invP_left * clip_pos).xyz;
+		view_dir = (global_ubo.invP[view_id] * clip_pos).xyz;
 
 	float xangle = (screen_pos.x - 0.5) * cylindrical_hfov;
 	view_dir.x = sin(xangle);
