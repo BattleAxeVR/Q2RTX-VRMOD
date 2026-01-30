@@ -89,9 +89,13 @@ cvar_t *cvar_drs_gain = NULL;
 cvar_t *cvar_drs_last_scale = NULL;
 cvar_t *cvar_tm_blend_enable = NULL;
 cvar_t *cvar_ui_hdr_nits = NULL; /* HDR mode UI (stretch pic) brightness in nits */
+
 extern cvar_t *scr_viewsize;
 extern cvar_t *cvar_bloom_enable;
 extern cvar_t* cvar_flt_taa;
+extern cvar_t *cl_stereo;
+extern cvar_t* cl_ipd;
+
 static int drs_current_scale = 0;
 static int drs_effective_scale = 0;
 static bool drs_last_frame_world = false;
@@ -293,8 +297,7 @@ void vkpt_reset_accumulation()
 	num_accumulated_frames = 0;
 }
 
-VkResult
-vkpt_initialize_all(VkptInitFlags_t init_flags)
+VkResult vkpt_initialize_all(VkptInitFlags_t init_flags)
 {
 	vkDeviceWaitIdle(qvk.device);
 
@@ -337,8 +340,7 @@ vkpt_initialize_all(VkptInitFlags_t init_flags)
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_destroy_all(VkptInitFlags_t destroy_flags)
+VkResult vkpt_destroy_all(VkptInitFlags_t destroy_flags)
 {
 	vkDeviceWaitIdle(qvk.device);
 
@@ -501,8 +503,7 @@ static const VkApplicationInfo vk_app_info = {
 /* use this to override file names */
 static const char *shader_module_file_names[NUM_QVK_SHADER_MODULES];
 
-void
-get_vk_extension_list(
+void get_vk_extension_list(
 		const char *layer,
 		uint32_t *num_extensions,
 		VkExtensionProperties **ext)
@@ -512,8 +513,7 @@ get_vk_extension_list(
 	_VK(vkEnumerateInstanceExtensionProperties(layer, num_extensions, *ext));
 }
 
-void
-get_vk_layer_list(
+void get_vk_layer_list(
 		uint32_t *num_layers,
 		VkLayerProperties **ext)
 {
@@ -556,8 +556,7 @@ vk_debug_callback(
 	return VK_FALSE;
 }
 
-VkResult
-qvkCreateDebugUtilsMessengerEXT(
+VkResult qvkCreateDebugUtilsMessengerEXT(
 		VkInstance instance,
 		const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
 		const VkAllocationCallbacks* pAllocator,
@@ -570,8 +569,7 @@ qvkCreateDebugUtilsMessengerEXT(
 	return VK_ERROR_EXTENSION_NOT_PRESENT;
 }
 
-VkResult
-qvkDestroyDebugUtilsMessengerEXT(
+VkResult qvkDestroyDebugUtilsMessengerEXT(
 		VkInstance instance,
 		VkDebugUtilsMessengerEXT callback,
 		const VkAllocationCallbacks* pAllocator)
@@ -628,8 +626,7 @@ static bool pick_surface_format_sdr(picked_surface_format_t* picked_fmt, const V
 	return false;
 }
 
-VkResult
-create_swapchain(void)
+VkResult create_swapchain(void)
 {
 	num_accumulated_frames = 0;
 
@@ -807,8 +804,7 @@ create_swapchain(void)
 	return VK_SUCCESS;
 }
 
-VkResult
-create_command_pool_and_fences(void)
+VkResult create_command_pool_and_fences(void)
 {
 	VkCommandPoolCreateInfo cmd_pool_create_info = {
 		.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
@@ -858,8 +854,7 @@ create_command_pool_and_fences(void)
 	return VK_SUCCESS;
 }
 
-static void
-append_string_list(const char** dst, uint32_t* dst_count, uint32_t dst_capacity, const char** src, uint32_t src_count)
+static void append_string_list(const char** dst, uint32_t* dst_count, uint32_t dst_capacity, const char** src, uint32_t src_count)
 {
 	assert(*dst_count + src_count <= dst_capacity);
 	dst += *dst_count;
@@ -867,8 +862,7 @@ append_string_list(const char** dst, uint32_t* dst_count, uint32_t dst_capacity,
 	*dst_count += src_count;
 }
 
-bool
-init_vulkan(void)
+bool init_vulkan(void)
 {
 	Com_Printf("----- init_vulkan -----\n");
 
@@ -1526,8 +1520,7 @@ init_vulkan(void)
 	return true;
 }
 
-static VkShaderModule
-create_shader_module_from_file(const char *name, const char *enum_name, bool is_rt_shader)
+static VkShaderModule create_shader_module_from_file(const char *name, const char *enum_name, bool is_rt_shader)
 {
 	const char* suffix = "";
 	if (is_rt_shader)
@@ -1576,8 +1569,7 @@ create_shader_module_from_file(const char *name, const char *enum_name, bool is_
 	return module;
 }
 
-VkResult
-vkpt_load_shader_modules()
+VkResult vkpt_load_shader_modules()
 {
 	VkResult ret = VK_SUCCESS;
 #define SHADER_MODULE_DO(a) do { \
@@ -1603,8 +1595,7 @@ vkpt_load_shader_modules()
 	return ret;
 }
 
-VkResult
-vkpt_destroy_shader_modules()
+VkResult vkpt_destroy_shader_modules()
 {
 	for (int i = 0; i < NUM_QVK_SHADER_MODULES; i++)
 	{
@@ -1615,8 +1606,7 @@ vkpt_destroy_shader_modules()
 	return VK_SUCCESS;
 }
 
-VkResult
-destroy_swapchain(void)
+VkResult destroy_swapchain(void)
 {
 	for(int i = 0; i < qvk.num_swap_chain_images; i++) {
 		vkDestroyImageView  (qvk.device, qvk.swap_chain_image_views[i], NULL);
@@ -1636,8 +1626,7 @@ destroy_swapchain(void)
 	return VK_SUCCESS;
 }
 
-int
-destroy_vulkan(void)
+int destroy_vulkan(void)
 {
 	vkDeviceWaitIdle(qvk.device);
 
@@ -1849,8 +1838,7 @@ static void add_dlight_spot(const dlight_t* light, DynLightData* dynlight_data)
 	}
 }
 
-static void
-add_dlights(const dlight_t* lights, int num_lights, QVKUniformBuffer_t* ubo)
+static void add_dlights(const dlight_t* lights, int num_lights, QVKUniformBuffer_t* ubo)
 {
 	ubo->num_dyn_lights = 0;
 
@@ -2198,8 +2186,7 @@ static void process_regular_entity(
 	*num_instanced_prim = current_num_instanced_prim;
 }
 
-static void
-prepare_entities(EntityUploadInfo* upload_info)
+static void prepare_entities(EntityUploadInfo* upload_info)
 {
 	entity_frame_num = !entity_frame_num;
 
@@ -2492,8 +2479,7 @@ VkDescriptorSet qvk_get_current_desc_set_textures()
 	return (qvk.frame_counter & 1) ? qvk.desc_set_textures_odd : qvk.desc_set_textures_even;
 }
 
-static void
-process_render_feedback(ref_feedback_t *feedback, mleaf_t* viewleaf, bool* sun_visible, float* adapted_luminance)
+static void process_render_feedback(ref_feedback_t *feedback, mleaf_t* viewleaf, bool* sun_visible, float* adapted_luminance)
 {
 	if (viewleaf)
 		feedback->viewcluster = viewleaf->cluster;
@@ -2552,8 +2538,7 @@ typedef struct reference_mode_s
 	int reflect_refract;
 } reference_mode_t;
 
-static int
-get_accumulation_rendering_framenum(void)
+static int get_accumulation_rendering_framenum(void)
 {
 	return max(128, cvar_pt_accumulation_rendering_framenum->integer);
 }
@@ -2571,8 +2556,7 @@ static void draw_shadowed_string(int x, int y, int flags, size_t maxlen, const c
 	SCR_DrawStringEx(x, y, flags, maxlen, s, SCR_GetFont());
 }
 
-static void
-evaluate_reference_mode(reference_mode_t* ref_mode)
+static void evaluate_reference_mode(reference_mode_t* ref_mode)
 {
 	if (is_accumulation_rendering_active())
 	{
@@ -2645,8 +2629,7 @@ evaluate_reference_mode(reference_mode_t* ref_mode)
 	ref_mode->reflect_refract = min(10, ref_mode->reflect_refract);
 }
 
-static void
-evaluate_taa_settings(const reference_mode_t* ref_mode)
+static void evaluate_taa_settings(const reference_mode_t* ref_mode)
 {
 	qvk.effective_aa_mode = AA_MODE_OFF;
 	qvk.extent_taa_output = qvk.extent_render;
@@ -2681,8 +2664,7 @@ evaluate_taa_settings(const reference_mode_t* ref_mode)
 	}
 }
 
-static void
-prepare_sky_matrix(float time, vec3_t sky_matrix[3])
+static void prepare_sky_matrix(float time, vec3_t sky_matrix[3])
 {
 	if (sky_rotation != 0.f)
 	{
@@ -2696,8 +2678,7 @@ prepare_sky_matrix(float time, vec3_t sky_matrix[3])
 	}
 }
 
-static void
-prepare_camera(const vec3_t position, const vec3_t direction, mat4_t data)
+static void prepare_camera(const vec3_t position, const vec3_t direction, mat4_t data)
 {
 	vec3_t forward, right, up;
 	VectorCopy(direction, forward);
@@ -2725,8 +2706,7 @@ prepare_camera(const vec3_t position, const vec3_t direction, mat4_t data)
 	VectorScale(up, -2.f * tan_half_fov_y, data + 12);
 }
 
-static void
-prepare_viewmatrix(refdef_t *fd)
+static void prepare_viewmatrix(refdef_t *fd)
 {
 	create_view_matrix(vkpt_refdef.view_matrix[LEFT], fd);
 	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
@@ -2735,10 +2715,8 @@ prepare_viewmatrix(refdef_t *fd)
 	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 }
 
-extern cvar_t *r_stereo;
 
-static void
-prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, const vec3_t sky_matrix[3], bool render_world)
+static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, const vec3_t sky_matrix[3], bool render_world)
 {
 	const bsp_mesh_t* wm = &vkpt_refdef.bsp_mesh_world;
 
@@ -2754,7 +2732,7 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 	ubo->prev_taa_output_width = ubo->taa_output_width;
 	ubo->prev_taa_output_height = ubo->taa_output_height;
 
-	const int stereo = (r_stereo->value == 1.0f) ? 1 : 0;
+	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 
 #if 0//1//SUPPORT_OPENXR
 	if(stereo)// && Is_OpenXR_Session_Running())
@@ -3163,7 +3141,7 @@ R_RenderFrame_RTX(refdef_t *fd)
 		Vector4Set(ubo->fs_blend_color, 0.f, 0.f, 0.f, 0.f);
 
 	ubo->weapon_left_handed = upload_info.weapon_left_handed;
-	ubo->stereo = (int)r_stereo->value;
+	ubo->stereo = (int)cl_stereo->value;
 
 	if (vkpt_refdef.fd->rdflags & RDF_IRGOGGLES)
 		Vector4Set(ubo->fs_colorize, 1.f, 0.f, 0.f, 0.8f);

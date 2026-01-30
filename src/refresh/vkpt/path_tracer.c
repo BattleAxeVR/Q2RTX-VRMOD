@@ -23,8 +23,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "shader/vertex_buffer.h"
 #include "../../client/client.h"
 
-extern cvar_t *r_stereo;
-
 #include <assert.h>
 
 #define RAY_GEN_ACCEL_STRUCTURE_BINDING_IDX 0
