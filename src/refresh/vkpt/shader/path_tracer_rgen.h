@@ -201,14 +201,12 @@ ivec2 get_image_size()
 	return ivec2(global_ubo.width, global_ubo.height);
 }
 
-bool
-found_intersection(RayPayloadGeometry rp)
+bool found_intersection(RayPayloadGeometry rp)
 {
 	return rp.primitive_id != ~0u;
 }
 
-Triangle
-get_hit_triangle(RayPayloadGeometry rp)
+Triangle get_hit_triangle(RayPayloadGeometry rp)
 {
 	return load_and_transform_triangle(
 		/* instance_idx = */ rp.buffer_and_instance_idx >> 16,
@@ -216,8 +214,7 @@ get_hit_triangle(RayPayloadGeometry rp)
 		rp.primitive_id);
 }
 
-vec3
-get_hit_barycentric(RayPayloadGeometry rp)
+vec3 get_hit_barycentric(RayPayloadGeometry rp)
 {
 	vec3 bary;
 	bary.yz = rp.barycentric;
@@ -225,8 +222,7 @@ get_hit_barycentric(RayPayloadGeometry rp)
 	return bary;
 }
 
-float
-get_rng(uint idx)
+float get_rng(uint idx)
 {
 	uvec3 p = uvec3(rng_seed >> RNG_SEED_SHIFT_X, rng_seed >> RNG_SEED_SHIFT_Y, rng_seed >> RNG_SEED_SHIFT_ISODD);
 	p.z = (p.z >> 1) + (p.z & 1);
@@ -237,71 +233,60 @@ get_rng(uint idx)
 	//return fract(vec2(get_rng_uint(idx)) / vec2(0xffffffffu));
 }
 
-bool
-is_water(uint material)
+bool is_water(uint material)
 {
 	return (material & MATERIAL_KIND_MASK) == MATERIAL_KIND_WATER;
 }
 
-bool
-is_slime(uint material)
+bool is_slime(uint material)
 {
 	return (material & MATERIAL_KIND_MASK) == MATERIAL_KIND_SLIME;
 }
 
-bool
-is_lava(uint material)
+bool is_lava(uint material)
 {
 	return (material & MATERIAL_KIND_MASK) == MATERIAL_KIND_LAVA;
 }
 
-bool
-is_glass(uint material)
+bool is_glass(uint material)
 {
 	return (material & MATERIAL_KIND_MASK) == MATERIAL_KIND_GLASS;
 }
 
-bool
-is_transparent(uint material)
+bool is_transparent(uint material)
 {
 	uint kind = material & MATERIAL_KIND_MASK;
 	return kind == MATERIAL_KIND_TRANSPARENT || kind == MATERIAL_KIND_TRANSP_MODEL;
 }
 
-bool
-is_chrome(uint material)
+bool is_chrome(uint material)
 {
 	uint kind = material & MATERIAL_KIND_MASK;
 	return kind == MATERIAL_KIND_CHROME || kind == MATERIAL_KIND_CHROME_MODEL;
 }
 
-bool
-is_sky(uint material)
+bool is_sky(uint material)
 {
 	uint kind = material & MATERIAL_KIND_MASK;
 	return kind == MATERIAL_KIND_SKY;
 }
 
-bool
-is_screen(uint material)
+bool is_screen(uint material)
 {
 	return (material & MATERIAL_KIND_MASK) == MATERIAL_KIND_SCREEN;
 }
 
-bool
-is_camera(uint material)
+bool is_camera(uint material)
 {
 	return (material & MATERIAL_KIND_MASK) == MATERIAL_KIND_CAMERA;
 }
 
-vec3
-correct_emissive(uint material_id, vec3 emissive)
+vec3 correct_emissive(uint material_id, vec3 emissive)
 {
 	return max(vec3(0), emissive.rgb + vec3(EMISSIVE_TRANSFORM_BIAS));
 }
 
-void
-trace_geometry_ray(Ray ray, bool cull_back_faces, int instance_mask)
+void trace_geometry_ray(Ray ray, bool cull_back_faces, int instance_mask)
 {
 	uint rayFlags = 0;
 	if (cull_back_faces)
@@ -419,8 +404,7 @@ void find_fog_volumes(inout RayPayloadEffects rp, Ray ray)
 	}
 }
 
-vec4
-trace_effects_ray(Ray ray, bool skip_procedural)
+vec4 trace_effects_ray(Ray ray, bool skip_procedural)
 {
 	uint rayFlags = 0;
 	if (skip_procedural)
@@ -532,8 +516,7 @@ Ray get_shadow_ray(vec3 p1, vec3 p2, float tmin)
 	return ray;
 }
 
-float
-trace_shadow_ray(Ray ray, int cull_mask)
+float trace_shadow_ray(Ray ray, int cull_mask)
 {
 	const uint rayFlags = gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipProceduralPrimitives;
 
@@ -582,8 +565,7 @@ trace_shadow_ray(Ray ray, int cull_mask)
 #endif
 }
 
-vec3
-trace_caustic_ray(Ray ray, int surface_medium)
+vec3 trace_caustic_ray(Ray ray, int surface_medium)
 {
 	ray_payload_geometry.barycentric = vec2(0);
 	ray_payload_geometry.primitive_id = ~0u;
@@ -686,8 +668,7 @@ vec3 rgbToNormal(vec3 rgb, out float len)
 }
 
 
-float
-AdjustRoughnessToksvig(float roughness, float normalMapLen, float mip_level)
+float AdjustRoughnessToksvig(float roughness, float normalMapLen, float mip_level)
 {
 	float effect = global_ubo.pt_toksvig * clamp(mip_level, 0, 1);
     float shininess = RoughnessSquareToSpecPower(roughness) * effect; // not squaring the roughness here - looks better this way
@@ -705,8 +686,7 @@ get_specular_sampled_lighting_weight(float roughness, vec3 N, vec3 V, vec3 L, fl
     return clamp(pdfw / (pdfw + ggxVndfPdf), 0, 1);
 }
 
-void
-get_direct_illumination(
+void get_direct_illumination(
 	vec3 position, 
 	vec3 normal, 
 	vec3 geo_normal, 
@@ -751,7 +731,7 @@ get_direct_illumination(
 		get_rng(RNG_NEE_TRI_X(bounce)),
 		get_rng(RNG_NEE_TRI_Y(bounce)));
 
-	/* polygonal light illumination */
+	// polygonal light illumination
 	if(enable_polygonal) 
 	{
 		sample_polygonal_lights(
@@ -775,7 +755,7 @@ get_direct_illumination(
 	bool is_polygonal = true;
 	float vis = 1;
 
-	/* dynamic light illumination */
+	// dynamic light illumination
 	if(enable_dynamic)
 	{
 		// Limit the solid angle of sphere lights for indirect lighting 
@@ -886,8 +866,7 @@ get_direct_illumination(
 	diffuse = radiance * diffuse_brdf * (vec3(1.0) - F);
 }
 
-void
-get_sunlight(
+void get_sunlight(
 	uint cluster_idx, 
 	uint material_id,
 	vec3 position, 
@@ -978,8 +957,7 @@ vec3 clamp_output(vec3 c)
 		return clamp(c, vec3(0), vec3(MAX_OUTPUT_VALUE));
 }
 
-vec3
-sample_emissive_texture(uint material_id, MaterialInfo minfo, vec2 tex_coord, vec2 tex_coord_x, vec2 tex_coord_y, float mip_level)
+vec3 sample_emissive_texture(uint material_id, MaterialInfo minfo, vec2 tex_coord, vec2 tex_coord_x, vec2 tex_coord_y, float mip_level)
 {
 	if (minfo.emissive_texture != 0)
     {
@@ -1050,8 +1028,7 @@ bool get_is_gradient(ivec2 ipos)
 }
 
 
-void
-get_material(
+void get_material(
 	Triangle triangle,
 	vec3 bary,
 	vec2 tex_coord,
