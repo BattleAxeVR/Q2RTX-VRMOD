@@ -127,7 +127,7 @@ env_map(vec3 direction, bool remove_sun)
 
 int get_view_id()
 {
-#if 0
+#if 1
 	if(push_constants.stereo == 0)
 	{
 		return 0;
@@ -151,12 +151,21 @@ int get_view_id()
 		pos.x = int(rt_LaunchID.x * 2 + 1) - int(rt_LaunchID.y & 1);
 	}
 
-	int half_width = global_ubo.width / 2;
+#if 1
+	//if (global_ubo.width != rt_LaunchSize.x)
 
-	if(pos.x >= half_width)
+	if(pos.x >= (rt_LaunchSize.x))
 	{
 		return 1;
 	}
+#else
+	if(pos.x >= (global_ubo.width / 2))
+	{
+		return 1;
+	}
+#endif
+	
+	
 #endif
 	return 0;
 }
@@ -183,14 +192,18 @@ ivec2 get_image_position()
 
 	if (push_constants.stereo == 1)
 	{
-		int half_width = global_ubo.width / 2;
+#if 1
+		int half_width = int(rt_LaunchSize.x / 2);
+#else
+		int half_width = int(global_ubo.width / 2);
+#endif
 
 		if(pos.x >= half_width)
 		{
 			pos.x -= half_width;
 		}
 
-		pos.x *= 2;
+		//pos.x *= 2;
 	}
 
 	pos.y = int(rt_LaunchID.y);
@@ -199,6 +212,12 @@ ivec2 get_image_position()
 
 ivec2 get_image_size()
 {
+	if(push_constants.stereo == 1)
+	{
+		return ivec2(global_ubo.width / 2, global_ubo.height);
+		//return ivec2(rt_LaunchSize.x / 2, rt_LaunchSize.y);
+	}
+
 	return ivec2(global_ubo.width, global_ubo.height);
 }
 

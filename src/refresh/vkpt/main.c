@@ -2881,7 +2881,7 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 	ubo->screen_image_width = qvk.extent_screen_images.width;
 	ubo->screen_image_height = qvk.extent_screen_images.height;
 
-	if(stereo)
+	if(false)//stereo)
 	{
 		ubo->width /= 2;
 		ubo->prev_width /= 2;
@@ -2892,6 +2892,13 @@ prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, c
 		ubo->current_gpu_slice_width /= 2;
 		ubo->prev_gpu_slice_width /= 2;
 		//ubo->screen_image_width /= 2;
+
+		static int frame = 0;
+		frame++;
+		if(frame % 2 == 0)
+		{
+			//ubo->width += 100;
+		}
 	}
 	
 	ubo->water_normal_texture = water_normal_texture - r_images;

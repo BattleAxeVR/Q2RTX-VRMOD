@@ -123,9 +123,12 @@ Converting skyboxes to local lights provides two benefits:
 #ifdef KHR_RAY_QUERY
 #extension GL_EXT_ray_query : enable
 #define rt_LaunchID gl_GlobalInvocationID
+#define rt_LaunchSize gl_GlobalInvocationID 
 #else
 #define rt_LaunchID gl_LaunchIDEXT
+#define rt_LaunchSize gl_LaunchSizeEXT 
 #endif
+
 
 #extension GL_EXT_ray_tracing             : require
 #extension GL_ARB_separate_shader_objects : enable
