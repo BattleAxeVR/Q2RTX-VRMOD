@@ -3,6 +3,7 @@
 
 namespace BVR
 {
+
 XrMatrix4x4f convert_to_xr(const glm::mat4& input)
 {
     XrMatrix4x4f output;
@@ -60,23 +61,6 @@ GLMPose convert_to_glm(const XrVector3f& position, const XrQuaternionf& rotation
 	glm_pose.rotation_ = convert_to_glm(rotation);
 	glm_pose.scale_ = convert_to_glm(scale);
 	return glm_pose;
-}
-
-GLMPose convert_to_glm(const XrPosef& xr_pose)
-{
-	GLMPose glm_pose;
-	glm_pose.translation_ = convert_to_glm(xr_pose.position);
-	glm_pose.rotation_ = convert_to_glm(xr_pose.orientation);
-	return glm_pose;
-}
-
-XrPosef convert_to_xr(const GLMPose& glm_pose)
-{
-	// No scale
-	XrPosef xr_pose;
-	xr_pose.position = convert_to_xr(glm_pose.translation_);
-	xr_pose.orientation = convert_to_xr(glm_pose.rotation_);
-	return xr_pose;
 }
 
 glm::mat4 convert_to_rotation_matrix(const glm::fquat &rotation)

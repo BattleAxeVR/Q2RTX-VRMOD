@@ -17,7 +17,6 @@
 #define XR_LOAD(instance, fn) xrGetInstanceProcAddr(instance, #fn, reinterpret_cast<PFN_xrVoidFunction*>(&fn))
 #endif
 
-
 #if defined(USE_GLSLANGVALIDATOR)
 #define SPV_PREFIX {
 #define SPV_SUFFIX }
@@ -2837,8 +2836,7 @@ extern "C"
 		}
 
 		const XrPosef& xr_pose = xr_view.pose;
-
-		//GLMPose glm_pose = convert_to_glm(xr_pose);
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
 
 		if(append)
 		{
