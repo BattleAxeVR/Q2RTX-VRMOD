@@ -128,28 +128,16 @@ main()
         if (push.view_id == 0)
         {
             // Left eye
-             //uv.x *= 2.0f;
         }
         else
         {
              // Right eye    
-             //uv.x += final_uv_mult.x * 0.5f;
-
              uv.x *= push.uv_mult.x;
-             uv.x += push.uv_mult.y;
-
-             //uv.x *= 2.0f;
-             
-             //uv.x *= 0.5f;
-
-             //uv.x += 1.0f;
-             
-             //uv.x *= 0.5f;
-             //uv.x += 0.5f;
+             uv.x += push.uv_mult.y; // use y as bias for testing, since we don't need to scale V normally
+             uv.x += 1.5f;
         }
 
         color = textureLod(final_blit_input_image, uv, 0).rgb;
-        
         outColor = vec4(color, 1);
         return;
     }
