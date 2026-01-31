@@ -2731,6 +2731,7 @@ void OpenXR::log_instance_info()
 
  BVR::OpenXR openxr_;
 bool started_session_ = false;
+static float world_scale = 1000.0f;
 
 // C Interface wrapper for simplicity
 extern "C"
@@ -2797,7 +2798,7 @@ extern "C"
 
 	bool GetEyePosition(const int view_id, float* eye_pos_vec3, float* tracking_to_world_matrix)
 	{
-		if(!openxr_.is_session_running())
+		if(!openxr_.is_session_running() || !eye_pos_vec3)
 		{
 			return false;
 		}
@@ -2809,19 +2810,27 @@ extern "C"
 			return false;
 		}
 
+		glm::vec3 game_position;
+		memcpy(&game_position, eye_pos_vec3, sizeof(float) * 3);
+
+		glm::vec3 translation = BVR::convert_to_glm(xr_view.pose.position);
+		translation *= world_scale;
+		translation += game_position;
+
 		if(tracking_to_world_matrix)
 		{
 
 		}
 		else
 		{
-			memcpy(&eye_pos_vec3, &xr_view.pose.position, sizeof(float) * 3);
+			
+			memcpy(&eye_pos_vec3, &translation, sizeof(float) * 3);
 		}
 
 		return true;
 	}
 
-	bool GetViewMatrix(const int view_id, const bool append, float x_pos, float y_pos, float z_pos, float yaw_deg, float* matrix_ptr)
+	bool GetViewMatrix(const int view_id, const bool append, float* eye_pos_vec3, float yaw_deg, float* matrix_ptr)
 	{
 		if(!openxr_.is_session_running() || !matrix_ptr)
 		{
@@ -2842,7 +2851,7 @@ extern "C"
 		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
 
 		static float degx_0 = -90.0f;
-		static float degy_0 = 180.0f;
+		static float degy_0 = 0.0f;
 		static float degz_0 = 0.0f;
 
 		glm::vec3 extra_euler_rad = { deg2rad(degx_0), deg2rad(degy_0), deg2rad(degz_0) };
@@ -2853,7 +2862,11 @@ extern "C"
 		glm_pose.rotation_ = glm_pose.rotation_ * rot;
 		glm_pose.rotation_ = glm::normalize(glm_pose.rotation_);
 
-		glm::vec3 game_position = { x_pos, y_pos, z_pos };
+		glm::vec3 game_position;
+		memcpy(&game_position, eye_pos_vec3, sizeof(float) * 3);
+
+		glm_pose.translation_ *= world_scale;
+		
 
 		// axis[0], axis[1], axis[2], forward, right, up
 		//view_matrix[12] = DotProduct(viewaxis[1], fd->vieworg); // right, +x
@@ -2864,7 +2877,7 @@ extern "C"
 
 		if(append_game_position)
 		{
-			glm_pose.translation_ = game_position;
+			glm_pose.translation_ += game_position;
 		}
 
 		glm::mat4 glm_view_matrix = glm_pose.to_matrix();

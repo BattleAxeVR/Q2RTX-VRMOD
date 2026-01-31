@@ -2825,8 +2825,8 @@ static void prepare_viewmatrix(refdef_t *fd)
 #if SUPPORT_OPENXR
 	if(stereo)
 	{
-		GetViewMatrix(LEFT, false, fd->vieworg[0], fd->vieworg[1], fd->vieworg[2], fd->viewangles[YAW], vkpt_refdef.view_matrix[LEFT]);
-		GetViewMatrix(RIGHT, false, fd->vieworg[0], fd->vieworg[1], fd->vieworg[2], fd->viewangles[YAW], vkpt_refdef.view_matrix[RIGHT]);
+		GetViewMatrix(LEFT, false, fd->vieworg, fd->viewangles[YAW], vkpt_refdef.view_matrix[LEFT]);
+		GetViewMatrix(RIGHT, false, fd->vieworg, fd->viewangles[YAW], vkpt_refdef.view_matrix[RIGHT]);
 	}
 #endif
 
@@ -3126,7 +3126,7 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 	if(stereo && ((ipd > 0.0f)|| SUPPORT_OPENXR))
 	{
-#if 0//SUPPORT_OPENXR
+#if SUPPORT_OPENXR
 		GetEyePosition(LEFT, ubo->cam_pos[LEFT], 0);
 		GetEyePosition(RIGHT, ubo->cam_pos[RIGHT], 0);
 #else
