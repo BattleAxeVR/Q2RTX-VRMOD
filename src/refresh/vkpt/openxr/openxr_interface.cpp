@@ -3074,10 +3074,6 @@ extern "C"
 			vr_controller_state.thumbstick_values_[0] = openxr_.get_stick_x_value(hand_id);
 			vr_controller_state.thumbstick_values_[1] = openxr_.get_stick_y_value(hand_id);
 
-			bool XA_button_down_[NUM_CONTROLLERS] = { false, false };
-			bool BY_button_down_[NUM_CONTROLLERS] = { false, false };
-			bool joystick_button_down_[NUM_CONTROLLERS] = { false, false };
-
 			DigitalButton& XA_button = vr_controller_state.XA_button_;
 			const bool is_XA_down = openxr_.XA_button_down_[hand_id];
 			set_button_state(XA_button, is_XA_down);
