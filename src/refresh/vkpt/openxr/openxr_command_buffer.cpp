@@ -6,6 +6,9 @@
 
 #if SUPPORT_OPENXR
 
+namespace BVR
+{
+
 bool CommandBuffer::Init(VkDevice device, uint32_t queue_family_index)
 {
 	if(vk_logical_device_)
@@ -156,6 +159,7 @@ void CommandBuffer::SetState(CommandBufferState newState)
 	state = newState;
 }
 
+} // BVR
 
 #endif // SUPPORT_OPENXR
 

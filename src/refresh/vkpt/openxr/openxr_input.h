@@ -53,6 +53,9 @@ struct ViveTrackerInfo
 };
 #endif
 
+namespace BVR
+{
+
 class OpenXR;
 
 class XRInputState
@@ -172,6 +175,8 @@ private:
 	OpenXR& openxr_;
 	bool initialized_ = false;
 };
+
+} // BVR
 
 #endif // SUPPORT_OPENXR
 

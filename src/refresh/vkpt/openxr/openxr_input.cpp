@@ -9,6 +9,9 @@
 
 #include "assert.h"
 
+namespace BVR
+{
+
 XRInputState::XRInputState(OpenXR& openxr) : openxr_(openxr)
 {
 }
@@ -1135,5 +1138,7 @@ bool XRInputState::shutdown()
 	set_initialized(false);
 	return true;
 }
+
+} // BVR
 
 #endif // SUPPORT_OPENXR

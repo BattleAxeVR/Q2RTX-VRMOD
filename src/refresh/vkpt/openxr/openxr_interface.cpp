@@ -26,6 +26,8 @@
 #define SPV_SUFFIX
 #endif
 
+namespace BVR
+{
 constexpr bool is_xr_pose_valid(XrSpaceLocationFlags locationFlags)
 {
 	constexpr XrSpaceLocationFlags valid_mask = XR_SPACE_LOCATION_POSITION_VALID_BIT | XR_SPACE_LOCATION_ORIENTATION_VALID_BIT;
@@ -2726,7 +2728,9 @@ void OpenXR::log_instance_info()
 	//Log::Write(Log::Level::Info, Fmt("Instance RuntimeName=%s RuntimeVersion=%s", instanceProperties.runtimeName, GetXrVersionString(instanceProperties.runtimeVersion).c_str()));
 }
 
-OpenXR openxr_;
+} // BVR
+
+ BVR::OpenXR openxr_;
 bool started_session_ = false;
 
 // C Interface wrapper for simplicity
@@ -2831,6 +2835,10 @@ extern "C"
 		{
 			return false;
 		}
+
+		const XrPosef& xr_pose = xr_view.pose;
+
+		//GLMPose glm_pose = convert_to_glm(xr_pose);
 
 		if(append)
 		{

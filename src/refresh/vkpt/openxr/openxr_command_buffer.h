@@ -11,6 +11,9 @@
 
 #include <vulkan/vulkan.h>
 
+namespace BVR
+{
+
 enum class CommandBufferState
 {
 	Undefined,
@@ -46,8 +49,9 @@ private:
 	void SetState(CommandBufferState newState);
 };
 
-#endif // SUPPORT_OPENXR
+} // BVR
 
+#endif // SUPPORT_OPENXR
 
 #endif // OPENXR_COMMAND_BUFFER_H
 

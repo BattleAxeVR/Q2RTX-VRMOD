@@ -92,14 +92,17 @@ XRPose tv_convert(const XrPosef& input);
 XrPosef tv_convert_to_xr(const Pose& input);
 #endif
 
-struct HMDView
+namespace BVR
 {
-	BVR::GLMPose eye_poses_[NUM_EYES];
-	//const float3 get_head_position_LS() const;
-	const BVR::GLMPose get_head_xr_pose_LS() const;
-};
 
 constexpr bool is_xr_pose_valid(XrSpaceLocationFlags locationFlags);
+
+struct HMDView
+{
+	GLMPose eye_poses_[NUM_EYES];
+	const glm::vec3 get_head_position_LS() const;
+	const GLMPose get_head_xr_pose_LS() const;
+};
 
 class OpenXR
 {
@@ -500,6 +503,8 @@ private:
 #endif
 
 };
+
+} // BVR
 
 #endif // SUPPORT_OPENXR
 

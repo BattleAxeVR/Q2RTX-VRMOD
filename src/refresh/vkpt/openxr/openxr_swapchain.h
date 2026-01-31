@@ -40,6 +40,9 @@
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>
 
+namespace BVR
+{
+
 struct XRMemoryAllocator 
 {
 	static const VkFlags defaultFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
@@ -133,6 +136,8 @@ struct XRSwapchain
 	int32_t width = 0;
 	int32_t height = 0;
 };
+
+} // BVR
 
 #endif // SUPPORT_OPENXR
 

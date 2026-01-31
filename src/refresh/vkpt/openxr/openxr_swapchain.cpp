@@ -9,6 +9,9 @@
 #include <algorithm>
 #include "assert.h"
 
+namespace BVR
+{
+
 void XRMemoryAllocator::Init(VkPhysicalDevice physicalDevice, VkDevice device)
 {
 	vk_logical_device_ = device;
@@ -286,5 +289,7 @@ VkImageView XRSwapchainImageContext::get_depth_view(uint32_t index)
 
 	return renderTarget[index].depthView;
 }
+
+} // BVR
 
 #endif // SUPPORT_OPENXR
