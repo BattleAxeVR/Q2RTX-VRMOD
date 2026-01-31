@@ -67,6 +67,7 @@ typedef struct {
 	vec2_t input_dimensions;
 	int stereo;
 	int view_id;
+	vec2_t uv_mult;
 } FinalBlitPushConstants_t;
 
 static clipRect_t clip_rect;
@@ -805,6 +806,8 @@ vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D ex
 	FinalBlitPushConstants_t push_constants = {.input_dimensions = {extent.width, extent.height}};
 	push_constants.stereo = 0;
 	push_constants.view_id = 0;
+	push_constants.uv_mult[0] = 1.0f;
+	push_constants.uv_mult[1] = 1.0f;
 
 	vkCmdBeginRenderPass(cmd_buf, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -820,7 +823,7 @@ vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D ex
 }
 
 
-VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, bool filtered, bool warped, int view_id)
+VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped, int view_id)
 {
 	VkDescriptorImageInfo img_info_input = 
 	{
@@ -881,9 +884,15 @@ VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, 
 		desc_set_final_blit[qvk.current_frame_index]
 	};
 
-	FinalBlitPushConstants_t push_constants = {.input_dimensions = {1, 1}};
+	FinalBlitPushConstants_t push_constants = {.input_dimensions = {extent.width, extent.height}};
 	push_constants.stereo = 1;
 	push_constants.view_id = view_id;
+
+	static float uv_x = 1.0f;
+	static float uv_y = 1.0f;
+
+	push_constants.uv_mult[0] = uv_x;
+	push_constants.uv_mult[1] = uv_y;
 
 	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout_final_blit, 0, LENGTH(desc_sets), desc_sets, 0, 0);
 

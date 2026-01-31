@@ -597,7 +597,7 @@ bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionVi
 }
 
 
-extern "C" VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, bool filtered, bool warped, int view_id);
+extern "C" VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped, int view_id);
 
 void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id, VkCommandBuffer* external_command_buffer)
 {
@@ -698,7 +698,7 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	//vkCmdSetScissor(command_buffer, 0, 1, &rect);
 
 	int image = 24; // VKPT_IMG_TAA_OUTPUT
-	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, false, false, view_id);
+	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, extent, false, false, view_id);
 
 	vkCmdEndRendering(command_buffer);
 
@@ -1306,9 +1306,10 @@ bool OpenXR::create_swapchain()
 			XrSwapchainCreateInfo swapchainCreateInfo{ XR_TYPE_SWAPCHAIN_CREATE_INFO };
 			swapchainCreateInfo.arraySize = 1;
 			swapchainCreateInfo.format = xr_colour_swapchain_format_;
+
 #if USE_HARDCODED_RES_FOR_OPENXR
-			swapchainCreateInfo.width = UPSCALED_WIDTH / 2;
-			swapchainCreateInfo.height = UPSCALED_HEIGHT;
+			swapchainCreateInfo.width = HARDCODED_OPENXR_PER_EYE_WIDTH;
+			swapchainCreateInfo.height = HARDCODED_OPENXR_PER_EYE_HEIGHT;
 #else
 			swapchainCreateInfo.width = vp.recommendedImageRectWidth;
 			swapchainCreateInfo.height = vp.recommendedImageRectHeight;

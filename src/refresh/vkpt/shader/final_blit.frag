@@ -38,6 +38,7 @@ layout(push_constant, std430) uniform PushConstants {
     vec2 input_dimensions;
     int stereo;
     int view_id;
+    vec2 uv_mult;
 } push;
 
 layout(set = 1, binding = 0) uniform sampler2D final_blit_input_image;
@@ -119,13 +120,28 @@ main()
 
     if (push.stereo == 1)
     {
-        //uv *= push.input_dimensions / vec2(global_ubo.taa_image_width, global_ubo.taa_image_height);
+        vec2 final_uv_mult = push.input_dimensions / vec2(global_ubo.taa_image_width, global_ubo.taa_image_height);
+        //uv *= final_uv_mult;
 
         vec3 color = vec3(0, 0, 0);
 
         if (push.view_id == 0)
         {
             // Left eye
+             //uv.x *= 0.5f;
+
+             uv.x *= 2.0f;
+
+            if ((uv.x < 0.0f) || (uv.x > 0.5f))
+            {
+                color.r = 1.0f; 
+            }
+            else
+            {
+                color.b = 1.0f; 
+            }
+
+#if 0
             //uv.x *= 3840.0f / 2256.0F;
             //uv.x *= 2.0F * 3840.0f / 2256.0F;
             //uv.x += 0.25f;
@@ -150,11 +166,28 @@ main()
                 color.g = 0.1f;
                 color.b = 0.1f;
             }
+#endif
         }
         else
         {
-            // Right eye
+             // Right eye    
+             //uv.x += final_uv_mult.x * 0.5f;
+             
+             uv.x *= 0.5f;
+             uv.x += 0.5f;
+             
+             //uv.x += 1.0f;
 
+            if ((uv.x < 0.0f) || (uv.x > 1.0f))
+            {
+                color.r = 1.0f; 
+            }
+            else
+            {
+                color.g = 0.0f;
+            }
+
+#if 0
             //uv.x *= 2.0f;
             //uv.x += 0.5f;
             uv.x += 0.25f;
@@ -177,6 +210,7 @@ main()
                 color.g = 0.1f;
                 color.b = 0.1f;
             }
+#endif
         }
 
         color = textureLod(final_blit_input_image, uv, 0).rgb;
