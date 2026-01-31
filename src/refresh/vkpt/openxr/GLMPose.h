@@ -54,7 +54,7 @@ inline float sign(float val)
 const float ROOT_OF_HALF = 0.7071067690849304f;
 
 const glm::fquat default_rotation(1.0f, 0.0f, 0.0f, 0.0f);
-const glm::fquat rotate_90_CCW_by_x(0.7071067690849304f, 0.7071067690849304f, 0.0f, 0.0f);
+
 const glm::fquat rotate_180_CCW_about_y(0.0f, 1.0f, 0.0f, 0.0f);
 const glm::fquat rotate_CW_45_rotation_about_x(0.9238795f, -0.3826834f, 0.0f, 0.0f);
 
@@ -65,11 +65,14 @@ const glm::fquat CCW_180_rotation_about_z = glm::fquat(0, 0, 0, 1);
 const glm::fquat CCW_45_rotation_about_y = glm::fquat(0, 0.3826834f, 0, 0.9238795f);
 const glm::fquat CW_45_rotation_about_y = glm::fquat(0, -0.3826834f, 0, 0.9238795f);
 
+const glm::fquat CW_90_rotation_about_x = glm::fquat(-ROOT_OF_HALF, 0, 0, ROOT_OF_HALF);
+const glm::fquat CCW_90_rotation_about_x = glm::fquat(ROOT_OF_HALF, 0, 0, ROOT_OF_HALF);
+
 const glm::fquat CCW_90_rotation_about_y = glm::fquat(0, ROOT_OF_HALF, 0, ROOT_OF_HALF);
 const glm::fquat CW_90_rotation_about_y = glm::fquat(0, -ROOT_OF_HALF, 0, ROOT_OF_HALF);
 
-const glm::fquat CW_90_rotation_about_x = glm::fquat(-ROOT_OF_HALF, 0, 0, ROOT_OF_HALF);
-const glm::fquat CCW_90_rotation_about_x = glm::fquat(ROOT_OF_HALF, 0, 0, ROOT_OF_HALF);
+const glm::fquat CCW_90_rotation_about_z = glm::fquat(0, 0, ROOT_OF_HALF, ROOT_OF_HALF); // TODO: verify this is correct
+const glm::fquat CW_90_rotation_about_z = glm::fquat(0, 0, -ROOT_OF_HALF, ROOT_OF_HALF);
 
 const glm::fquat CW_30deg_rotation_about_x = glm::fquat(-0.258819f, 0, 0, 0.9659258f);
 const glm::fquat CCW_30deg_rotation_about_x = glm::fquat(0.258819f, 0, 0, 0.9659258f);

@@ -2849,71 +2849,40 @@ extern "C"
 		}
 		else
 		{
-			XrPosef xr_pose_copy = xr_view.pose;
+			static bool do_x = false;
 
-			XrQuaternionf rotate_X = {};
-			XrQuaternionf rotate_Y = {};
-			XrQuaternionf rotate_Z = {};
-
-			static float angle_deg = 90.0f;
-			const float angle_rad = angle_deg * (MATH_PI / 180.0f);
-
-			XrVector3f axis_X = { 1.0f, 0.0f, 0.0f };
-			XrVector3f axis_Y = { 0.0f, 1.0f, 0.0f };
-			XrVector3f axis_Z = { 0.0f, 0.0f, 1.0f };
-
-			XrQuaternionf_CreateFromAxisAngle(&rotate_X, &axis_X, angle_rad);
-			XrQuaternionf_CreateFromAxisAngle(&rotate_Y, &axis_Y, angle_rad);
-			XrQuaternionf_CreateFromAxisAngle(&rotate_Z, &axis_Z, angle_rad);
-
-			static int do_index = 0;
-
-			if(do_index == 1)
+			if(do_x)
 			{
-				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &xr_view.pose.orientation, &rotate_X);
-			}
-			else if(do_index == 2)
-			{
-				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &xr_view.pose.orientation, &rotate_Y);
-			}
-			else if(do_index == 3)
-			{
-				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &xr_view.pose.orientation, &rotate_Z);
+				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CW_90_rotation_about_x;
+				glm_pose.rotation_ = normalize(glm_pose.rotation_);
 			}
 
-			static int do_index2 = 0;
+			static bool do_y = false;
 
-			static float angle_deg2 = 90.0f;
-			const float angle_rad2 = angle_deg2 * (MATH_PI / 180.0f);
-
-			XrQuaternionf_CreateFromAxisAngle(&rotate_X, &axis_X, angle_rad2);
-			XrQuaternionf_CreateFromAxisAngle(&rotate_Y, &axis_Y, angle_rad2);
-			XrQuaternionf_CreateFromAxisAngle(&rotate_Z, &axis_Z, angle_rad2);
-
-			XrQuaternionf rotate_copy = xr_pose_copy.orientation;
-
-			if(do_index2 == 1)
+			if(do_y)
 			{
-				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &rotate_copy, &rotate_X);
-			}
-			else if(do_index2 == 2)
-			{
-				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &rotate_copy, &rotate_Y);
-			}
-			else if(do_index2 == 3)
-			{
-				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &rotate_copy, &rotate_Z);
+				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CW_90_rotation_about_y;
+				glm_pose.rotation_ = normalize(glm_pose.rotation_);
 			}
 
-			static float offsetX = 0.0f;
-			static float offsetY = 0.0f;
-			static float offsetZ = 0.0f;
+			static bool do_z = false;
 
-			xr_pose_copy.position.x += offsetX;
-			xr_pose_copy.position.x += offsetY;
-			xr_pose_copy.position.x += offsetZ;
+			if(do_y)
+			{
+				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CW_90_rotation_about_z;
+				glm_pose.rotation_ = normalize(glm_pose.rotation_);
+			}
 
-			XrMatrix4x4f_CreateFromRigidTransform((XrMatrix4x4f*)matrix_ptr, &xr_pose_copy);
+			static float offset_x = 0.0f;
+			static float offset_y = 0.0f;
+			static float offset_z = 0.0f;
+
+			glm_pose.translation_.x += offset_x;
+			glm_pose.translation_.x += offset_y;
+			glm_pose.translation_.x += offset_z;
+			
+			glm::mat4 final_view_matrix = glm_pose.to_matrix();
+			memcpy(&matrix_ptr, &final_view_matrix, sizeof(float) * 16);
 		}
 		
 		return true;
