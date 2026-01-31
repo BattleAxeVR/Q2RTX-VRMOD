@@ -2944,9 +2944,8 @@ extern "C"
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
 
-		glm::vec3 euler = glm::eulerAngles(glm_pose.rotation_);
-		euler = rad2deg(euler);
-		memcpy(euler_dev_vec3, &euler, sizeof(float) * 3);
+		glm::vec3 euler_deg = BVR::to_euler_deg(glm_pose.rotation_);
+		memcpy(euler_dev_vec3, &euler_deg, sizeof(float) * 3);
 
 		return true;
 	}
