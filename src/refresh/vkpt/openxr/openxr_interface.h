@@ -309,6 +309,10 @@ public:
 	float triggers_[NUM_CONTROLLERS] = { 0.0f, 0.0f };
 	float grips_[NUM_CONTROLLERS] = { 0.0f, 0.0f };
 
+	bool XA_button_down_[NUM_CONTROLLERS] = { false, false };
+	bool BY_button_down_[NUM_CONTROLLERS] = { false, false };
+	bool joystick_button_down_[NUM_CONTROLLERS] = { false, false };
+
 	VRControllerState vr_controllers_[NUM_CONTROLLERS] = {};
 
 private:

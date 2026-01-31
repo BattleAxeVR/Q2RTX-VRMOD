@@ -2408,8 +2408,8 @@ void OpenXR::update_thumbstick(const uint hand, const XrVector2f& stick_value)
 		return;
 	}
 
-	//thumbsticks_[hand].x = stick_value.x;
-	//thumbsticks_[hand].y = stick_value.y;
+	thumbsticks_[hand].x = stick_value.x;
+	thumbsticks_[hand].y = stick_value.y;
 }
 
 void OpenXR::update_thumbstick_x(const uint hand, const float x_axis_value)
@@ -2420,7 +2420,7 @@ void OpenXR::update_thumbstick_x(const uint hand, const float x_axis_value)
 		return;
 	}
 
-	//thumbsticks_[hand].x = x_axis_value;
+	thumbsticks_[hand].x = x_axis_value;
 }
 
 void OpenXR::update_thumbstick_y(const uint hand, const float y_axis_value)
@@ -2431,19 +2431,17 @@ void OpenXR::update_thumbstick_y(const uint hand, const float y_axis_value)
 		return;
 	}
 
-	//thumbsticks_[hand].y = y_axis_value;
+	thumbsticks_[hand].y = y_axis_value;
 }
 
 float OpenXR::get_stick_x_value(const uint hand) const
 {
-	return 0.0f;
-	//return thumbsticks_[hand].x;
+	return thumbsticks_[hand].x;
 }
 
 float OpenXR::get_stick_y_value(const uint hand) const
 {
-	return 0.0f;
-	//return thumbsticks_[hand].y;
+	return thumbsticks_[hand].y;
 }
 
 void OpenXR::set_hand_gripping(const uint hand, const bool hand_gripping)
@@ -2455,9 +2453,6 @@ void OpenXR::set_hand_gripping(const uint hand, const bool hand_gripping)
 		if(hand_gripping_[hand] != hand_gripping)
 		{
 			hand_gripping_[hand] = hand_gripping;
-
-			//DigitalButton& grip_click_button = engine_.get_vr_manager().get_grip_button(hand);
-			//grip_click_button.set_state(hand_gripping);
 		}
 	}
 }
@@ -2508,7 +2503,6 @@ void OpenXR::update_trigger(const uint hand, const float trigger_value)
 
 	triggers_[hand] = trigger_value;
 }
-
 
 float OpenXR::get_trigger(const uint hand) const
 {
@@ -3008,56 +3002,96 @@ extern "C"
 		return true;
 	}
 
-	void set_button_state(DigitalButton* button_ptr, const bool is_down)
+	void set_button_state(DigitalButton& button, const bool is_down)
 	{
-		if(button_ptr)
+		const bool state_changed = (is_down != button.is_down_);
+
+		if(state_changed)
 		{
-			DigitalButton& button = *button_ptr;
-
-			const bool state_changed = (is_down != button.is_down_);
-
-			if(state_changed)
+			if(is_down)
 			{
-				if(is_down)
-				{
-					button.was_pressed_ = true;
-					button.was_released_ = false;
-				}
-				else
-				{
-					button.was_released_ = true;
-					button.was_pressed_ = false;					
-				}
-
-				button.is_down_ = is_down;
+				button.was_pressed_ = true;
+				button.was_released_ = false;
 			}
 			else
 			{
-				button.was_pressed_ = false;
-				button.was_released_ = false;
+				button.was_released_ = true;
+				button.was_pressed_ = false;					
 			}
-		}
-	}
 
-	void set_button_analog_value(DigitalButton* button_ptr, float* float_value_ptr)
-	{
-		if(button_ptr && float_value_ptr)
+			button.is_down_ = is_down;
+		}
+		else
 		{
-			DigitalButton& button = *button_ptr;
-			button.analog_value_ = *float_value_ptr;
-			button.has_analog_value_ = true;
+			button.was_pressed_ = false;
+			button.was_released_ = false;
 		}
 	}
 
-	bool GetVRControllerState(const int hand_id, VRControllerState* vr_controller_state_ptr)
+	void set_button_analog_value(DigitalButton& button, const float analog_value)
+	{
+		const float pressed_threshold = 0.8f;
+		const float released_threshold = 0.2f;
+
+		if((button.analog_value_ == 0.0f) && (analog_value > pressed_threshold))
+		{
+			button.was_pressed_ = true;
+			button.was_released_ = false;
+		}
+		else if((button.analog_value_ > 0.0f) && (analog_value < released_threshold))
+		{
+			button.was_released_ = true;
+			button.was_pressed_ = false;
+		}
+
+		button.analog_value_ = analog_value;
+		button.has_analog_value_ = true;
+	}
+
+	bool GetVRControllerState(const int hand_id, const bool update, VRControllerState* vr_controller_state_ptr)
 	{
 		if(!openxr_.is_session_running() || !vr_controller_state_ptr)
 		{
 			return false;
 		}
 
-		VRControllerState& vr_controller_state = *vr_controller_state_ptr;
-		vr_controller_state = openxr_.vr_controllers_[hand_id];
+		VRControllerState& vr_controller_state = openxr_.vr_controllers_[hand_id];
+
+		if(update)
+		{
+			DigitalButton& trigger_button = vr_controller_state.trigger_;
+			const float trigger_value = openxr_.get_trigger(hand_id);
+			set_button_analog_value(trigger_button, trigger_value);
+
+			DigitalButton& grip_click_button = vr_controller_state.grip_;
+
+			const float grip_value = openxr_.get_grip(hand_id);
+			set_button_analog_value(grip_click_button, grip_value);
+
+			const bool is_gripping = openxr_.is_hand_gripping(hand_id);
+			set_button_state(grip_click_button, is_gripping);
+
+			vr_controller_state.thumbstick_values_[0] = openxr_.get_stick_x_value(hand_id);
+			vr_controller_state.thumbstick_values_[1] = openxr_.get_stick_y_value(hand_id);
+
+			bool XA_button_down_[NUM_CONTROLLERS] = { false, false };
+			bool BY_button_down_[NUM_CONTROLLERS] = { false, false };
+			bool joystick_button_down_[NUM_CONTROLLERS] = { false, false };
+
+			DigitalButton& XA_button = vr_controller_state.XA_button_;
+			const bool is_XA_down = openxr_.XA_button_down_[hand_id];
+			set_button_state(XA_button, is_XA_down);
+
+			DigitalButton& BY_button = vr_controller_state.BY_button_;
+			const bool is_BY_down = openxr_.BY_button_down_[hand_id];
+			set_button_state(BY_button, is_BY_down);
+
+			DigitalButton& joystick_button = vr_controller_state.joystick_button_;
+			const bool is_joystick_down = openxr_.joystick_button_down_[hand_id];
+			set_button_state(joystick_button, is_joystick_down);
+		}
+
+		*vr_controller_state_ptr = vr_controller_state;
 
 		return true;
 	}
