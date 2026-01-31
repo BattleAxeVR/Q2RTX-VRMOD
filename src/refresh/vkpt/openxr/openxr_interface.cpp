@@ -2958,6 +2958,30 @@ extern "C"
 				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &xr_view.pose.orientation, &rotate_Z);
 			}
 
+			static int do_index2 = 0;
+
+			static float angle_deg2 = 90.0f;
+			const float angle_rad2 = angle_deg2 * (MATH_PI / 180.0f);
+
+			XrQuaternionf_CreateFromAxisAngle(&rotate_X, &axis_X, angle_rad2);
+			XrQuaternionf_CreateFromAxisAngle(&rotate_Y, &axis_Y, angle_rad2);
+			XrQuaternionf_CreateFromAxisAngle(&rotate_Z, &axis_Z, angle_rad2);
+
+			XrQuaternionf rotate_copy = xr_pose_copy.orientation;
+
+			if(do_index2 == 1)
+			{
+				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &rotate_copy, &rotate_X);
+			}
+			else if(do_index2 == 2)
+			{
+				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &rotate_copy, &rotate_Y);
+			}
+			else if(do_index2 == 3)
+			{
+				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &rotate_copy, &rotate_Z);
+			}
+
 			static float offsetX = 0.0f;
 			static float offsetY = 0.0f;
 			static float offsetZ = 0.0f;
