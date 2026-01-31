@@ -128,89 +128,24 @@ main()
         if (push.view_id == 0)
         {
             // Left eye
-             //uv.x *= 0.5f;
-
-             uv.x *= 2.0f;
-
-            if ((uv.x < 0.0f) || (uv.x > 0.5f))
-            {
-                color.r = 1.0f; 
-            }
-            else
-            {
-                color.b = 1.0f; 
-            }
-
-#if 0
-            //uv.x *= 3840.0f / 2256.0F;
-            //uv.x *= 2.0F * 3840.0f / 2256.0F;
-            //uv.x += 0.25f;
-
-            uv.x += 0.1f;
-
-            if ((uv.x > 0.75) && (uv.x < 0.76))
-            {
-                //color.b = 1.0f;
-            }
-            else if ((uv.x > 0.5) && (uv.x < 0.51))
-            {
-                color.g = 1.0f;
-            }
-            else if ((uv.x > 0.25) && (uv.x < 0.26))
-            {
-                //color.r = 1.0f;
-            }
-            else
-            {  
-                color.r = 0.1f;
-                color.g = 0.1f;
-                color.b = 0.1f;
-            }
-#endif
+             //uv.x *= 2.0f;
         }
         else
         {
              // Right eye    
              //uv.x += final_uv_mult.x * 0.5f;
+
+             uv.x *= push.uv_mult.x;
+             uv.x += push.uv_mult.y;
+
+             //uv.x *= 2.0f;
              
-             uv.x *= 0.5f;
-             uv.x += 0.5f;
-             
+             //uv.x *= 0.5f;
+
              //uv.x += 1.0f;
-
-            if ((uv.x < 0.0f) || (uv.x > 1.0f))
-            {
-                color.r = 1.0f; 
-            }
-            else
-            {
-                color.g = 0.0f;
-            }
-
-#if 0
-            //uv.x *= 2.0f;
-            //uv.x += 0.5f;
-            uv.x += 0.25f;
-
-            if ((uv.x > 0.75) && (uv.x < 0.76))
-            {
-                color.b = 1.0f;
-            }
-            else if ((uv.x > 0.5) && (uv.x < 0.51))
-            {
-                color.g = 1.0f;
-            }
-            else if ((uv.x > 0.25) && (uv.x < 0.26))
-            {
-                color.r = 1.0f;
-            }
-            else
-            {  
-                color.r = 0.1f;
-                color.g = 0.1f;
-                color.b = 0.1f;
-            }
-#endif
+             
+             //uv.x *= 0.5f;
+             //uv.x += 0.5f;
         }
 
         color = textureLod(final_blit_input_image, uv, 0).rgb;

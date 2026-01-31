@@ -889,7 +889,7 @@ VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, 
 	push_constants.view_id = view_id;
 
 	static float uv_x = 1.0f;
-	static float uv_y = 1.0f;
+	static float uv_y = 1.5f;
 
 	push_constants.uv_mult[0] = uv_x;
 	push_constants.uv_mult[1] = uv_y;
