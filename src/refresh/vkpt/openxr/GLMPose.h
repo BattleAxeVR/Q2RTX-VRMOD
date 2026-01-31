@@ -155,6 +155,9 @@ GLMPose convert_to_glm_pose(const XrVector3f &position, const XrQuaternionf &rot
 GLMPose convert_to_glm_pose(const XrPosef &xr_pose);
 XrPosef convert_to_xr_pose(const GLMPose &glm_pose);
 
+glm::vec3 to_euler_rad(glm::fquat rotation);
+glm::vec3 to_euler_deg(glm::fquat rotation);
+
 typedef uint32_t IndexType;
 
 typedef glm::vec2 Vector2;

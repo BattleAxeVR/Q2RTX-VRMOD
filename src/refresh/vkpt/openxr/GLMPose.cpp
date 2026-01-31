@@ -128,6 +128,59 @@ XrPosef convert_to_xr_pose(const GLMPose &glm_pose)
     return xr_pose;
 }
 
+glm::vec3 to_euler_rad(glm::fquat rotation)
+{
+    glm::vec3 euler_rad;
+
+    double a = 2.0f * (rotation.w * rotation.x + rotation.y * rotation.z);
+    double b = 1.0 - 2.0f * (rotation.x * rotation.x + rotation.y * rotation.y);
+    euler_rad.x = (float)atan2(a, b);
+
+    a = 2.0 * (rotation.w * rotation.y - rotation.z * rotation.x);
+    euler_rad.y = (float)asin(a);
+
+    a = 2.0 * (rotation.w * rotation.z + rotation.x * rotation.y);
+    b = 1.0 - 2.0 * (rotation.y * rotation.y + rotation.z * rotation.z);
+    euler_rad.z = (float)atan2(a, b);
+
+    if(fabs(euler_rad.x - PI) < 0.001f)
+    {
+        euler_rad.x = 0.0f;
+    }
+
+    if(fabs(euler_rad.y - PI) < 0.001f)
+    {
+        euler_rad.y = 0.0f;
+    }
+
+    if(fabs(euler_rad.z - PI) < 0.001f)
+    {
+        euler_rad.z = 0.0f;
+    }
+
+    if(fabs(euler_rad.x + PI) < 0.001f)
+    {
+        euler_rad.x = 0.0f;
+    }
+
+    if(fabs(euler_rad.y + PI) < 0.001f)
+    {
+        euler_rad.y = 0.0f;
+    }
+
+    if(fabs(euler_rad.z + PI) < 0.001f)
+    {
+        euler_rad.z = 0.0f;
+    }
+
+    return euler_rad;
+}
+
+glm::vec3 to_euler_deg(glm::fquat rotation)
+{
+    return rad2deg(to_euler_rad(rotation));
+}
+
 Normal TexturedTriangle::compute_normal() const
 {
     return glm::normalize(glm::cross((B_.position_ - A_.position_), (C_.position_ - B_.position_)));
