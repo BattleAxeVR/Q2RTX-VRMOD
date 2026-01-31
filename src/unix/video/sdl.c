@@ -39,6 +39,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "../../refresh/vkpt/openxr/defines.h"
 
+#include "../../refresh/vkpt/openxr/defines.h"
+
+#if SUPPORT_OPENXR
+#include "../../refresh/vkpt/openxr/openxr_c_interface.h"
+extern VRControllerState left_vr_controller;
+extern VRControllerState right_vr_controller;
+#endif
+
 #ifdef _WINDOWS
 #include <ShellScalingAPI.h>
 
@@ -598,6 +606,91 @@ static void cbutton_event(SDL_ControllerButtonEvent* event)
 }
 #endif
 
+#if SUPPORT_OPENXR
+static void vr_button_event_XA(int hand_id, bool is_down, unsigned time)
+{
+    unsigned key;
+
+    if(hand_id == LEFT)
+    {
+        key = K_MOUSE1;
+    }
+    else
+    {
+        key = K_MWHEELUP;
+    }
+
+
+    Key_Event2(key, is_down, time);
+}
+
+static void vr_button_event_BY(int hand_id, bool is_down, unsigned time)
+{
+    unsigned key;
+
+    if(hand_id == LEFT)
+    {
+        key = K_ESCAPE;
+    }
+    else
+    {
+        key = K_SPACE;
+    }
+
+    Key_Event2(key, is_down, time);
+}
+
+static void vr_button_event_trigger(int hand_id, bool is_down, unsigned time)
+{
+    unsigned key;
+
+    if(hand_id == LEFT)
+    {
+        key = K_MOUSE1;
+    }
+    else
+    {
+        key = K_MOUSE1;
+    }
+
+    Key_Event2(key, is_down, time);
+}
+
+static void vr_button_event_grip(int hand_id, bool is_down, unsigned time)
+{
+    unsigned key;
+
+    if(hand_id == LEFT)
+    {
+        key = K_SHIFT;
+    }
+    else
+    {
+        key = K_SHIFT;
+    }
+
+    Key_Event2(key, is_down, time);
+}
+
+static void vr_button_event_joystick_press(int hand_id, bool is_down, unsigned time)
+{
+    unsigned key;
+
+    if(hand_id == LEFT)
+    {
+        key = K_CTRL;
+    }
+    else
+    {
+        key = K_CTRL;
+    }
+
+    Key_Event2(key, is_down, time);
+}
+
+
+#endif
+
 static void mouse_button_event(SDL_MouseButtonEvent *event)
 {
     unsigned key;
@@ -679,6 +772,88 @@ static void pump_events(void)
             break;
 #endif
         }
+
+#if SUPPORT_OPENXR
+        if(Is_OpenXR_Session_Running())
+        {
+            const float deadzone = 0.01f;
+            unsigned time = Sys_Milliseconds();
+
+            if(left_vr_controller.trigger_.was_pressed_)
+            {
+                vr_button_event_trigger(LEFT, true, time);
+            }
+            else if (left_vr_controller.trigger_.was_released_)
+            {
+                vr_button_event_trigger(LEFT, false, time);
+            }
+
+            if(right_vr_controller.trigger_.was_pressed_)
+            {
+                vr_button_event_trigger(RIGHT, true, time);
+            }
+            else if (right_vr_controller.trigger_.was_released_)
+            {
+                vr_button_event_trigger(RIGHT, false, time);
+            }
+
+            if(left_vr_controller.XA_button_.was_pressed_)
+            {
+                vr_button_event_XA(LEFT, true, time);
+            }
+            else if (left_vr_controller.XA_button_.was_released_)
+            {
+                vr_button_event_XA(LEFT, false, time);
+            }
+
+            if(right_vr_controller.XA_button_.was_pressed_)
+            {
+                vr_button_event_XA(RIGHT, true, time);
+            }
+            else if (right_vr_controller.XA_button_.was_released_)
+            {
+                vr_button_event_XA(RIGHT, false, time);
+            }
+
+            if(left_vr_controller.BY_button_.was_pressed_)
+            {
+                vr_button_event_BY(LEFT, true, time);
+            }
+            else if (left_vr_controller.BY_button_.was_released_)
+            {
+                vr_button_event_BY(LEFT, false, time);
+            }
+
+            if(right_vr_controller.BY_button_.was_pressed_)
+            {
+                vr_button_event_BY(RIGHT, true, time);
+            }
+            else if (right_vr_controller.BY_button_.was_released_)
+            {
+                vr_button_event_BY(RIGHT, false, time);
+            }
+
+            if(left_vr_controller.joystick_button_.was_pressed_)
+            {
+                vr_button_event_joystick_press(LEFT, true, time);
+            }
+            else if (left_vr_controller.joystick_button_.was_released_)
+            {
+                vr_button_event_joystick_press(LEFT, false, time);
+            }
+
+            if(right_vr_controller.joystick_button_.was_pressed_)
+            {
+                vr_button_event_joystick_press(RIGHT, true, time);
+            }
+            else if (right_vr_controller.joystick_button_.was_released_)
+            {
+                vr_button_event_joystick_press(RIGHT, false, time);
+            }
+        }
+#endif
+
+
     }
 }
 
