@@ -24,8 +24,6 @@ bool GetEyePosition(const int view_id, float* eye_pos_vec3, float* tracking_to_w
 bool GetViewMatrix(const int view_id, const bool append, float x_pos, float y_pos, float z_pos, float yaw_deg, float* matrix_ptr);
 bool GetFov(const int view_id, XrFovf* fov_ptr);
 
-bool GetViewEulerAnglesDeg(const int view_id, float* euler_dev_vec3);
-
 bool GetHandPosition(const int hand_id, float* hand_pos_vec3, float* tracking_to_world_matrix);
 bool GetHandMatrix(const int hand_id, const bool append, float* matrix_ptr);
 

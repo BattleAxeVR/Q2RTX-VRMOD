@@ -2835,60 +2835,43 @@ extern "C"
 			return false;
 		}
 
+		const glm::vec3 game_euler_rad = { 0.0f, deg2rad(yaw_deg), 0.0f };
+		const glm::fquat game_rotation = glm::fquat(game_euler_rad);
+
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
 
-		glm::vec3 euler = glm::eulerAngles(glm_pose.rotation_);
+		static float degx_0 = -90.0f;
+		static float degy_0 = 180.0f;
+		static float degz_0 = 0.0f;
 
-		static float deg_x = -90.0f;
-		static float deg_y = 0.0f;
-		static float deg_z = 0.0f;
+		glm::vec3 extra_euler_rad = { deg2rad(degx_0), deg2rad(degy_0), deg2rad(degz_0) };
 
-		//euler.z *= -1.0f;
+		glm::fquat rot = glm::fquat(extra_euler_rad);
 
-		//glm::vec3 euler2 = glm::vec3(euler.x += deg2rad(deg_x), euler.y += deg2rad(deg_x), euler.z += deg2rad(deg_z));
-		//glm::vec3 euler2 = glm::vec3(euler.x += deg2rad(deg_x), 0.0f, 0.0f);
-		glm::vec3 euler2 = glm::vec3(deg2rad(deg_x), deg2rad(deg_y), deg2rad(deg_z));
+		//glm_pose.rotation_ = game_rotation * BVR::CCW_90_rotation_about_x * glm_pose.rotation_;
+		glm_pose.rotation_ = rot;// *glm_pose.rotation_;
+		glm_pose.rotation_ = glm::normalize(glm_pose.rotation_);
 
-		euler2.y += deg2rad(yaw_deg);
+		glm::vec3 game_position = { x_pos, y_pos, z_pos };
 
-		//glm::vec3 euler2 = glm::vec3(euler.x += deg2rad(deg_x), euler.y += deg2rad(deg_y), euler.z += deg2rad(deg_z));
+		// axis[0], axis[1], axis[2], forward, right, up
+		//view_matrix[12] = DotProduct(viewaxis[1], fd->vieworg); // right, +x
+		//view_matrix[13] = -DotProduct(viewaxis[2], fd->vieworg); // up, = -y ?
+		//view_matrix[14] = -DotProduct(viewaxis[0], fd->vieworg); // forward, = -z
 
-		static bool do_euler_x = false;
+		static bool append_game_position = true;
 
-		if(do_euler_x)
+		if(append_game_position)
 		{
-			euler2.x += euler.x;
-		}
-
-		static bool do_euler_y = true;
-
-		if(do_euler_y)
-		{
-			euler2.y += euler.y;
-		}
-
-		static bool do_euler_z = false;
-
-		if(do_euler_z)
-		{
-			euler2.z += euler.z;
-		}
-
-		glm::fquat quat_from_euler = glm::fquat(euler2);
-		glm_pose.rotation_ = quat_from_euler;
-
-		static bool do_pos = false;
-
-		if(do_pos)
-		{
-			glm_pose.translation_.x = x_pos;
-			glm_pose.translation_.y = y_pos;
-			glm_pose.translation_.z = z_pos;
+			glm_pose.translation_ = game_position;
 		}
 
 		glm::mat4 glm_view_matrix = glm_pose.to_matrix();
-		glm_view_matrix = glm::inverse(glm_view_matrix);
+		//glm_view_matrix = glm::inverse(glm_view_matrix);
+
+		//glm_view_matrix[12] *= -1.0f;
+		glm_view_matrix[0] *= -1.0f;
 
 		if(append)
 		{
@@ -2923,29 +2906,6 @@ extern "C"
 
 		XrFovf& fov = *fov_ptr;
 		fov = xr_view.fov;
-
-		return true;
-	}
-
-	bool GetViewEulerAnglesDeg(const int view_id, float* euler_dev_vec3)
-	{
-		if(!openxr_.is_session_running() || !euler_dev_vec3)
-		{
-			return false;
-		}
-
-		XrView xr_view = {};
-
-		if(!openxr_.get_view(view_id, xr_view))
-		{
-			return false;
-		}
-
-		const XrPosef& xr_pose = xr_view.pose;
-		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
-
-		glm::vec3 euler_deg = BVR::to_euler_deg(glm_pose.rotation_);
-		memcpy(euler_dev_vec3, &euler_deg, sizeof(float) * 3);
 
 		return true;
 	}

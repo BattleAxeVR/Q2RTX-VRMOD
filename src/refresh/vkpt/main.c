@@ -2822,7 +2822,7 @@ static void prepare_viewmatrix(refdef_t *fd)
 	create_view_matrix(zero_out_pitch, stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
 	create_view_matrix(zero_out_pitch, stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
 
-#if 0//SUPPORT_OPENXR
+#if SUPPORT_OPENXR
 	if(stereo)
 	{
 		GetViewMatrix(LEFT, false, fd->vieworg[0], fd->vieworg[1], fd->vieworg[2], fd->viewangles[YAW], vkpt_refdef.view_matrix[LEFT]);
