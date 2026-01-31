@@ -2067,7 +2067,7 @@ static void process_regular_entity(
 		create_viewweapon_matrix(transform, (entity_t*)entity);
 #endif
 		
-		const bool hand_ok = GetHandMatrix(hand_id, true, transform);
+		const bool hand_ok = false;// GetHandMatrix(hand_id, true, transform);
 
 		if(hand_ok)
 		{
@@ -2825,8 +2825,8 @@ static void prepare_viewmatrix(refdef_t *fd)
 #if SUPPORT_OPENXR
 	if(stereo)
 	{
-		GetViewMatrix(LEFT, false, vkpt_refdef.view_matrix[LEFT]);
-		GetViewMatrix(RIGHT, false, vkpt_refdef.view_matrix[RIGHT]);
+		GetViewMatrix(LEFT, false, fd->vieworg[0], fd->vieworg[1], fd->vieworg[2], fd->viewangles[YAW], vkpt_refdef.view_matrix[LEFT]);
+		GetViewMatrix(RIGHT, false, fd->vieworg[0], fd->vieworg[1], fd->vieworg[2], fd->viewangles[YAW], vkpt_refdef.view_matrix[RIGHT]);
 	}
 #endif
 

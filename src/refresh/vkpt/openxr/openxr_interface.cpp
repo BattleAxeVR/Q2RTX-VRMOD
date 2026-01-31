@@ -2821,7 +2821,7 @@ extern "C"
 		return true;
 	}
 
-	bool GetViewMatrix(const int view_id, const bool append, float* matrix_ptr)
+	bool GetViewMatrix(const int view_id, const bool append, float x_pos, float y_pos, float z_pos, float yaw_deg, float* matrix_ptr)
 	{
 		if(!openxr_.is_session_running() || !matrix_ptr)
 		{
@@ -2838,51 +2838,70 @@ extern "C"
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
 
+		glm::vec3 euler = glm::eulerAngles(glm_pose.rotation_);
+
+		static float deg_x = -90.0f;
+		static float deg_y = 0.0f;
+		static float deg_z = 0.0f;
+
+		//euler.z *= -1.0f;
+
+		//glm::vec3 euler2 = glm::vec3(euler.x += deg2rad(deg_x), euler.y += deg2rad(deg_x), euler.z += deg2rad(deg_z));
+		//glm::vec3 euler2 = glm::vec3(euler.x += deg2rad(deg_x), 0.0f, 0.0f);
+		glm::vec3 euler2 = glm::vec3(deg2rad(deg_x), deg2rad(deg_y), deg2rad(deg_z));
+
+		euler2.y += deg2rad(yaw_deg);
+
+		//glm::vec3 euler2 = glm::vec3(euler.x += deg2rad(deg_x), euler.y += deg2rad(deg_y), euler.z += deg2rad(deg_z));
+
+		static bool do_euler_x = false;
+
+		if(do_euler_x)
+		{
+			euler2.x += euler.x;
+		}
+
+		static bool do_euler_y = true;
+
+		if(do_euler_y)
+		{
+			euler2.y += euler.y;
+		}
+
+		static bool do_euler_z = false;
+
+		if(do_euler_z)
+		{
+			euler2.z += euler.z;
+		}
+
+		glm::fquat quat_from_euler = glm::fquat(euler2);
+		glm_pose.rotation_ = quat_from_euler;
+
+		static bool do_pos = false;
+
+		if(do_pos)
+		{
+			glm_pose.translation_.x = x_pos;
+			glm_pose.translation_.y = y_pos;
+			glm_pose.translation_.z = z_pos;
+		}
+
+		glm::mat4 glm_view_matrix = glm_pose.to_matrix();
+		glm_view_matrix = glm::inverse(glm_view_matrix);
+
 		if(append)
 		{
-			XrMatrix4x4f local_matrix = {};
-			XrMatrix4x4f_CreateFromRigidTransform(&local_matrix, &xr_view.pose);
-
-			XrMatrix4x4f orig_view_matrix = {};
+			glm::mat4 orig_view_matrix;
 			memcpy(&orig_view_matrix, matrix_ptr, sizeof(float) * 16);
-			XrMatrix4x4f_Multiply((XrMatrix4x4f*)matrix_ptr, &local_matrix, &orig_view_matrix);
+
+			glm_view_matrix = glm_view_matrix * orig_view_matrix;
+
+			memcpy(matrix_ptr, &glm_view_matrix, sizeof(float) * 16);
 		}
 		else
 		{
-			static bool do_x = true;
-
-			if(do_x)
-			{
-				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CCW_90_rotation_about_x;
-				glm_pose.rotation_ = normalize(glm_pose.rotation_);
-			}
-
-			static bool do_y = true;
-
-			if(do_y)
-			{
-				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CCW_180_rotation_about_y;
-				glm_pose.rotation_ = normalize(glm_pose.rotation_);
-			}
-
-			static bool do_z = true;
-
-			if(do_z)
-			{
-				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CW_90_rotation_about_z;
-				glm_pose.rotation_ = normalize(glm_pose.rotation_);
-			}
-
-			static float offset_x = 0.0f;
-			static float offset_y = 0.0f;
-			static float offset_z = 0.0f;
-
-			glm_pose.translation_.x += offset_x;
-			glm_pose.translation_.x += offset_y;
-			glm_pose.translation_.x += offset_z;
-			
-			glm::mat4 final_view_matrix = glm_pose.to_matrix();
-			memcpy(matrix_ptr, &final_view_matrix, sizeof(float) * 16);
+			memcpy(matrix_ptr, &glm_view_matrix, sizeof(float) * 16);
 		}
 		
 		return true;
