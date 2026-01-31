@@ -2730,7 +2730,7 @@ void OpenXR::log_instance_info()
 
 } // BVR
 
- BVR::OpenXR openxr_;
+BVR::OpenXR openxr_;
 bool started_session_ = false;
 static float world_scale = 1000.0f;
 
@@ -3004,6 +3004,60 @@ extern "C"
 		{
 			XrMatrix4x4f_CreateFromRigidTransform((XrMatrix4x4f*)matrix_ptr, &openxr_.aim_pose_LS_[hand_id]);
 		}
+
+		return true;
+	}
+
+	void set_button_state(DigitalButton* button_ptr, const bool is_down)
+	{
+		if(button_ptr)
+		{
+			DigitalButton& button = *button_ptr;
+
+			const bool state_changed = (is_down != button.is_down_);
+
+			if(state_changed)
+			{
+				if(is_down)
+				{
+					button.was_pressed_ = true;
+					button.was_released_ = false;
+				}
+				else
+				{
+					button.was_released_ = true;
+					button.was_pressed_ = false;					
+				}
+
+				button.is_down_ = is_down;
+			}
+			else
+			{
+				button.was_pressed_ = false;
+				button.was_released_ = false;
+			}
+		}
+	}
+
+	void set_button_analog_value(DigitalButton* button_ptr, float* float_value_ptr)
+	{
+		if(button_ptr && float_value_ptr)
+		{
+			DigitalButton& button = *button_ptr;
+			button.analog_value_ = *float_value_ptr;
+			button.has_analog_value_ = true;
+		}
+	}
+
+	bool GetVRControllerState(const int hand_id, VRControllerState* vr_controller_state_ptr)
+	{
+		if(!openxr_.is_session_running() || !vr_controller_state_ptr)
+		{
+			return false;
+		}
+
+		VRControllerState& vr_controller_state = *vr_controller_state_ptr;
+		vr_controller_state = openxr_.vr_controllers_[hand_id];
 
 		return true;
 	}

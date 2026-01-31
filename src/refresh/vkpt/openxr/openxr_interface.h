@@ -61,6 +61,11 @@ typedef uint64_t uint64;
 #include "openxr_command_buffer.h"
 #include "openxr_input.h"
 
+extern "C"
+{
+	#include "openxr_c_interface.h"
+}
+
 #if ENABLE_OPENXR_FB_BODY_TRACKING
 #include <openxr/meta_body_tracking_calibration.h>
 #include <openxr/meta_body_tracking_fidelity.h>
@@ -293,7 +298,7 @@ public:
 	}
 
 	HMDView hmd_view_;
-	float thumbsticks_[NUM_CONTROLLERS][2] = { };
+	glm::vec2 thumbsticks_[NUM_CONTROLLERS] = { };
 
 	XrPosef grip_pose_LS_[NUM_CONTROLLERS] = {};
 	bool grip_pose_valid_[NUM_CONTROLLERS] = { false, false };
@@ -303,6 +308,8 @@ public:
 
 	float triggers_[NUM_CONTROLLERS] = { 0.0f, 0.0f };
 	float grips_[NUM_CONTROLLERS] = { 0.0f, 0.0f };
+
+	VRControllerState vr_controllers_[NUM_CONTROLLERS] = {};
 
 private:
 	bool initialized_ = false;
