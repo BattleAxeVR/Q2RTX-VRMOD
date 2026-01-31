@@ -2926,7 +2926,47 @@ extern "C"
 		}
 		else
 		{
-			XrMatrix4x4f_CreateFromRigidTransform((XrMatrix4x4f*)matrix_ptr, &xr_view.pose);
+			XrPosef xr_pose_copy = xr_view.pose;
+
+			XrQuaternionf rotate_X = {};
+			XrQuaternionf rotate_Y = {};
+			XrQuaternionf rotate_Z = {};
+
+			static float angle_deg = 90.0f;
+			const float angle_rad = angle_deg * (MATH_PI / 180.0f);
+
+			XrVector3f axis_X = { 0.0f, 0.0f, 1.0f };
+			XrVector3f axis_Y = { 0.0f, 0.0f, 1.0f };
+			XrVector3f axis_Z = { 0.0f, 0.0f, 1.0f };
+
+			XrQuaternionf_CreateFromAxisAngle(&rotate_X, &axis_X, angle_rad);
+			XrQuaternionf_CreateFromAxisAngle(&rotate_Y, &axis_Y, angle_rad);
+			XrQuaternionf_CreateFromAxisAngle(&rotate_Z, &axis_Z, angle_rad);
+
+			static int do_index = 0;
+
+			if(do_index == 1)
+			{
+				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &xr_view.pose.orientation, &rotate_X);
+			}
+			else if(do_index == 2)
+			{
+				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &xr_view.pose.orientation, &rotate_Y);
+			}
+			else if(do_index == 3)
+			{
+				XrQuaternionf_Multiply(&xr_pose_copy.orientation, &xr_view.pose.orientation, &rotate_Z);
+			}
+
+			static float offsetX = 0.0f;
+			static float offsetY = 0.0f;
+			static float offsetZ = 0.0f;
+
+			xr_pose_copy.position.x += offsetX;
+			xr_pose_copy.position.x += offsetY;
+			xr_pose_copy.position.x += offsetZ;
+
+			XrMatrix4x4f_CreateFromRigidTransform((XrMatrix4x4f*)matrix_ptr, &xr_pose_copy);
 		}
 		
 		return true;
@@ -3015,9 +3055,18 @@ extern "C"
 			//XrMatrix4x4f local_matrixT = {};
 			//XrMatrix4x4f_Transpose(&local_matrixT, &local_matrix);
 
+			XrMatrix4x4f local_rotation_matrix = {};
+			XrMatrix4x4f_CreateFromQuaternion(&local_rotation_matrix, &openxr_.aim_pose_LS_[hand_id].orientation);
+
+			XrMatrix4x4f local_rotation_matrixT = {};
+			XrMatrix4x4f_Transpose(&local_rotation_matrixT, &local_rotation_matrix);
+
+			XrMatrix4x4f composed_local_matrix = {};
+			XrMatrix4x4f_Multiply(&composed_local_matrix, &local_matrix, &local_rotation_matrixT);
+
 			XrMatrix4x4f orig_hand_matrix = {};
 			memcpy(&orig_hand_matrix, matrix_ptr, sizeof(float) * 16);
-			XrMatrix4x4f_Multiply((XrMatrix4x4f*)matrix_ptr,  &orig_hand_matrix, &local_matrix);
+			XrMatrix4x4f_Multiply((XrMatrix4x4f*)matrix_ptr,  &orig_hand_matrix, &composed_local_matrix);
 		}
 		else
 		{

@@ -2825,8 +2825,8 @@ static void prepare_viewmatrix(refdef_t *fd)
 #if SUPPORT_OPENXR
 	if(stereo)
 	{
-		GetViewMatrix(LEFT, true, vkpt_refdef.view_matrix[LEFT]);
-		GetViewMatrix(RIGHT, true, vkpt_refdef.view_matrix[RIGHT]);
+		GetViewMatrix(LEFT, false, vkpt_refdef.view_matrix[LEFT]);
+		GetViewMatrix(RIGHT, false, vkpt_refdef.view_matrix[RIGHT]);
 	}
 #endif
 
