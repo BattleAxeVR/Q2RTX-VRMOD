@@ -2846,7 +2846,7 @@ extern "C"
 		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
 
 		static float degx_0 = -90.0f;
-		static float degy_0 = 0.0f;
+		static float degy_0 = 180.0f;
 		static float degz_0 = 0.0f;
 
 		glm::vec3 extra_euler_rad = { deg2rad(degx_0), deg2rad(degy_0), deg2rad(degz_0) };
@@ -2854,14 +2854,13 @@ extern "C"
 		glm::fquat rot = glm::fquat(extra_euler_rad);
 
 		//glm_pose.rotation_ = game_rotation * BVR::CCW_90_rotation_about_x * glm_pose.rotation_;
-		glm_pose.rotation_ = glm_pose.rotation_ * rot;
+		glm_pose.rotation_ = game_rotation * glm_pose.rotation_ * rot;
 		glm_pose.rotation_ = glm::normalize(glm_pose.rotation_);
 
 		glm::vec3 game_position;
 		memcpy(&game_position, eye_pos_vec3, sizeof(float) * 3);
 
 		glm_pose.translation_ *= world_scale;
-		
 
 		// axis[0], axis[1], axis[2], forward, right, up
 		//view_matrix[12] = DotProduct(viewaxis[1], fd->vieworg); // right, +x
