@@ -2850,7 +2850,7 @@ extern "C"
 		glm::fquat rot = glm::fquat(extra_euler_rad);
 
 		//glm_pose.rotation_ = game_rotation * BVR::CCW_90_rotation_about_x * glm_pose.rotation_;
-		glm_pose.rotation_ = rot;// *glm_pose.rotation_;
+		glm_pose.rotation_ = glm_pose.rotation_ * rot;
 		glm_pose.rotation_ = glm::normalize(glm_pose.rotation_);
 
 		glm::vec3 game_position = { x_pos, y_pos, z_pos };
