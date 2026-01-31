@@ -2935,8 +2935,8 @@ extern "C"
 			static float angle_deg = 90.0f;
 			const float angle_rad = angle_deg * (MATH_PI / 180.0f);
 
-			XrVector3f axis_X = { 0.0f, 0.0f, 1.0f };
-			XrVector3f axis_Y = { 0.0f, 0.0f, 1.0f };
+			XrVector3f axis_X = { 1.0f, 0.0f, 0.0f };
+			XrVector3f axis_Y = { 0.0f, 1.0f, 0.0f };
 			XrVector3f axis_Z = { 0.0f, 0.0f, 1.0f };
 
 			XrQuaternionf_CreateFromAxisAngle(&rotate_X, &axis_X, angle_rad);
