@@ -939,7 +939,6 @@ bool XRInputState::update()
 			get_pose_info.subactionPath = hand_subaction_path_[hand];
 			XrActionStatePose poseState{ XR_TYPE_ACTION_STATE_POSE };
 			xrGetActionStatePose(openxr_.xr_session_, &get_pose_info, &poseState);
-			//handActive[hand] = poseState.isActive;
 		}
 #endif
 
@@ -1015,7 +1014,7 @@ bool XRInputState::update()
 
 			if(button_value.isActive == XR_TRUE)
 			{
-				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_Joystick_Click].set_state(button_value.currentState);
+				openxr_.joystick_button_down_[hand] = button_value.currentState;
 			}
 		}
 
@@ -1032,7 +1031,7 @@ bool XRInputState::update()
 
 			if(menu_button_value.isActive == XR_TRUE)
 			{
-				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_ApplicationMenu].set_state(menu_button_value.currentState);
+				openxr_.menu_button_down_[hand] = button_value.currentState;
 			}
 		}
 #endif
@@ -1049,7 +1048,7 @@ bool XRInputState::update()
 
 			if(button_value.isActive == XR_TRUE)
 			{
-				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_XA_Touch].set_state(button_value.currentState);
+				openxr_.XA_touch_down_[hand] = button_value.currentState;
 			}
 		}
 
@@ -1064,7 +1063,7 @@ bool XRInputState::update()
 
 			if(button_value.isActive == XR_TRUE)
 			{
-				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_XA_Click].set_state(button_value.currentState);
+				openxr_.XA_button_down_[hand] = button_value.currentState;
 			}
 		}
 
@@ -1079,7 +1078,7 @@ bool XRInputState::update()
 
 			if(button_value.isActive == XR_TRUE)
 			{
-				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_YB_Touch].set_state(button_value.currentState);
+				openxr_.BY_touch_down_[hand] = button_value.currentState;
 			}
 		}
 
@@ -1094,7 +1093,7 @@ bool XRInputState::update()
 
 			if(button_value.isActive == XR_TRUE)
 			{
-				//vr_manager.vr_controllers_[hand].digital_[tv::VRButtonID::VRDigitalButton_YB_Click].set_state(button_value.currentState);
+				openxr_.BY_button_down_[hand] = button_value.currentState;
 			}
 		}
 #endif
