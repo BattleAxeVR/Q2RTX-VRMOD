@@ -26,94 +26,11 @@
 #define SPV_SUFFIX
 #endif
 
-#if 0
-float4x4 tv_convert_xr_to_float4x4(const XrMatrix4x4f& input)
-{
-	float4x4 output = float4x4(&input.m[0]);
-	return output;
-}
-
-XrMatrix4x4f tv_convert_to_xr(const float4x4& input)
-{
-	XrMatrix4x4f output;
-	memcpy(&output, input.get_value(), sizeof(output));
-	return output;
-}
-
-float3 tv_convert(const XrVector3f& input)
-{
-	float3 output;
-	memcpy(&output, &input, sizeof(output));
-	return output;
-}
-
-XrVector3f tv_convert_to_xr(const float3& input)
-{
-	XrVector3f output;
-	memcpy(&output, &input, sizeof(output));
-	return output;
-}
-
-Quat tv_convert(const XrQuaternionf& input)
-{
-	Quat output;
-#if 1
-	memcpy(&output, &input, sizeof(output));
-#else
-	output.val_.x = input.x;
-	output.val_.y = input.y;
-	output.val_.z = input.z;
-	output.val_.w = input.w;
-#endif
-	return output;
-}
-
-XrQuaternionf tv_convert_to_xr(const Quat& input)
-{
-	XrQuaternionf output;
-#if 1
-	memcpy(&output, &input, sizeof(output));
-#else
-	output.x = input.val_.x;
-	output.y = input.val_.y;
-	output.z = input.val_.z;
-	output.w = input.val_.w;
-#endif
-	return output;
-}
-
-Pose tv_convert_xr_pose_to_pose(const XrPosef& input)
-{
-	Pose output;
-	output.position_ = tv_convert(input.position);
-	output.rotation_ = tv_convert(input.orientation);
-	output.is_valid_ = true;
-	return output;
-}
-
-XRPose tv_convert(const XrPosef& input)
-{
-	XRPose output;
-	output.position_ = tv_convert(input.position);
-	output.rotation_ = tv_convert(input.orientation);
-	return output;
-}
-
-XrPosef tv_convert_to_xr(const Pose& input)
-{
-	XrPosef output;
-	output.position = tv_convert_to_xr(input.position_);
-	output.orientation = tv_convert_to_xr(input.get_combined_rotation());
-	return output;
-}
-#endif
-
 constexpr bool is_xr_pose_valid(XrSpaceLocationFlags locationFlags)
 {
 	constexpr XrSpaceLocationFlags valid_mask = XR_SPACE_LOCATION_POSITION_VALID_BIT | XR_SPACE_LOCATION_ORIENTATION_VALID_BIT;
 	return (locationFlags & valid_mask) == valid_mask;
 }
-
 
 OpenXR::OpenXR() : xr_input_{ *this }
 {

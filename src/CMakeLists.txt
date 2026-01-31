@@ -288,6 +288,7 @@ SET(SRC_VKPT
 	refresh/vkpt/openxr/openxr_input.cpp
 	refresh/vkpt/openxr/openxr_swapchain.cpp
 	refresh/vkpt/openxr/openxr_command_buffer.cpp
+	refresh/vkpt/openxr/GLMPose.cpp
 )
 
 SET(HEADERS_VKPT
@@ -308,6 +309,7 @@ SET(HEADERS_VKPT
 	refresh/vkpt/openxr/openxr_command_buffer.h
 	refresh/vkpt/openxr/xr_linear.h
 	refresh/vkpt/openxr/defines.h
+	refresh/vkpt/openxr/GLMPose.h
 )
 
 set(SRC_SHADERS

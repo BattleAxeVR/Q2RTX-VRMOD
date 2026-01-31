@@ -55,6 +55,8 @@ typedef uint64_t uint64;
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>
 
+#include "GLMPose.h"
+
 #include "openxr_swapchain.h"
 #include "openxr_command_buffer.h"
 #include "openxr_input.h"
@@ -90,24 +92,11 @@ XRPose tv_convert(const XrPosef& input);
 XrPosef tv_convert_to_xr(const Pose& input);
 #endif
 
-
-struct XRPose
-{
-	//Quat rotation_;
-	//float3 position_;
-};
-
-struct XRView
-{
-	XRPose xr_pose_;
-	//FOVAngles fov_;
-};
-
 struct HMDView
 {
-	XRView eye_poses_[NUM_EYES];
+	BVR::GLMPose eye_poses_[NUM_EYES];
 	//const float3 get_head_position_LS() const;
-	const XRPose get_head_xr_pose_LS() const;
+	const BVR::GLMPose get_head_xr_pose_LS() const;
 };
 
 constexpr bool is_xr_pose_valid(XrSpaceLocationFlags locationFlags);
@@ -299,7 +288,6 @@ public:
 		view = xr_views_[eye];
 		return true;
 	}
-
 
 	HMDView hmd_view_;
 	float thumbsticks_[NUM_CONTROLLERS][2] = { };
