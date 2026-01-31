@@ -18,6 +18,34 @@ void OpenXR_Update();
 void OpenXR_Shutdown();
 void OpenXR_Endframe(VkCommandBuffer* external_command_buffer);
 
+typedef struct
+{
+	bool is_down_;
+	bool was_pressed_;
+	bool was_released_;
+
+	bool has_analog_value_;
+	float analog_value_;
+
+} DigitalButton;
+
+void set_button_state(DigitalButton* button_ptr, const bool is_down);
+void set_button_analog_value(DigitalButton* button_ptr, float* float_value_ptr);
+
+typedef struct
+{
+	float thumbstick_values_[2];
+
+	DigitalButton XA_button_;
+	DigitalButton BY_button_;
+
+	DigitalButton joystick_button_;
+
+	DigitalButton trigger_;
+	DigitalButton grip_;
+
+} VRControllerState;
+
 bool Is_OpenXR_Session_Running();
 
 bool GetEyePosition(const int view_id, float* eye_pos_vec3, float* tracking_to_world_matrix);
@@ -26,6 +54,8 @@ bool GetFov(const int view_id, XrFovf* fov_ptr);
 
 bool GetHandPosition(const int hand_id, float* hand_pos_vec3, float* tracking_to_world_matrix);
 bool GetHandMatrix(const int hand_id, const bool append, float* matrix_ptr);
+
+bool GetVRControllerState(const int hand_id, VRControllerState* vr_controller_state_ptr);
 
 #endif // SUPPORT_OPENXR
 
