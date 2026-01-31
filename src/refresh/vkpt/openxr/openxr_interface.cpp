@@ -2849,25 +2849,25 @@ extern "C"
 		}
 		else
 		{
-			static bool do_x = false;
+			static bool do_x = true;
 
 			if(do_x)
 			{
-				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CW_90_rotation_about_x;
+				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CCW_90_rotation_about_x;
 				glm_pose.rotation_ = normalize(glm_pose.rotation_);
 			}
 
-			static bool do_y = false;
+			static bool do_y = true;
 
 			if(do_y)
 			{
-				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CW_90_rotation_about_y;
+				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CCW_180_rotation_about_y;
 				glm_pose.rotation_ = normalize(glm_pose.rotation_);
 			}
 
-			static bool do_z = false;
+			static bool do_z = true;
 
-			if(do_y)
+			if(do_z)
 			{
 				glm_pose.rotation_ = glm_pose.rotation_ * BVR::CW_90_rotation_about_z;
 				glm_pose.rotation_ = normalize(glm_pose.rotation_);
@@ -2882,7 +2882,7 @@ extern "C"
 			glm_pose.translation_.x += offset_z;
 			
 			glm::mat4 final_view_matrix = glm_pose.to_matrix();
-			memcpy(&matrix_ptr, &final_view_matrix, sizeof(float) * 16);
+			memcpy(matrix_ptr, &final_view_matrix, sizeof(float) * 16);
 		}
 		
 		return true;
