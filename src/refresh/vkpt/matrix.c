@@ -236,6 +236,20 @@ void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd,
 		viewangles[YAW] = fd->viewangles[YAW];
 		viewangles[ROLL] = fd->viewangles[ROLL];
 
+#if SUPPORT_OPENXR
+		if(stereo)
+		{
+			vec3_t eye_angles = { 0 };
+
+			if(GetViewEulerAnglesDeg(view_id, eye_angles))
+			{
+				viewangles[YAW] += eye_angles[1];
+				//viewangles[PITCH] += eye_angles[0];
+				//viewangles[ROLL] += eye_angles[2];
+			}
+		}
+#endif
+
 		AnglesToAxis(viewangles, viewaxis);
 	}
 	else

@@ -2927,6 +2927,30 @@ extern "C"
 		return true;
 	}
 
+	bool GetViewEulerAnglesDeg(const int view_id, float* euler_dev_vec3)
+	{
+		if(!openxr_.is_session_running() || !euler_dev_vec3)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		const XrPosef& xr_pose = xr_view.pose;
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+
+		glm::vec3 euler = glm::eulerAngles(glm_pose.rotation_);
+		euler = rad2deg(euler);
+		memcpy(euler_dev_vec3, &euler, sizeof(float) * 3);
+
+		return true;
+	}
+
 	bool GetHandPosition(const int hand_id, float* hand_pos_vec3, float* tracking_to_world_matrix)
 	{
 		if(!openxr_.is_session_running())
