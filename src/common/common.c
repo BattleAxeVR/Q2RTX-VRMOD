@@ -53,6 +53,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "../refresh/vkpt/openxr/defines.h"
 
+#if SUPPORT_OPENXR
+#include "../refresh/vkpt/openxr/openxr_c_interface.h"
+VRControllerState left_vr_controller = {0};
+VRControllerState right_vr_controller = {0};
+#endif
+
 #if USE_DEBUG
 #include "features.h"
 #endif
@@ -1120,6 +1126,9 @@ void Qcommon_Frame(void)
 
 #if SUPPORT_OPENXR
     OpenXR_Update();
+
+    GetVRControllerState(LEFT, true, &left_vr_controller);
+    GetVRControllerState(RIGHT, true, &right_vr_controller);
 #endif
 
     if (host_speeds->integer)

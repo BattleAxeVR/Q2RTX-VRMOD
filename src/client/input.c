@@ -21,6 +21,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "SDL2/SDL.h"
 #include "../refresh/vkpt/openxr/defines.h"
 
+#if SUPPORT_OPENXR
+#include "../refresh/vkpt/openxr/openxr_c_interface.h"
+extern VRControllerState left_vr_controller;
+extern VRControllerState right_vr_controller;
+#endif
+
 static cvar_t    *cl_nodelta;
 static cvar_t    *cl_maxpackets;
 static cvar_t    *cl_packetdup;
@@ -553,6 +559,22 @@ static void CL_AdjustAngles(int msec)
         }
     }
 #endif
+
+#if SUPPORT_OPENXR
+    if(Is_OpenXR_Session_Running())
+    {
+        const float deadzone = 0.01f;
+        const float turn_value = right_vr_controller.thumbstick_values_[0];
+
+        if (fabs(turn_value) > deadzone)
+        {
+            cl.viewangles[YAW] -= speed * cl_yawspeed->value * turn_value;
+        }
+
+        // No point in updating the pitch of the guns / view in VR mode, as the old gun position would be overridden by the aim pose;
+        // Up/Down on the right controller could be useful for climbing up/down or jump/crouch, maybe, like SkyrimVR. TODO
+    }
+#endif
 }
 
 /*
@@ -586,24 +608,45 @@ static void CL_BaseMove(vec3_t move)
 
     if(gamecontroller)
     {
-        Sint16 gamepad_left_x = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_LEFTX);
-
-        if((gamepad_left_x < -1000) || (gamepad_left_x > 1000))
-        {
-            move[1] += cl_sidespeed->value * (float)gamepad_left_x / 32767.0f;
-        }
-
         Sint16 gamepad_left_y = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_LEFTY);
 
         if((gamepad_left_y < -1000) || (gamepad_left_y > 1000))
         {
             move[0] -= cl_forwardspeed->value * (float)gamepad_left_y / 32767.0f;
         }
+
+        Sint16 gamepad_left_x = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_LEFTX);
+
+        if((gamepad_left_x < -1000) || (gamepad_left_x > 1000))
+        {
+            move[1] += cl_sidespeed->value * (float)gamepad_left_x / 32767.0f;
+        }
     }
 #endif
 
-// adjust for speed key / running
-    if ((in_speed.state & 1) ^ cl_run->integer) {
+#if SUPPORT_OPENXR
+    if(Is_OpenXR_Session_Running())
+    {
+        const float deadzone = 0.01f;
+        const float forward_value = left_vr_controller.thumbstick_values_[1];
+
+        if (fabs(forward_value) > deadzone)
+        {
+            move[0] -= cl_forwardspeed->value * forward_value;
+        }
+
+        const float strafe_value = left_vr_controller.thumbstick_values_[0];
+
+        if (fabs(strafe_value) > deadzone)
+        {
+            move[1] += cl_sidespeed->value * strafe_value;
+        }
+    }
+#endif
+
+    // adjust for speed key / running
+    if ((in_speed.state & 1) ^ cl_run->integer) 
+    {
         VectorScale(move, 2, move);
     }
 }

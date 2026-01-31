@@ -8,7 +8,7 @@
 #include "defines.h"
 
 #if SUPPORT_OPENXR
-
+#include <openxr/openxr.h>
 #include <vulkan/vulkan.h>
 
 VkResult CreateVulkanOpenXRInstance(const VkInstanceCreateInfo* instance_create_info, VkInstance* vk_instance);
@@ -42,6 +42,7 @@ typedef struct
 	DigitalButton grip_;
 
 } VRControllerState;
+
 
 bool Is_OpenXR_Session_Running();
 
