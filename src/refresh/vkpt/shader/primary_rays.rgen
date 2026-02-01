@@ -88,7 +88,7 @@ Ray get_primary_ray(int view_id, vec2 screen_pos)
 		ray.direction = normalize(focal_point - ray.origin);
 	}
 
-	ray.origin += global_ubo.cam_pos[view_id].xyz;
+	ray.origin += global_ubo.invV[view_id][3].xyz;
 
 	return ray;
 }
@@ -218,7 +218,7 @@ main()
 		imageStore(IMG_PT_VIEW_DEPTH_A, ipos, vec4(PRIMARY_RAY_T_MAX));
 		imageStore(IMG_PT_GODRAYS_THROUGHPUT_DIST, ipos, vec4(1, 1, 1, PRIMARY_RAY_T_MAX));
 		imageStore(IMG_PT_VIEW_DIRECTION, ipos, vec4(direction, 0));
-		imageStore(IMG_PT_SHADING_POSITION, ipos, vec4(global_ubo.cam_pos[view_id].xyz + direction * PRIMARY_RAY_T_MAX, 0));
+		imageStore(IMG_PT_SHADING_POSITION, ipos, vec4(global_ubo.invV[view_id][3].xyz + direction * PRIMARY_RAY_T_MAX, 0));
 		imageStore(IMG_PT_MOTION, ipos, vec4(motion, 0, 0));
 		imageStore(IMG_PT_VISBUF_PRIM_A, ipos, uvec4(0));
 		imageStore(IMG_PT_VISBUF_BARY_A, ipos, vec4(0));
@@ -323,7 +323,7 @@ main()
     // Extinction in the primary ray
 	if(global_ubo.medium != MEDIUM_NONE)
 	{
-		throughput *= extinction(global_ubo.medium, length(position - global_ubo.cam_pos[view_id].xyz));
+		throughput *= extinction(global_ubo.medium, length(position - global_ubo.invV[view_id][3].xyz));
 	}
 
 	uint material_id = triangle.material_id;

@@ -51,14 +51,8 @@ Ray get_primary_ray(int view_id, vec2 screen_pos)
 	vec3 view_dir = projection_screen_to_view(view_id, screen_pos, 1, false);
 	view_dir = normalize((global_ubo.invV[view_id] * vec4(view_dir, 0)).xyz);
 
-	// These three options give the EXACT same results. Not approximately. Exactly.
-
-	//vec3 view_origin = global_ubo.cam_pos[view_id].xyz;
-	//vec3 view_origin = (global_ubo.invV[view_id] * vec4(0, 0, 0, 1)).xyz;
-	vec3 view_origin = global_ubo.invV[view_id][3].xyz;
-
 	Ray ray;
-	ray.origin = view_origin;
+	ray.origin = global_ubo.invV[view_id][3].xyz;
 	ray.direction = view_dir;
 	ray.t_min = 0;
 	ray.t_max = 10000;

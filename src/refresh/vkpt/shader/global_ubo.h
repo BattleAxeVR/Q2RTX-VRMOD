@@ -222,7 +222,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 	GLOBAL_UBO_VAR_LIST_DO(vec4,            world_half_size_inv) \
 	\
 	GLOBAL_UBO_VAR_LIST_DO(DynLightData,    dyn_light_data[MAX_LIGHT_SOURCES]) \
-	GLOBAL_UBO_VAR_LIST_DO(vec4,            cam_pos[2]) \
 	GLOBAL_UBO_VAR_LIST_DO(mat4,            V[2]) \
 	GLOBAL_UBO_VAR_LIST_DO(mat4,            invV[2]) \
 	GLOBAL_UBO_VAR_LIST_DO(mat4,            V_prev[2]) \

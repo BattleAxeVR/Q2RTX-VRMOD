@@ -2865,7 +2865,7 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 	const float ipd = fabs(cl_ipd->value);
 
-	if(stereo || SUPPORT_OPENXR)
+	if(false)//stereo || SUPPORT_OPENXR)
 	{
 		XrFovf fov[NUM_EYES] = { 0 };
 
@@ -3176,35 +3176,6 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	ubo->pt_min_log_sky_luminance = exp2f(ubo->pt_min_log_sky_luminance);
 	ubo->pt_max_log_sky_luminance = exp2f(ubo->pt_max_log_sky_luminance);
 
-	memcpy(ubo->cam_pos[LEFT], fd->vieworg, sizeof(float) * 3);
-	memcpy(ubo->cam_pos[RIGHT], fd->vieworg, sizeof(float) * 3);
-
-	if(stereo && ((ipd > 0.0f)|| SUPPORT_OPENXR))
-	{
-#if SUPPORT_OPENXR
-		GetEyePosition(LEFT, ubo->cam_pos[LEFT], 0);
-		GetEyePosition(RIGHT, ubo->cam_pos[RIGHT], 0);
-#else
-
-		vec4_t ipd_offset_left_WS = { 0 };
-		vec4_t ipd_offset_right_WS = { 0 };
-
-		create_view_matrix(true, stereo, LEFT, ipd, ipd_offset_left_WS, vkpt_refdef.view_matrix[LEFT], fd);
-		inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
-
-		create_view_matrix(true, stereo, RIGHT, ipd, ipd_offset_right_WS, vkpt_refdef.view_matrix[RIGHT], fd);
-		inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
-
-		ubo->cam_pos[LEFT][0] += ipd_offset_left_WS[0];
-		ubo->cam_pos[LEFT][1] += ipd_offset_left_WS[1];
-		ubo->cam_pos[LEFT][2] += ipd_offset_left_WS[2];
-
-		ubo->cam_pos[RIGHT][0] += ipd_offset_right_WS[0];
-		ubo->cam_pos[RIGHT][1] += ipd_offset_right_WS[1];
-		ubo->cam_pos[RIGHT][2] += ipd_offset_right_WS[2];
-#endif
-	}
-	
 	ubo->cluster_debug_index = cluster_debug_index;
 
 	if (!temporal_frame_valid)
