@@ -225,7 +225,7 @@ void create_orthographic_matrix(mat4_t matrix, float xmin, float xmax, float ymi
 	matrix[15] = 1;
 }
 
-void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd, mat4_t view_matrix, refdef_t *fd)
+void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd, vec4_t ipd_offset_WS, mat4_t view_matrix, refdef_t *fd)
 {
 	vec3_t viewaxis[3];
 	AnglesToAxis(fd->viewangles, viewaxis);
@@ -267,25 +267,34 @@ void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd,
 
 	if(stereo && (abs_ipd > 0.0f))
 	{
-		const float ipd_offset_mag = (view_id == LEFT) ? (-abs_ipd * 0.5f) : (abs_ipd * 0.5f);
-		const vec4_t ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 1.0f };
-		vec4_t ipd_offset_WS = { 0 };
+		const float half_ipd = (abs_ipd * 0.5f);
 
-		mult_matrix_vector(ipd_offset_WS, view_matrix, ipd_offset_LS); // todo: this should be inverted
+		mat4_t view_matrix_inv = { 0 };
+		inverse(view_matrix, view_matrix_inv);
+
+		const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
+		const vec4_t ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 0.0f };
+
+		mult_matrix_vector(ipd_offset_WS, view_matrix_inv, ipd_offset_LS);
 
 		view_matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
 		view_matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
 		view_matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
 
-		view_matrix[12] += DotProduct(viewaxis[1], ipd_offset_WS);
-		view_matrix[13] -= DotProduct(viewaxis[2], ipd_offset_WS);
-		view_matrix[14] -= DotProduct(viewaxis[1], ipd_offset_WS);
+		view_matrix[12] += ipd_offset_WS[0];
+		view_matrix[13] += ipd_offset_WS[1];
+		view_matrix[14] += ipd_offset_WS[2];
 	}
 	else
 	{
 		view_matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
 		view_matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
 		view_matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
+
+		ipd_offset_WS[0] = 0.0f;
+		ipd_offset_WS[1] = 0.0f;
+		ipd_offset_WS[2] = 0.0f;
+		ipd_offset_WS[3] = 0.0f;
 	}
 }
 

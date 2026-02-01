@@ -2823,8 +2823,11 @@ static void prepare_viewmatrix(refdef_t *fd)
 
 	const bool zero_out_pitch = false;// (stereo && ZERO_OUT_PITCH);
 
-	create_view_matrix(zero_out_pitch, stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
-	create_view_matrix(zero_out_pitch, stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
+	vec4_t ipd_offset_left_WS = { 0 };
+	vec4_t ipd_offset_right_WS = { 0 };
+
+	create_view_matrix(zero_out_pitch, stereo, LEFT, ipd, ipd_offset_left_WS, vkpt_refdef.view_matrix[LEFT], fd);
+	create_view_matrix(zero_out_pitch, stereo, RIGHT, ipd, ipd_offset_right_WS, vkpt_refdef.view_matrix[RIGHT], fd);
 
 #if SUPPORT_OPENXR
 	if(stereo)
@@ -2862,7 +2865,7 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 	const float ipd = fabs(cl_ipd->value);
 
-	if(false)//stereo || SUPPORT_OPENXR)
+	if(stereo || SUPPORT_OPENXR)
 	{
 		XrFovf fov[NUM_EYES] = { 0 };
 
@@ -2924,13 +2927,13 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 			if(override_down_fov)
 			{
-				const float down_fov_rad_override = DEG2RAD(fabs(cl_fov_down->value));
+				const float down_fov_rad_override = -DEG2RAD(fabs(cl_fov_down->value));
 
-				fov[LEFT].angleDown = fov[RIGHT].angleDown = -down_fov_rad_override;
+				fov[LEFT].angleDown = fov[RIGHT].angleDown = down_fov_rad_override;
 			}
 			else
 			{
-				fov[LEFT].angleDown = fov[RIGHT].angleDown = -DOWNWARD_FOV_RAD;
+				fov[LEFT].angleDown = fov[RIGHT].angleDown = DOWNWARD_FOV_RAD;
 			}
 		}
 
@@ -3182,23 +3185,15 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 		GetEyePosition(LEFT, ubo->cam_pos[LEFT], 0);
 		GetEyePosition(RIGHT, ubo->cam_pos[RIGHT], 0);
 #else
-		create_view_matrix(true, stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
-		inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
-
-		create_view_matrix(true, stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
-		inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
-
-		const float ipd_offset_mag_left = (-ipd * 0.5f);
-		const float ipd_offset_mag_right = (ipd * 0.5f);
-
-		const vec4_t ipd_offset_left_LS = { ipd_offset_mag_left, 0.0f, 0.0f, 0.0f };
-		const vec4_t ipd_offset_right_LS = { ipd_offset_mag_right, 0.0f, 0.0f, 0.0f };
 
 		vec4_t ipd_offset_left_WS = { 0 };
 		vec4_t ipd_offset_right_WS = { 0 };
 
-		mult_matrix_vector(ipd_offset_left_WS, vkpt_refdef.view_matrix_inv[LEFT], ipd_offset_left_LS);
-		mult_matrix_vector(ipd_offset_right_WS, vkpt_refdef.view_matrix_inv[RIGHT], ipd_offset_right_LS);
+		create_view_matrix(true, stereo, LEFT, ipd, ipd_offset_left_WS, vkpt_refdef.view_matrix[LEFT], fd);
+		inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
+
+		create_view_matrix(true, stereo, RIGHT, ipd, ipd_offset_right_WS, vkpt_refdef.view_matrix[RIGHT], fd);
+		inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 
 		ubo->cam_pos[LEFT][0] += ipd_offset_left_WS[0];
 		ubo->cam_pos[LEFT][1] += ipd_offset_left_WS[1];
