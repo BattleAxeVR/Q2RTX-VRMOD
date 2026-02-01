@@ -92,9 +92,13 @@ cvar_t *cvar_ui_hdr_nits = NULL; /* HDR mode UI (stretch pic) brightness in nits
 
 extern cvar_t *scr_viewsize;
 extern cvar_t *cvar_bloom_enable;
-extern cvar_t* cvar_flt_taa;
+extern cvar_t *cvar_flt_taa;
 extern cvar_t *cl_stereo;
-extern cvar_t* cl_ipd;
+extern cvar_t *cl_ipd;
+extern cvar_t *cl_fov_outward;
+extern cvar_t *cl_fov_inward;
+extern cvar_t *cl_fov_up;
+extern cvar_t *cl_fov_down;
 
 static int drs_current_scale = 0;
 static int drs_effective_scale = 0;
@@ -2858,28 +2862,76 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 	const float ipd = fabs(cl_ipd->value);
 
-	if(stereo|| SUPPORT_OPENXR)
+	if(stereo || SUPPORT_OPENXR)
 	{
 		XrFovf fov[NUM_EYES] = { 0 };
 
+		const bool override_outward_fov = (cl_fov_outward->value != 0.0f);
+		const bool override_inward_fov = (cl_fov_inward->value != 0.0f);
+		const bool override_up_fov = (cl_fov_up->value != 0.0f);
+		const bool override_down_fov = (cl_fov_down->value != 0.0f);
+
+		bool override_fov = (override_outward_fov || override_inward_fov || override_up_fov || override_down_fov);
+
 #if SUPPORT_OPENXR
-		if(!GetFov(LEFT, &fov[LEFT]) || !GetFov(RIGHT, &fov[RIGHT]))
+		if (override_fov || !GetFov(LEFT, &fov[LEFT]) || !GetFov(RIGHT, &fov[RIGHT]))
 #endif
 		{
 			//Hardcoded PSVR 2 defaults, for testing/debugging/fallback
-			const float UPWARD_FOV = DEG2RAD(53.0401382f);
-			const float OUTWARD_FOV = DEG2RAD(61.4999962f);
-			const float INWARD_FOV = DEG2RAD(43.4464722f);
+			const float UPWARD_FOV_RAD   = DEG2RAD(53.0401382f);
+			const float DOWNWARD_FOV_RAD = -UPWARD_FOV_RAD;
 
-			fov[LEFT].angleUp = UPWARD_FOV;
-			fov[LEFT].angleDown = -UPWARD_FOV;
-			fov[LEFT].angleLeft = -OUTWARD_FOV;
-			fov[LEFT].angleRight = INWARD_FOV;
+			const float OUTWARD_FOV_RAD  = DEG2RAD(61.4999962f);
+			const float INWARD_FOV_RAD   = DEG2RAD(43.4464722f);
 
-			fov[RIGHT].angleUp = UPWARD_FOV;
-			fov[RIGHT].angleDown = -UPWARD_FOV;
-			fov[RIGHT].angleLeft = -INWARD_FOV;
-			fov[RIGHT].angleRight = OUTWARD_FOV;
+			if(override_outward_fov)
+			{
+				const float outward_fov_rad_override = DEG2RAD(fabs(cl_fov_outward->value));
+
+				fov[LEFT].angleLeft = -outward_fov_rad_override;
+				fov[RIGHT].angleRight = outward_fov_rad_override;
+			}
+			else
+			{
+				fov[LEFT].angleLeft = -OUTWARD_FOV_RAD;
+				fov[RIGHT].angleRight = OUTWARD_FOV_RAD;
+			}
+
+			if(override_inward_fov)
+			{
+				const float inward_fov_rad_override = DEG2RAD(fabs(cl_fov_inward->value));
+
+				fov[LEFT].angleRight = inward_fov_rad_override;
+				fov[RIGHT].angleLeft = -inward_fov_rad_override;
+				
+			}
+			else
+			{
+				fov[LEFT].angleRight = INWARD_FOV_RAD;
+				fov[RIGHT].angleLeft = -INWARD_FOV_RAD;
+			}
+
+			if(override_up_fov)
+			{
+				const float up_fov_rad_override = DEG2RAD(fabs(cl_fov_up->value));
+
+				fov[LEFT].angleUp = fov[RIGHT].angleUp = up_fov_rad_override;
+			}
+			else
+			{
+				fov[LEFT].angleUp = fov[RIGHT].angleUp = UPWARD_FOV_RAD;
+			}
+
+			if(override_down_fov)
+			{
+				const float down_fov_rad_override = DEG2RAD(fabs(cl_fov_down->value));
+
+				fov[LEFT].angleDown = fov[RIGHT].angleDown = -down_fov_rad_override;
+			}
+			else
+			{
+				fov[LEFT].angleDown = fov[RIGHT].angleDown = -DOWNWARD_FOV_RAD;
+			}
 		}
 
 		float nearz = vkpt_refdef.z_near;

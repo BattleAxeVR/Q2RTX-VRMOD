@@ -39,6 +39,11 @@ cvar_t  *cl_async;
 cvar_t  *r_maxfps;
 cvar_t  *cl_stereo;
 cvar_t  *cl_ipd;
+cvar_t  *cl_fov_outward;
+cvar_t  *cl_fov_inward;
+cvar_t  *cl_fov_up;
+cvar_t  *cl_fov_down;
+
 cvar_t  *cl_autopause;
 
 cvar_t  *cl_kickangles;
@@ -2829,6 +2834,11 @@ static void CL_InitLocal(void)
 
     cl_stereo = Cvar_Get("stereo", "1", 0);
     cl_ipd = Cvar_Get("ipd", "0", 0);
+
+    cl_fov_outward = Cvar_Get("fov_outward", "0", 0);
+    cl_fov_inward = Cvar_Get("fov_inward", "0", 0);
+    cl_fov_up = Cvar_Get("fov_up", "0", 0);
+    cl_fov_down = Cvar_Get("fov_down", "0", 0);
 
     cl_timeout = Cvar_Get("cl_timeout", "120", 0);
     cl_timeout->changed = cl_timeout_changed;
