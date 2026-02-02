@@ -468,7 +468,7 @@ void mult_matrix_vector(vec4_t v, const mat4_t a, const vec4_t b);
 void create_entity_matrix(int view_id, mat4_t matrix, entity_t *e);
 void create_viewweapon_matrix(int stereo, int view_id, mat4_t matrix, entity_t *e);
 void create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_x, float fov_y);
-void create_projection_matrixXR(float* znear_ptr, float* zfar_ptr, XrFovf* fov, mat4_t matrix);
+void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t matrix);
 void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd, vec4_t ipd_offset_WS, mat4_t matrix, refdef_t *fd);
 void inverse(const mat4_t m, mat4_t inv);
 void create_orthographic_matrix(mat4_t matrix, float xmin, float xmax,

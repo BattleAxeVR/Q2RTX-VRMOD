@@ -155,11 +155,8 @@ void create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_
 	matrix[15] = 0;
 }
 
-void create_projection_matrixXR(float* znear_ptr, float* zfar_ptr, XrFovf* fov, mat4_t matrix)
+void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t matrix)
 {
-	float znear = *znear_ptr;
-	float zfar = *zfar_ptr;
-
 	float xmin, xmax, ymin, ymax;
 	float width, height, depth;
 
