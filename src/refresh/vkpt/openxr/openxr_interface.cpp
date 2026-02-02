@@ -2787,7 +2787,6 @@ glm::mat4 create_projection(const float tan_left, const float tan_right, const f
 	return projection;
 }
 
-
 glm::mat4 create_projection(const XrFovf& fov, const float nearZ, const float farZ, const bool flip_vertical)
 {
 	static float aspect_ratio = 1.0f;
@@ -2925,12 +2924,21 @@ extern "C"
 			return false;
 		}
 
-		const glm::vec3 game_euler_rad = { deg2rad(-180.0f), deg2rad(yaw_deg), 0.0f };
+		static float deg_x = 0.0f;
+		static float deg_y = 0.0f;
+		static float deg_z = 0.0f;
+
+		const glm::vec3 extra_euler_rad = { deg2rad(deg_x), deg2rad(deg_y), deg2rad(deg_z) };
+		const glm::fquat extra_rotation = glm::fquat(extra_euler_rad);
+
+		const glm::vec3 game_euler_rad = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation = glm::fquat(game_euler_rad);
+
+		const glm::fquat final_rotation = game_rotation * extra_rotation;
 
 		const glm::vec3 game_position = { eye_pos_vec3[0], eye_pos_vec3[1], eye_pos_vec3[2] };
 
-		const BVR::GLMPose game_pose = BVR::GLMPose(game_position, game_rotation);
+		const BVR::GLMPose game_pose = BVR::GLMPose(game_position, final_rotation);
 		const glm::mat4 game_view_matrix = game_pose.to_matrix();
 
 		const XrPosef& xr_pose = xr_view.pose;
