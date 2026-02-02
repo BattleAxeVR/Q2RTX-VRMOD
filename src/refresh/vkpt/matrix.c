@@ -155,9 +155,8 @@ void create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_
 	matrix[15] = 0;
 }
 
-void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t matrix)
+void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t projection_matrix)
 {
-#if 0
 	float aspect_ratio = 1.0f;
 
 	const float tan_left = tanf(fov->angleLeft) * aspect_ratio;
@@ -172,59 +171,59 @@ void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t mat
 	const float tan_height = (tan_down - tan_up);
 	const float tan_up_down_sum = (tan_up + tan_down);
 
-	matrix[0] = 2.0f / tan_width;
-	matrix[4] = 0.0f;
-	matrix[8] = tan_right_left_sum / tan_width;
-	matrix[12] = 0.0f;
 
-	matrix[1] = 0.0f;
-	matrix[5] = 2.0f / tan_height;
-	matrix[9] = tan_up_down_sum / tan_height;
-	matrix[13] = 0.0f;
+#if 0
 
-	matrix[2] = 0.0f;
-	matrix[6] = 0.0f;
-	matrix[10] = -zfar / (zfar - znear);
-	matrix[14] = -(zfar * znear) / (zfar - znear);
+	projection_matrix[0] = 2.0f / tan_width;
+	projection_matrix[4] = 0.0f;
+	projection_matrix[8] = tan_right_left_sum / tan_width;
+	projection_matrix[12] = 0.0f;
 
-	matrix[3] = 0.0f;
-	matrix[7] = 0.0f;
-	matrix[11] = -1.0f;
-	matrix[15] = 0.0f;
+	projection_matrix[1] = 0.0f;
+	projection_matrix[5] = 2.0f / tan_height;
+	projection_matrix[9] = tan_up_down_sum / tan_height;
+	projection_matrix[13] = 0.0f;
+
+	projection_matrix[2] = 0.0f;
+	projection_matrix[6] = 0.0f;
+	projection_matrix[10] = -zfar / (zfar - znear);
+	projection_matrix[14] = -(zfar * znear) / (zfar - znear);
+
+	projection_matrix[3] = 0.0f;
+	projection_matrix[7] = 0.0f;
+	projection_matrix[11] = -1.0f;
+	projection_matrix[15] = 0.0f;
 #else
 
-	float xmin, xmax, ymin, ymax;
-	float width, height, depth;
+	float ymax = znear * tan_up;
+	float ymin = znear * tan_down;
 
-	ymax = znear * tanf(fov->angleUp);
-	ymin = znear * tanf(fov->angleDown);
+	float xmax = znear * tan_right;
+	float xmin = znear * tan_left;
 
-	xmax = znear * tanf(fov->angleRight);
-	xmin = znear * tanf(fov->angleLeft);
+	float width = xmax - xmin;
+	float height = ymax - ymin;
+	float depth = zfar - znear;
 
-	width = xmax - xmin;
-	height = ymax - ymin;
-	depth = zfar - znear;
+	projection_matrix[0] = 2.0f * znear / width;
+	projection_matrix[4] = 0.0f;
+	projection_matrix[8] = (xmax + xmin) / width;
+	projection_matrix[12] = 0.0f;
 
-	matrix[0] = 2 * znear / width;
-	matrix[4] = 0;
-	matrix[8] = (xmax + xmin) / width;
-	matrix[12] = 0;
+	projection_matrix[1] = 0.0f;
+	projection_matrix[5] = -2.0f * znear / height;
+	projection_matrix[9] = (ymax + ymin) / height;
+	projection_matrix[13] = 0.0f;
 
-	matrix[1] = 0;
-	matrix[5] = -2 * znear / height;
-	matrix[9] = (ymax + ymin) / height;
-	matrix[13] = 0;
+	projection_matrix[2] = 0.0f;
+	projection_matrix[6] = 0.0f;
+	projection_matrix[10] = (zfar + znear) / depth;
+	projection_matrix[14] = 2.0f * zfar * znear / depth;
 
-	matrix[2] = 0;
-	matrix[6] = 0;
-	matrix[10] = (zfar + znear) / depth;
-	matrix[14] = 2 * zfar * znear / depth;
-
-	matrix[3] = 0;
-	matrix[7] = 0;
-	matrix[11] = 1;
-	matrix[15] = 0;
+	projection_matrix[3] = 0.0f;
+	projection_matrix[7] = 0.0f;
+	projection_matrix[11] = 1.0f;
+	projection_matrix[15] = 0.0f;
 #endif
 }
 
