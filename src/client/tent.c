@@ -1082,7 +1082,7 @@ SUSTAIN MANAGEMENT
 
 #define MAX_SUSTAINS    32
 
-static cl_sustain_t     cl_sustains[MAX_SUSTAINS];
+static cl_sustain_t cl_sustains[MAX_SUSTAINS];
 
 static void CL_ClearSustains(void)
 {
