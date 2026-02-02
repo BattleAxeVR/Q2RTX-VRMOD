@@ -902,7 +902,7 @@ bool XRInputState::update()
 
 			if(trigger_value.isActive == XR_TRUE)
 			{
-				if(trigger_value.currentState > 0.1f)
+				if(trigger_value.currentState > 0.0f)
 				{
 					openxr_.set_trigger_squeezed((uint)hand, true);
 					openxr_.update_trigger((uint)hand, trigger_value.currentState);
@@ -923,11 +923,13 @@ bool XRInputState::update()
 				else
 				{
 					openxr_.set_trigger_squeezed((uint)hand, false);
+					openxr_.update_trigger((uint)hand, 0.0f);
 				}
 			}
 			else
 			{
-				openxr_.set_trigger_squeezed((uint)hand, false);
+				//openxr_.set_trigger_squeezed((uint)hand, false);
+				//openxr_.update_trigger((uint)hand, 0.0f);
 			}
 		}
 #endif

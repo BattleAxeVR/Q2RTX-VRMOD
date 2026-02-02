@@ -57,6 +57,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "../refresh/vkpt/openxr/openxr_c_interface.h"
 VRControllerState left_vr_controller = {0};
 VRControllerState right_vr_controller = {0};
+
+extern void vr_button_event_XA(int hand_id, bool is_down, unsigned time);
+extern void vr_button_event_BY(int hand_id, bool is_down, unsigned time);
+extern void vr_button_event_trigger(int hand_id, bool is_down, unsigned time);
+extern void vr_button_event_grip(int hand_id, bool is_down, unsigned time);
+extern void vr_button_event_joystick_press(int hand_id, bool is_down, unsigned time);
 #endif
 
 #if USE_DEBUG
@@ -1127,15 +1133,96 @@ void Qcommon_Frame(void)
 #if SUPPORT_OPENXR
     OpenXR_Update();
 
-    GetVRControllerState(LEFT, true, &left_vr_controller);
-    GetVRControllerState(RIGHT, true, &right_vr_controller);
+    if(Is_OpenXR_Session_Running())
+    {
+        GetVRControllerState(LEFT, true, &left_vr_controller);
+        GetVRControllerState(RIGHT, true, &right_vr_controller);
+
+        const float deadzone = 0.01f;
+        unsigned time = Sys_Milliseconds();
+
+        if(left_vr_controller.trigger_.is_down_)//was_pressed_)
+        {
+            vr_button_event_trigger(LEFT, true, time);
+        }
+        else if (!left_vr_controller.trigger_.is_down_)//left_vr_controller.trigger_.was_released_)
+        {
+            vr_button_event_trigger(LEFT, false, time);
+        }
+
+        if(right_vr_controller.trigger_.is_down_)//was_pressed_)
+        {
+            vr_button_event_trigger(RIGHT, true, time);
+        }
+        else if (!right_vr_controller.trigger_.is_down_)//was_released_)
+        {
+            vr_button_event_trigger(RIGHT, false, time);
+        }
+
+        if(left_vr_controller.XA_button_.was_pressed_)
+        {
+            vr_button_event_XA(LEFT, true, time);
+        }
+        else if (left_vr_controller.XA_button_.was_released_)
+        {
+            vr_button_event_XA(LEFT, false, time);
+        }
+
+        if(right_vr_controller.XA_button_.was_pressed_)
+        {
+            vr_button_event_XA(RIGHT, true, time);
+        }
+        else if (right_vr_controller.XA_button_.was_released_)
+        {
+            vr_button_event_XA(RIGHT, false, time);
+        }
+
+        if(left_vr_controller.BY_button_.was_pressed_)
+        {
+            vr_button_event_BY(LEFT, true, time);
+        }
+        else if (left_vr_controller.BY_button_.was_released_)
+        {
+            vr_button_event_BY(LEFT, false, time);
+        }
+
+        if(right_vr_controller.BY_button_.was_pressed_)
+        {
+            vr_button_event_BY(RIGHT, true, time);
+        }
+        else if (right_vr_controller.BY_button_.was_released_)
+        {
+            vr_button_event_BY(RIGHT, false, time);
+        }
+
+        if(left_vr_controller.joystick_button_.was_pressed_)
+        {
+            vr_button_event_joystick_press(LEFT, true, time);
+        }
+        else if (left_vr_controller.joystick_button_.was_released_)
+        {
+            vr_button_event_joystick_press(LEFT, false, time);
+        }
+
+        if(right_vr_controller.joystick_button_.was_pressed_)
+        {
+            vr_button_event_joystick_press(RIGHT, true, time);
+        }
+        else if (right_vr_controller.joystick_button_.was_released_)
+        {
+            vr_button_event_joystick_press(RIGHT, false, time);
+        }
+    }
+
 #endif
 
     if (host_speeds->integer)
         time_between = Sys_Milliseconds();
 
     clientrem = CL_Frame(msec);
-    if (remaining > clientrem) {
+
+    if (remaining > clientrem) 
+    {
         remaining = clientrem;
     }
 

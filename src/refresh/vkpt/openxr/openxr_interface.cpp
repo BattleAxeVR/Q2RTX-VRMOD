@@ -2506,12 +2506,16 @@ void OpenXR::update_trigger(const uint hand, const float trigger_value)
 
 float OpenXR::get_trigger(const uint hand) const
 {
+	return triggers_[hand];
+
+	/*
 	if (is_trigger_squeezed(hand))
 	{
 		return triggers_[hand];
 	}
 
 	return 0.0f;
+	*/
 }
 
 void OpenXR::update_grip(const uint hand, const float grip_value)
@@ -3059,20 +3063,21 @@ extern "C"
 
 	void set_button_analog_value(DigitalButton& button, const float analog_value)
 	{
-		const float pressed_threshold = 0.8f;
-		const float released_threshold = 0.2f;
+#if 1
+		set_button_state(button, analog_value >= ANALOG_PRESSED_THRESHOLD);
+#else
+		const float pressed_threshold = ANALOG_PRESSED_THRESHOLD;
+		const float released_threshold = ANALOG_RELEASED_THRESHOLD;
 
-		if((button.analog_value_ == 0.0f) && (analog_value > pressed_threshold))
+		if(analog_value >= ANALOG_PRESSED_THRESHOLD)
 		{
-			button.was_pressed_ = true;
-			button.was_released_ = false;
+			set_button_state(button, true);
 		}
-		else if((button.analog_value_ > 0.0f) && (analog_value < released_threshold))
+		else if(analog_value <= ANALOG_RELEASED_THRESHOLD)
 		{
-			button.was_released_ = true;
-			button.was_pressed_ = false;
+			set_button_state(button, false);
 		}
-
+#endif
 		button.analog_value_ = analog_value;
 		button.has_analog_value_ = true;
 	}
@@ -3093,15 +3098,17 @@ extern "C"
 			set_button_analog_value(trigger_button, trigger_value);
 
 			DigitalButton& grip_click_button = vr_controller_state.grip_;
-
 			const float grip_value = openxr_.get_grip(hand_id);
 			set_button_analog_value(grip_click_button, grip_value);
 
 			const bool is_gripping = openxr_.is_hand_gripping(hand_id);
 			set_button_state(grip_click_button, is_gripping);
 
-			vr_controller_state.thumbstick_values_[0] = openxr_.get_stick_x_value(hand_id);
-			vr_controller_state.thumbstick_values_[1] = openxr_.get_stick_y_value(hand_id);
+			const float stick_x_value = openxr_.get_stick_x_value(hand_id);
+			vr_controller_state.thumbstick_values_[0] = stick_x_value;
+
+			const float stick_y_value = openxr_.get_stick_y_value(hand_id);
+			vr_controller_state.thumbstick_values_[1] = stick_y_value;
 
 			DigitalButton& XA_button = vr_controller_state.XA_button_;
 			const bool is_XA_down = openxr_.XA_button_down_[hand_id];
