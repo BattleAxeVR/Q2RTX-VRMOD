@@ -1244,6 +1244,11 @@ void SCR_Init(void)
     scr_crosshair = Cvar_Get("crosshair", "0", CVAR_ARCHIVE);
     scr_crosshair->changed = scr_crosshair_changed;
 
+#if SUPPORT_OPENXR
+    // Disable screenspace crosshair in VR, it's not visible / relevant anyway
+    scr_crosshair->value = 0.0f;
+#endif
+
     scr_chathud = Cvar_Get("scr_chathud", "0", 0);
     scr_chathud_lines = Cvar_Get("scr_chathud_lines", "4", 0);
     scr_chathud_time = Cvar_Get("scr_chathud_time", "0", 0);
