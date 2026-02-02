@@ -7,6 +7,9 @@
 
 #define SUPPORT_GAMEPADS 1
 
+#define ANALOG_PRESSED_THRESHOLD 0.5f
+#define ANALOG_RELEASED_THRESHOLD 0.1f
+
 #define INVALID_INDEX -1 
 
 #define LEFT 0
