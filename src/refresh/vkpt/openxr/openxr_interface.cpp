@@ -2752,12 +2752,12 @@ glm::mat4 create_projection(const float tan_left, const float tan_right, const f
 
 		projection[0][2] = 0.0f;
 		projection[1][2] = 0.0f;
-		projection[2][2] = -1.0f;
+		projection[2][2] = 1.0f;
 		projection[3][2] = -nearZ;
 
 		projection[0][3] = 0.0f;
 		projection[1][3] = 0.0f;
-		projection[2][3] = -1.0f;
+		projection[2][3] = 1.0f;
 		projection[3][3] = 0.0f;
 	}
 	else 
@@ -2775,12 +2775,12 @@ glm::mat4 create_projection(const float tan_left, const float tan_right, const f
 
 		projection[0][2] = 0.0f;
 		projection[1][2] = 0.0f;
-		projection[2][2] = -farZ / (farZ - nearZ);
-		projection[3][2] = -(farZ * nearZ) / (farZ - nearZ);
+		projection[2][2] = farZ / (farZ - nearZ);
+		projection[3][2] = 2.0f * (farZ * nearZ) / (farZ - nearZ);
 
 		projection[0][3] = 0.0f;
 		projection[1][3] = 0.0f;
-		projection[2][3] = -1.0f;
+		projection[2][3] = 1.0f;
 		projection[3][3] = 0.0f;
 	}
 
@@ -2790,7 +2790,7 @@ glm::mat4 create_projection(const float tan_left, const float tan_right, const f
 
 glm::mat4 create_projection(const XrFovf& fov, const float nearZ, const float farZ, const bool flip_vertical)
 {
-	const float aspect_ratio = 1.0f;
+	const float aspect_ratio = 0.5f;
 
 	const float tan_left = tanf(fov.angleLeft) * aspect_ratio;
 	const float tan_right = tanf(fov.angleRight) * aspect_ratio;
@@ -2925,7 +2925,7 @@ extern "C"
 			return false;
 		}
 
-		const glm::vec3 game_euler_rad = { 0.0f, deg2rad(yaw_deg), 0.0f };
+		const glm::vec3 game_euler_rad = { deg2rad(-90.0f), deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation = glm::fquat(game_euler_rad);
 
 		const glm::vec3 game_position = { eye_pos_vec3[0], eye_pos_vec3[1], eye_pos_vec3[2] };
@@ -2942,7 +2942,7 @@ extern "C"
 
 		if(apply_game_matrix)
 		{
-			glm_inverse_view_matrix = glm_inverse_view_matrix * game_view_matrix;
+			glm_inverse_view_matrix = game_view_matrix * glm_inverse_view_matrix;
 		}
 
 		memcpy(view_matrix_inv_ptr, &glm_inverse_view_matrix, sizeof(float) * 16);
