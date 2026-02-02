@@ -2977,10 +2977,7 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 		float nearz = vkpt_refdef.z_near;
 		float farz = vkpt_refdef.z_far;
 
-		float left_raw_proj[16] = { 0 };
 		create_projection_matrixXR(nearz, farz, &fov[LEFT], P[LEFT]);
-
-		float right_raw_proj[16] = { 0 };
 		create_projection_matrixXR(nearz, farz, &fov[RIGHT], P[RIGHT]);
 	}
 	else
