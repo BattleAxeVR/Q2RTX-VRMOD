@@ -118,13 +118,13 @@ main()
 {
     vec2 uv = tex_coord;
 
+    vec3 color = vec3(0, 0, 0);
+
+    //vec2 uv_mult = vec2(1.0f, 1.0f);
+    vec2 uv_mult = push.input_dimensions / vec2(global_ubo.taa_image_width, global_ubo.taa_image_height);
+
     if (push.stereo == 1)
     {
-        vec2 final_uv_mult = push.input_dimensions / vec2(global_ubo.taa_image_width, global_ubo.taa_image_height);
-        //uv *= final_uv_mult;
-
-        vec3 color = vec3(0, 0, 0);
-
         if (push.view_id == 0)
         {
             // Left eye
@@ -136,6 +136,8 @@ main()
              uv.x += push.uv_mult.y; // use y as bias for testing, since we don't need to scale V normally
              uv.x += 1.5f;
         }
+        
+        uv *= uv_mult;
 
         color = textureLod(final_blit_input_image, uv, 0).rgb;
         outColor = vec4(color, 1);
@@ -143,7 +145,8 @@ main()
     }
     else
     {
-        if (spec_final_blit_water_warp != 0) {
+        if (spec_final_blit_water_warp != 0) 
+        {
             uv += vec2(0.00666) * sin(uv.ts * vec2(M_PI * 10) + global_ubo.time);
 
             // Warping will push 'uv' outside the rendered area near the borders, so clamp it
@@ -151,15 +154,17 @@ main()
             uv = clamp(uv, 0.5 * input_dim_inv, vec2(1) - 1.5 * input_dim_inv);
         }
 
-        uv *= push.input_dimensions / vec2(global_ubo.taa_image_width, global_ubo.taa_image_height);
-
+        uv *= uv_mult;
     }
 
-    vec3 color;
     if(spec_final_blit_filter_lanczos != 0)
+    {
         color = filter_lanczos(final_blit_input_image, uv);
+    }
     else
+    {
         color = textureLod(final_blit_input_image, uv, 0).rgb;
+    }
 
     vec4 lines_color = textureLod(debug_lines_input_image, tex_coord, 0);
     color.rgb = color.rgb * (1 - lines_color.a) + lines_color.rgb * global_ubo.ui_color_scale;
