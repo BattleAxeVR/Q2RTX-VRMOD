@@ -157,6 +157,42 @@ void create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_
 
 void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t matrix)
 {
+#if 0
+	float aspect_ratio = 1.0f;
+
+	const float tan_left = tanf(fov->angleLeft) * aspect_ratio;
+	const float tan_right = tanf(fov->angleRight) * aspect_ratio;
+
+	const float tan_up = tanf(fov->angleUp);
+	const float tan_down = tanf(fov->angleDown);
+
+	const float tan_width = (tan_right - tan_left);
+	const float tan_right_left_sum = (tan_right + tan_left);
+
+	const float tan_height = (tan_down - tan_up);
+	const float tan_up_down_sum = (tan_up + tan_down);
+
+	matrix[0] = 2.0f / tan_width;
+	matrix[4] = 0.0f;
+	matrix[8] = tan_right_left_sum / tan_width;
+	matrix[12] = 0.0f;
+
+	matrix[1] = 0.0f;
+	matrix[5] = 2.0f / tan_height;
+	matrix[9] = tan_up_down_sum / tan_height;
+	matrix[13] = 0.0f;
+
+	matrix[2] = 0.0f;
+	matrix[6] = 0.0f;
+	matrix[10] = -zfar / (zfar - znear);
+	matrix[14] = -(zfar * znear) / (zfar - znear);
+
+	matrix[3] = 0.0f;
+	matrix[7] = 0.0f;
+	matrix[11] = -1.0f;
+	matrix[15] = 0.0f;
+#else
+
 	float xmin, xmax, ymin, ymax;
 	float width, height, depth;
 
@@ -189,6 +225,7 @@ void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t mat
 	matrix[7] = 0;
 	matrix[11] = 1;
 	matrix[15] = 0;
+#endif
 }
 
 
