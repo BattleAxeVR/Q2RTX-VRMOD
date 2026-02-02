@@ -239,10 +239,16 @@ void V_Flashlight(const entity_t *ent, const centity_state_t *cent_state)
          * the flashlight doesn't also light the view weapon. */
         VectorMA(light_pos, flashlight_offset[2] * cl_gunscale->value, view_dir, light_pos);
         float leftright = flashlight_offset[0] * cl_gunscale->value;
+
         if(info_hand->integer == 1)
+        {
             leftright = -leftright; // left handed
+        }
         else if(info_hand->integer == 2)
-            leftright = 0.f; // "center" handed
+        {
+            leftright = 0.0f; // "center" handed
+        }
+
         VectorMA(light_pos, leftright, right_dir, light_pos);
         VectorMA(light_pos, flashlight_offset[1] * cl_gunscale->value, up_dir, light_pos);
     } else {

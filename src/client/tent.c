@@ -885,57 +885,81 @@ static void CL_AddPlayerBeams(void)
     float       hand_multiplier;
     player_state_t  *ps, *ops;
 
-    if (info_hand->integer == 2)
+    if(info_hand->integer == 2)
+    {
         hand_multiplier = 0;
-    else if (info_hand->integer == 1)
+    }
+    else if(info_hand->integer == 1)
+    {
+        // Left handed
         hand_multiplier = -1;
+    }
     else
+    {
+        // Right handed
         hand_multiplier = 1;
+    }
 
-// update beams
-    for (i = 0, b = cl_playerbeams; i < MAX_BEAMS; i++, b++) {
-        if (!b->model || b->endtime < cl.time)
+    // update beams
+    for (i = 0, b = cl_playerbeams; i < MAX_BEAMS; i++, b++) 
+    {
+        if(!b->model || b->endtime < cl.time)
+        {
             continue;
+        }
 
         // if coming from the player, update the start position
-        if (b->entity == cl.frame.clientNum + 1) {
+        if (b->entity == cl.frame.clientNum + 1) 
+        {
             // set up gun position
             ps = CL_KEYPS;
             ops = CL_OLDKEYPS;
 
-            for (j = 0; j < 3; j++)
-                b->start[j] = cl.refdef.vieworg[j] + ops->gunoffset[j] +
-                    CL_KEYLERPFRAC * (ps->gunoffset[j] - ops->gunoffset[j]);
+            for(j = 0; j < 3; j++)
+            {
+                b->start[j] = cl.refdef.vieworg[j] + ops->gunoffset[j] + CL_KEYLERPFRAC * (ps->gunoffset[j] - ops->gunoffset[j]);
+            }
 
             VectorMA(b->start, (hand_multiplier * b->offset[0]), cl.v_right, org);
             VectorMA(org, b->offset[1], cl.v_forward, org);
             VectorMA(org, b->offset[2], cl.v_up, org);
-            if (info_hand->integer == 2)
+
+            if(info_hand->integer == 2)
+            {
                 VectorMA(org, -1, cl.v_up, org);
+            }
 
             // calculate pitch and yaw
             VectorSubtract(b->end, org, dist);
 
-            if (b->model != cl_mod_grapple_cable) {
+            if (b->model != cl_mod_grapple_cable) 
+            {
                 // FIXME: don't add offset twice?
                 d = VectorLength(dist);
                 VectorScale(cl.v_forward, d, dist);
                 VectorMA(dist, (hand_multiplier * b->offset[0]), cl.v_right, dist);
                 VectorMA(dist, b->offset[1], cl.v_forward, dist);
                 VectorMA(dist, b->offset[2], cl.v_up, dist);
-                if (info_hand->integer == 2)
+
+                if(info_hand->integer == 2)
+                {
                     VectorMA(dist, -1, cl.v_up, dist);
+                }
             }
 
             // FIXME: use cl.refdef.viewangles?
             vectoangles2(dist, angles);
 
             // if it's the heatbeam, draw the particle effect
-            if (cl_mod_heatbeam && b->model == cl_mod_heatbeam)
+            if(cl_mod_heatbeam && b->model == cl_mod_heatbeam)
+            {
                 CL_Heatbeam(org, dist);
+            }
 
             framenum = 1;
-        } else {
+        } 
+        else 
+        {
             VectorCopy(b->start, org);
 
             // calculate pitch and yaw
@@ -943,7 +967,8 @@ static void CL_AddPlayerBeams(void)
             vectoangles2(dist, angles);
 
             // if it's a non-origin offset, it's a player, so use the hardcoded player offset
-            if (!VectorEmpty(b->offset)) {
+            if (!VectorEmpty(b->offset)) 
+            {
                 vec3_t  tmp, f, r, u;
 
                 tmp[0] = -angles[0];
@@ -954,7 +979,9 @@ static void CL_AddPlayerBeams(void)
                 VectorMA(org, -b->offset[0] + 1, r, org);
                 VectorMA(org, -b->offset[1], f, org);
                 VectorMA(org, -b->offset[2] - 10, u, org);
-            } else if (cl_mod_heatbeam && b->model == cl_mod_heatbeam) {
+            } 
+            else if (cl_mod_heatbeam && b->model == cl_mod_heatbeam) 
+            {
                 // if it's a monster, do the particle effect
                 CL_MonsterPlasma_Shell(b->start);
             }
@@ -964,17 +991,24 @@ static void CL_AddPlayerBeams(void)
 
         // add new entities for the beams
         d = VectorNormalize(dist);
-        if (b->model == cl_mod_heatbeam) {
+
+        if (b->model == cl_mod_heatbeam) 
+        {
             model_length = 32.0f;
-        } else if (b->model == cl_mod_lightning) {
+        } 
+        else if (b->model == cl_mod_lightning) 
+        {
             model_length = 35.0f;
             d -= 20.0f; // correction so it doesn't end in middle of tesla
-        } else {
+        } 
+        else 
+        {
             model_length = 30.0f;
         }
 
         // correction for grapple cable model, which has origin in the middle
-        if (b->entity == cl.frame.clientNum + 1 && b->model == cl_mod_grapple_cable && hand_multiplier) {
+        if (b->entity == cl.frame.clientNum + 1 && b->model == cl_mod_grapple_cable && hand_multiplier) 
+        {
             VectorMA(org, model_length * 0.5f, dist, org);
             d -= model_length * 0.5f;
         }
@@ -987,7 +1021,9 @@ static void CL_AddPlayerBeams(void)
         // PMM - special case for lightning model .. if the real length is shorter than the model,
         // flip it around & draw it from the end to the start.  This prevents the model from going
         // through the tesla mine (instead it goes through the target)
-        if ((b->model == cl_mod_lightning) && (steps <= 1)) {
+
+        if ((b->model == cl_mod_lightning) && (steps <= 1)) 
+        {
             VectorCopy(b->end, ent.origin);
             ent.flags = RF_FULLBRIGHT;
             ent.angles[0] = angles[0];
@@ -997,25 +1033,33 @@ static void CL_AddPlayerBeams(void)
             continue;
         }
 
-        if (steps > 1) {
+        if (steps > 1) 
+        {
             len = (d - model_length) / (steps - 1);
             VectorScale(dist, len, dist);
         }
 
         VectorCopy(org, ent.origin);
-        for (j = 0; j < steps; j++) {
-            if (b->model == cl_mod_heatbeam) {
+
+        for (j = 0; j < steps; j++) 
+        {
+            if (b->model == cl_mod_heatbeam) 
+            {
                 ent.frame = framenum;
                 ent.flags = RF_FULLBRIGHT;
                 ent.angles[0] = -angles[0];
                 ent.angles[1] = angles[1] + 180.0f;
                 ent.angles[2] = cl.time % 360;
-            } else if (b->model == cl_mod_lightning) {
+            } 
+            else if (b->model == cl_mod_lightning) 
+            {
                 ent.flags = RF_FULLBRIGHT;
                 ent.angles[0] = -angles[0];
                 ent.angles[1] = angles[1] + 180.0f;
                 ent.angles[2] = Q_rand() % 360;
-            } else {
+            } 
+            else 
+            {
                 ent.angles[0] = angles[0];
                 ent.angles[1] = angles[1];
                 ent.angles[2] = Q_rand() % 360;
@@ -1050,9 +1094,12 @@ static cl_sustain_t *CL_AllocSustain(void)
     cl_sustain_t    *s;
     int             i;
 
-    for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++) {
-        if (s->id == 0)
+    for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++) 
+    {
+        if(s->id == 0)
+        {
             return s;
+        }
     }
 
     return NULL;
@@ -1063,12 +1110,18 @@ static void CL_ProcessSustain(void)
     cl_sustain_t    *s;
     int             i;
 
-    for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++) {
-        if (s->id) {
-            if ((s->endtime >= cl.time) && (cl.time >= s->nextthink))
+    for (i = 0, s = cl_sustains; i < MAX_SUSTAINS; i++, s++) 
+    {
+        if (s->id) 
+        {
+            if((s->endtime >= cl.time) && (cl.time >= s->nextthink))
+            {
                 s->think(s);
-            else if (s->endtime < cl.time)
+            }
+            else if(s->endtime < cl.time)
+            {
                 s->id = 0;
+            }
         }
     }
 }
@@ -1077,14 +1130,18 @@ static void CL_ParseSteam(void)
 {
     cl_sustain_t    *s;
 
-    if (te.entity1 == -1) {
+    if (te.entity1 == -1) 
+    {
         CL_ParticleSteamEffect(te.pos1, te.dir, te.color & 0xff, te.count, te.entity2);
         return;
     }
 
     s = CL_AllocSustain();
-    if (!s)
+
+    if(!s)
+    {
         return;
+    }
 
     s->id = te.entity1;
     s->count = te.count;
@@ -1102,8 +1159,11 @@ static void CL_ParseWidow(void)
     cl_sustain_t    *s;
 
     s = CL_AllocSustain();
-    if (!s)
+
+    if(!s)
+    {
         return;
+    }
 
     s->id = te.entity1;
     VectorCopy(te.pos1, s->org);
@@ -1117,8 +1177,11 @@ static void CL_ParseNuke(void)
     cl_sustain_t    *s;
 
     s = CL_AllocSustain();
-    if (!s)
+
+    if(!s)
+    {
         return;
+    }
 
     s->id = 21000;
     VectorCopy(te.pos1, s->org);
@@ -1141,7 +1204,8 @@ static cvar_t *cl_railspiral_radius;
 
 static void cl_railcore_color_changed(cvar_t *self)
 {
-    if (!SCR_ParseColor(self->string, &railcore_color)) {
+    if (!SCR_ParseColor(self->string, &railcore_color)) 
+    {
         Com_WPrintf("Invalid value '%s' for '%s'\n", self->string, self->name);
         Cvar_Reset(self);
         railcore_color.u32 = U32_RED;
@@ -1150,7 +1214,8 @@ static void cl_railcore_color_changed(cvar_t *self)
 
 static void cl_railspiral_color_changed(cvar_t *self)
 {
-    if (!SCR_ParseColor(self->string, &railspiral_color)) {
+    if (!SCR_ParseColor(self->string, &railspiral_color)) 
+    {
         Com_WPrintf("Invalid value '%s' for '%s'\n", self->string, self->name);
         Cvar_Reset(self);
         railspiral_color.u32 = U32_BLUE;
@@ -1162,8 +1227,11 @@ static void CL_RailCore(void)
     laser_t *l;
 
     l = CL_AllocLaser();
-    if (!l)
+
+    if(!l)
+    {
         return;
+    }
 
     VectorCopy(te.pos1, l->start);
     VectorCopy(te.pos2, l->end);
@@ -1191,10 +1259,14 @@ static void CL_RailSpiral(void)
 
     MakeNormalVectors(vec, right, up);
 
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) 
+    {
         p = CL_AllocParticle();
-        if (!p)
+
+        if(!p)
+        {
             return;
+        }
 
         p->time = cl.time;
         VectorClear(p->accel);
@@ -1211,7 +1283,9 @@ static void CL_RailSpiral(void)
         p->color = -1;
         p->rgba = railspiral_color;
 		p->brightness = cvar_pt_particle_emissive->value;
-        for (j = 0; j < 3; j++) {
+
+        for (j = 0; j < 3; j++) 
+        {
             p->org[j] = move[j] + dir[j] * cl_railspiral_radius->value;
             p->vel[j] = dir[j] * 6;
         }
@@ -1223,6 +1297,7 @@ static void CL_RailSpiral(void)
 static void CL_RailLights(color_t color)
 {
 	vec3_t fcolor;
+
 	fcolor[0] = (float)color.u8[0] / 255.f;
 	fcolor[1] = (float)color.u8[1] / 255.f;
 	fcolor[2] = (float)color.u8[2] / 255.f;
@@ -1271,10 +1346,13 @@ static void CL_RailTrail(void)
 	{
 		rail_color = railcore_color;
 
-        if (cl_railcore_width->integer > 0) {
+        if (cl_railcore_width->integer > 0) 
+        {
             CL_RailCore();
         }
-        if (cl_railtrail_type->integer > 1) {
+
+        if (cl_railtrail_type->integer > 1) 
+        {
             CL_RailSpiral();
         }
     }
@@ -1288,14 +1366,23 @@ static void CL_RailTrail(void)
 static void dirtoangles(vec3_t angles)
 {
     angles[0] = RAD2DEG(acos(te.dir[2]));
-    if (te.dir[0])
+
+    if(te.dir[0])
+    {
         angles[1] = RAD2DEG(atan2(te.dir[1], te.dir[0]));
-    else if (te.dir[1] > 0)
+    }
+    else if(te.dir[1] > 0)
+    {
         angles[1] = 90;
-    else if (te.dir[1] < 0)
+    }
+    else if(te.dir[1] < 0)
+    {
         angles[1] = 270;
+    }
     else
+    {
         angles[1] = 0;
+    }
 }
 
 /*
@@ -1310,7 +1397,8 @@ void CL_ParseTEnt(void)
     explosion_t *ex;
     int r;
 
-    switch (te.type) {
+    switch (te.type) 
+    {
     case TE_BLOOD:          // bullet hitting flesh
         if (!(cl_disable_particles->integer & NOPART_BLOOD))
         {
@@ -1322,31 +1410,47 @@ void CL_ParseTEnt(void)
     case TE_GUNSHOT:            // bullet hitting wall
     case TE_SPARKS:
     case TE_BULLET_SPARKS:
-        if (te.type == TE_GUNSHOT)
+        if(te.type == TE_GUNSHOT)
+        {
             CL_ParticleEffect(te.pos1, te.dir, 0, 40);
+        }
         else
+        {
             CL_ParticleEffect(te.pos1, te.dir, 0xe0, 6);
+        }
 
-        if (te.type != TE_SPARKS) {
+        if (te.type != TE_SPARKS) 
+        {
             CL_SmokeAndFlash(te.pos1);
 
             // impact sound
             r = Q_rand() & 15;
-            if (r == 1)
+
+            if(r == 1)
+            {
                 S_StartSound(te.pos1, 0, 0, cl_sfx_ric1, 1, ATTN_NORM, 0);
-            else if (r == 2)
+            }
+            else if(r == 2)
+            {
                 S_StartSound(te.pos1, 0, 0, cl_sfx_ric2, 1, ATTN_NORM, 0);
-            else if (r == 3)
+            }
+            else if(r == 3)
+            {
                 S_StartSound(te.pos1, 0, 0, cl_sfx_ric3, 1, ATTN_NORM, 0);
+            }
         }
         break;
 
     case TE_SCREEN_SPARKS:
     case TE_SHIELD_SPARKS:
-        if (te.type == TE_SCREEN_SPARKS)
+        if(te.type == TE_SCREEN_SPARKS)
+        {
             CL_ParticleEffect(te.pos1, te.dir, 0xd0, 40);
+        }
         else
+        {
             CL_ParticleEffect(te.pos1, te.dir, 0xb0, 40);
+        }
         //FIXME : replace or remove this sound
         S_StartSound(te.pos1, 0, 257, cl_sfx_lashit, 1, ATTN_NORM, 0);
         break;
@@ -1363,7 +1467,8 @@ void CL_ParseTEnt(void)
             r = splash_color[te.color];
         CL_ParticleEffectWaterSplash(te.pos1, te.dir, r, te.count);
 
-        if (te.color == SPLASH_SPARKS) {
+        if (te.color == SPLASH_SPARKS) 
+        {
             r = Q_rand() & 3;
             if (r == 0)
                 S_StartSound(te.pos1, 0, 0, cl_sfx_spark5, 1, ATTN_STATIC, 0);

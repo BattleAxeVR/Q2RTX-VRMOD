@@ -200,13 +200,17 @@ static void CL_UpdateGunSetting(void)
 {
     int nogun;
 
-    if (cls.netchan.protocol < PROTOCOL_VERSION_R1Q2) {
+    if (cls.netchan.protocol < PROTOCOL_VERSION_R1Q2) 
+    {
         return;
     }
 
-    if (cl_player_model->integer == CL_PLAYER_MODEL_DISABLED || info_hand->integer == 2) {
+    if ((cl_player_model->integer == CL_PLAYER_MODEL_DISABLED) || (info_hand->integer == 2)) 
+    {
         nogun = 1;
-    } else {
+    } 
+    else 
+    {
         nogun = 0;
     }
 
@@ -218,7 +222,8 @@ static void CL_UpdateGunSetting(void)
 
 static void CL_UpdateGibSetting(void)
 {
-    if (cls.netchan.protocol != PROTOCOL_VERSION_Q2PRO) {
+    if (cls.netchan.protocol != PROTOCOL_VERSION_Q2PRO) 
+    {
         return;
     }
 
@@ -2834,7 +2839,6 @@ static void CL_InitLocal(void)
 
     cl_stereo = Cvar_Get("stereo", "1", 0);
     cl_ipd = Cvar_Get("ipd", "0", 0);
-
     cl_fov_outward = Cvar_Get("fov_outward", "0", 0);
     cl_fov_inward = Cvar_Get("fov_inward", "0", 0);
     cl_fov_up = Cvar_Get("fov_up", "0", 0);
@@ -2900,7 +2904,13 @@ static void CL_InitLocal(void)
     info_skin = Cvar_Get("skin", "male/grunt", CVAR_USERINFO | CVAR_ARCHIVE);
     info_rate = Cvar_Get("rate", "15000", CVAR_USERINFO | CVAR_ARCHIVE);
     info_msg = Cvar_Get("msg", "1", CVAR_USERINFO | CVAR_ARCHIVE);
+
+#if 0//SUPPORT_OPENXR
+    info_hand = Cvar_Get("hand", "2", CVAR_USERINFO | CVAR_ARCHIVE);
+#else
     info_hand = Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+#endif
+    
     info_hand->changed = info_hand_changed;
     info_fov = Cvar_Get("fov", "75", CVAR_USERINFO | CVAR_ARCHIVE);
     info_gender = Cvar_Get("gender", "male", CVAR_USERINFO | CVAR_ARCHIVE);

@@ -69,7 +69,9 @@ void create_viewweapon_matrix(int stereo, int view_id, mat4_t matrix, entity_t *
 	extern cvar_t   *cl_adjustfov;
 	extern cvar_t   *cl_gunfov;
 
-	internal_create_entity_matrix(matrix, e, info_hand->integer == 1);
+	bool mirror = (info_hand->integer == 1);
+
+	internal_create_entity_matrix(matrix, e, mirror);
 
 	if (!stereo && (cl_gunfov->value > 0)) 
 	{

@@ -20,6 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "client.h"
 #include "refresh/models.h"
+#include "../refresh/vkpt/openxr/defines.h"
 
 extern qhandle_t cl_mod_powerscreen;
 extern qhandle_t cl_mod_laser;
@@ -43,8 +44,7 @@ static inline bool entity_is_optimized(const centity_state_t *state)
         && cl.frame.ps.pmove.pm_type < PM_DEAD;
 }
 
-static inline void
-entity_update_new(centity_t *ent, const centity_state_t *state, const vec_t *origin)
+static inline void entity_update_new(centity_t *ent, const centity_state_t *state, const vec_t *origin)
 {
     static int entity_ctr;
     ent->id = ++entity_ctr;
@@ -188,7 +188,8 @@ static void parse_entity_update(const centity_state_t *state)
     ent->current = *state;
 
     // work around Q2PRO server bandwidth optimization
-    if (entity_is_optimized(state)) {
+    if (entity_is_optimized(state)) 
+    {
         Com_PlayerToEntityState(&cl.frame.ps, &ent->current.s);
     }
 }
@@ -198,7 +199,8 @@ static void parse_entity_event(int number)
 {
     centity_t *cent = &cl_entities[number];
 
-    if (CL_FRAMESYNC) {
+    if (CL_FRAMESYNC) 
+    {
         // EF_TELEPORTER acts like an event, but is not cleared each frame
         if (cent->current.effects & EF_TELEPORTER)
             CL_TeleporterParticles(cent->current.origin);
@@ -215,7 +217,8 @@ static void parse_entity_event(int number)
         return;
 #endif
 
-    switch (cent->current.event) {
+    switch (cent->current.event) 
+    {
     case EV_ITEM_RESPAWN:
         S_StartSound(NULL, number, CHAN_WEAPON, S_RegisterSound("items/respawn1.wav"), 1, ATTN_IDLE, 0);
         CL_ItemRespawnParticles(cent->current.origin);
@@ -270,18 +273,24 @@ static void set_active_state(void)
     cl.frameflags = 0;
     cl.initialSeq = cls.netchan.outgoing_sequence;
 
-    if (cls.demo.playback) {
+    if (cls.demo.playback) 
+    {
         // init some demo things
         CL_FirstDemoFrame();
-    } else {
+    } 
+    else 
+    {
         // set initial cl.predicted_origin and cl.predicted_angles
         VectorScale(cl.frame.ps.pmove.origin, 0.125f, cl.predicted_origin);
         VectorScale(cl.frame.ps.pmove.velocity, 0.125f, cl.predicted_velocity);
-        if (cl.frame.ps.pmove.pm_type < PM_DEAD &&
-            cls.serverProtocol > PROTOCOL_VERSION_DEFAULT) {
+
+        if (cl.frame.ps.pmove.pm_type < PM_DEAD && cls.serverProtocol > PROTOCOL_VERSION_DEFAULT) 
+        {
             // enhanced servers don't send viewangles
             CL_PredictAngles();
-        } else {
+        } 
+        else 
+        {
             // just use what server provided
             VectorCopy(cl.frame.ps.viewangles, cl.predicted_angles);
         }
@@ -295,14 +304,14 @@ static void set_active_state(void)
 
     CL_UpdateFrameTimes();
 
-    if (!cls.demo.playback) {
+    if (!cls.demo.playback) 
+    {
         EXEC_TRIGGER(cl_beginmapcmd);
         Cmd_ExecTrigger("#cl_enterlevel");
     }
 }
 
-static void
-check_player_lerp(server_frame_t *oldframe, server_frame_t *frame, int framediv)
+static void check_player_lerp(server_frame_t *oldframe, server_frame_t *frame, int framediv)
 {
     player_state_t *ps, *ops;
     centity_t *ent;
@@ -313,30 +322,37 @@ check_player_lerp(server_frame_t *oldframe, server_frame_t *frame, int framediv)
     ops = &oldframe->ps;
 
     // no lerping if previous frame was dropped or invalid
-    if (!oldframe->valid)
+    if(!oldframe->valid)
+    {
         goto dup;
+    }
 
     oldnum = frame->number - framediv;
-    if (oldframe->number != oldnum)
+
+    if(oldframe->number != oldnum)
+    {
         goto dup;
+    }
 
     // no lerping if player entity was teleported (origin check)
     if (abs(ops->pmove.origin[0] - ps->pmove.origin[0]) > 256 * 8 ||
         abs(ops->pmove.origin[1] - ps->pmove.origin[1]) > 256 * 8 ||
-        abs(ops->pmove.origin[2] - ps->pmove.origin[2]) > 256 * 8) {
+        abs(ops->pmove.origin[2] - ps->pmove.origin[2]) > 256 * 8) 
+    {
         goto dup;
     }
 
     // no lerping if player entity was teleported (event check)
     ent = &cl_entities[frame->clientNum + 1];
+
     if (ent->serverframe > oldnum &&
         ent->serverframe <= frame->number &&
 #if USE_FPS
         ent->event_frame > oldnum &&
         ent->event_frame <= frame->number &&
 #endif
-        (ent->current.event == EV_PLAYER_TELEPORT
-         || ent->current.event == EV_OTHER_TELEPORT)) {
+        (ent->current.event == EV_PLAYER_TELEPORT || ent->current.event == EV_OTHER_TELEPORT)) 
+    {
         goto dup;
     }
 
@@ -374,8 +390,10 @@ void CL_DeltaFrame(void)
     int                 prevstate = cls.state;
 
     // getting a valid frame message ends the connection process
-    if (cls.state == ca_precached)
+    if(cls.state == ca_precached)
+    {
         set_active_state();
+    }
 
     // set server time
     framenum = cl.frame.number - cl.serverdelta;
@@ -394,33 +412,42 @@ void CL_DeltaFrame(void)
     Com_PlayerToEntityState(&cl.frame.ps, &ent->current.s);
 
     // set current and prev, unpack solid, etc
-    for (i = 0; i < cl.frame.numEntities; i++) {
+    for (i = 0; i < cl.frame.numEntities; i++) 
+    {
         j = (cl.frame.firstEntity + i) & PARSE_ENTITIES_MASK;
         parse_entity_update(&cl.entityStates[j]);
     }
 
     // fire events. due to footstep tracing this must be after updating entities.
-    for (i = 0; i < cl.frame.numEntities; i++) {
+    for (i = 0; i < cl.frame.numEntities; i++) 
+    {
         j = (cl.frame.firstEntity + i) & PARSE_ENTITIES_MASK;
         parse_entity_event(cl.entityStates[j].number);
     }
 
-    if (cls.demo.recording && !cls.demo.paused && !cls.demo.seeking && CL_FRAMESYNC) {
+    if (cls.demo.recording && !cls.demo.paused && !cls.demo.seeking && CL_FRAMESYNC) 
+    {
         CL_EmitDemoFrame();
     }
 
-    if (prevstate == ca_precached)
+    if(prevstate == ca_precached)
+    {
         CL_GTV_Resume();
+    }
     else
+    {
         CL_GTV_EmitFrame();
+    }
 
-    if (cls.demo.playback) {
+    if (cls.demo.playback) 
+    {
         // this delta has nothing to do with local viewangles,
         // clear it to avoid interfering with demo freelook hack
         VectorClear(cl.frame.ps.pmove.delta_angles);
     }
 
-    if (cl.oldframe.ps.pmove.pm_type != cl.frame.ps.pmove.pm_type) {
+    if (cl.oldframe.ps.pmove.pm_type != cl.frame.ps.pmove.pm_type) 
+    {
         IN_Activate();
     }
 
@@ -442,23 +469,24 @@ void CL_CheckEntityPresent(int entnum, const char *what)
 {
     centity_t *e;
 
-    if (entnum == cl.frame.clientNum + 1) {
+    if (entnum == cl.frame.clientNum + 1) 
+    {
         return; // player entity = current
     }
 
     e = &cl_entities[entnum];
-    if (e->serverframe == cl.frame.number) {
+
+    if (e->serverframe == cl.frame.number) 
+    {
         return; // current
     }
 
     if (e->serverframe) {
-        Com_LPrintf(PRINT_DEVELOPER,
-                    "SERVER BUG: %s on entity %d last seen %d frames ago\n",
-                    what, entnum, cl.frame.number - e->serverframe);
-    } else {
-        Com_LPrintf(PRINT_DEVELOPER,
-                    "SERVER BUG: %s on entity %d never seen before\n",
-                    what, entnum);
+        Com_LPrintf(PRINT_DEVELOPER, "SERVER BUG: %s on entity %d last seen %d frames ago\n", what, entnum, cl.frame.number - e->serverframe);
+    } 
+    else 
+    {
+        Com_LPrintf(PRINT_DEVELOPER, "SERVER BUG: %s on entity %d never seen before\n", what, entnum);
     }
 }
 #endif
@@ -483,29 +511,41 @@ static int adjust_shell_fx(int renderfx)
 	// PMM - at this point, all of the shells have been handled
 	// if we're in the rogue pack, set up the custom mixing, otherwise just
 	// keep going
-	if (!strcmp(fs_game->string, "rogue")) {
+	if (!strcmp(fs_game->string, "rogue")) 
+    {
 		// all of the solo colors are fine.  we need to catch any of the combinations that look bad
 		// (double & half) and turn them into the appropriate color, and make double/quad something special
-		if (renderfx & RF_SHELL_HALF_DAM) {
+		if (renderfx & RF_SHELL_HALF_DAM) 
+        {
 			// ditch the half damage shell if any of red, blue, or double are on
 			if (renderfx & (RF_SHELL_RED | RF_SHELL_BLUE | RF_SHELL_DOUBLE))
 				renderfx &= ~RF_SHELL_HALF_DAM;
 		}
 
-		if (renderfx & RF_SHELL_DOUBLE) {
+		if (renderfx & RF_SHELL_DOUBLE) 
+        {
 			// lose the yellow shell if we have a red, blue, or green shell
-			if (renderfx & (RF_SHELL_RED | RF_SHELL_BLUE | RF_SHELL_GREEN))
-				renderfx &= ~RF_SHELL_DOUBLE;
+            if(renderfx & (RF_SHELL_RED | RF_SHELL_BLUE | RF_SHELL_GREEN))
+            {
+                renderfx &= ~RF_SHELL_DOUBLE;
+            }
 			// if we have a red shell, turn it to purple by adding blue
-			if (renderfx & RF_SHELL_RED)
-				renderfx |= RF_SHELL_BLUE;
+            if(renderfx & RF_SHELL_RED)
+            {
+                renderfx |= RF_SHELL_BLUE;
+            }
 			// if we have a blue shell (and not a red shell), turn it to cyan by adding green
-			else if (renderfx & RF_SHELL_BLUE) {
+			else if (renderfx & RF_SHELL_BLUE) 
+            {
 				// go to green if it's on already, otherwise do cyan (flash green)
-				if (renderfx & RF_SHELL_GREEN)
-					renderfx &= ~RF_SHELL_BLUE;
-				else
-					renderfx |= RF_SHELL_GREEN;
+                if(renderfx & RF_SHELL_GREEN)
+                {
+                    renderfx &= ~RF_SHELL_BLUE;
+                }
+                else
+                {
+                    renderfx |= RF_SHELL_GREEN;
+                }
 			}
 		}
 	}
@@ -541,7 +581,8 @@ static void CL_AddPacketEntities(void)
 
     memset(&ent, 0, sizeof(ent));
 
-    for (pnum = 0; pnum < cl.frame.numEntities; pnum++) {
+    for (pnum = 0; pnum < cl.frame.numEntities; pnum++) 
+    {
         i = (cl.frame.firstEntity + pnum) & PARSE_ENTITIES_MASK;
         s1 = &cl.entityStates[i];
 
@@ -1052,7 +1093,7 @@ static int shell_effect_hack(void)
 CL_AddViewWeapon
 ==============
 */
-static void CL_AddViewWeapon(void)
+static void CL_AddViewWeapon(int hand_id)
 {
     player_state_t* ps, * ops;
     entity_t gun; // view model
@@ -1060,11 +1101,6 @@ static void CL_AddViewWeapon(void)
 
     // allow the gun to be completely removed
     if(cl_player_model->integer == CL_PLAYER_MODEL_DISABLED)
-    {
-        return;
-    }
-
-    if(info_hand->integer == 2)
     {
         return;
     }
@@ -1192,8 +1228,33 @@ static void CL_SetupFirstPersonView(void)
         VectorAdd(cl.refdef.viewangles, kickangles, cl.refdef.viewangles);
     }
 
-    // add the weapon
-    CL_AddViewWeapon();
+    const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+
+    if(stereo)
+    {
+        const bool dual_wield = false;
+
+        if(dual_wield)
+        {
+            CL_AddViewWeapon(LEFT);
+            CL_AddViewWeapon(RIGHT);
+        }
+        else
+        {
+            int main_hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
+            CL_AddViewWeapon(main_hand_id);
+        }
+    }
+    else
+    {
+        const bool show_neither_weapon = (info_hand->integer == 2);
+
+        if(!show_neither_weapon)
+        {
+            int main_hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
+            CL_AddViewWeapon(main_hand_id);
+        }
+    }
 
     cl.thirdPersonView = false;
 }

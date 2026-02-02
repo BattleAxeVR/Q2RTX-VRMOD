@@ -628,7 +628,8 @@ static void setup_weaponmodel(void)
         }
     }
 
-    if (info_hand->integer == 1) {
+    if (info_hand->integer == 1) 
+    {
         reflect_x = -1.0f;
         qglFrontFace(GL_CCW);
     }
@@ -643,13 +644,16 @@ void GL_DrawAliasModel(const model_t *model)
     int i;
 
     newframenum = ent->frame;
-    if (newframenum < 0 || newframenum >= model->numframes) {
+    if (newframenum < 0 || newframenum >= model->numframes) 
+    {
         Com_DPrintf("%s: no such frame %d\n", __func__, newframenum);
         newframenum = 0;
     }
 
     oldframenum = ent->oldframe;
-    if (oldframenum < 0 || oldframenum >= model->numframes) {
+
+    if (oldframenum < 0 || oldframenum >= model->numframes) 
+    {
         Com_DPrintf("%s: no such oldframe %d\n", __func__, oldframenum);
         oldframenum = 0;
     }
@@ -658,8 +662,10 @@ void GL_DrawAliasModel(const model_t *model)
     frontlerp = 1.0f - backlerp;
 
     // optimized case
-    if (backlerp == 0)
+    if(backlerp == 0)
+    {
         oldframenum = newframenum;
+    }
 
     VectorCopy(ent->origin, origin);
 
