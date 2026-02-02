@@ -99,6 +99,8 @@ extern cvar_t *cl_fov_outward;
 extern cvar_t *cl_fov_inward;
 extern cvar_t *cl_fov_up;
 extern cvar_t *cl_fov_down;
+extern cvar_t *cl_xr_view;
+extern cvar_t *cl_xr_proj;
 
 static int drs_current_scale = 0;
 static int drs_effective_scale = 0;
@@ -2877,17 +2879,19 @@ static void prepare_viewmatrix(refdef_t *fd)
 	create_view_matrix(zero_out_pitch, stereo, RIGHT, ipd, ipd_offset_right_WS, vkpt_refdef.view_matrix[RIGHT], fd);
 	create_view_matrix(zero_out_pitch, false, BOTH, 0.0f, ipd_offset_both_WS, vkpt_refdef.view_matrix[BOTH], fd);
 
-#if 0//SUPPORT_OPENXR
-	if(stereo)
-	{
-		GetViewMatrix(LEFT, false, fd->vieworg, fd->viewangles[YAW], vkpt_refdef.view_matrix[LEFT]);
-		GetViewMatrix(RIGHT, false, fd->vieworg, fd->viewangles[YAW], vkpt_refdef.view_matrix[RIGHT]);
-	}
-#endif
-
 	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
 	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 	inverse(vkpt_refdef.view_matrix[BOTH], vkpt_refdef.view_matrix_inv[BOTH]);
+
+#if SUPPORT_OPENXR
+	const int apply_xr_view = (cl_xr_view->value == 1.0f) ? 1 : 0;
+
+	if(stereo && apply_xr_view)
+	{
+		GetViewMatrix(LEFT, false, fd->vieworg, fd->viewangles[YAW], vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
+		GetViewMatrix(RIGHT, false, fd->vieworg, fd->viewangles[YAW], vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
+	}
+#endif
 }
 
 
@@ -2912,9 +2916,14 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	ubo->prev_taa_output_height = ubo->taa_output_height;
 
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+	const int apply_xr_proj = (cl_xr_proj->value == 1.0f) ? 1 : 0;
 
-	if(stereo || SUPPORT_OPENXR)
+	if(stereo && apply_xr_proj)
 	{
+#if SUPPORT_OPENXR
+		const bool left_proj_ok = GetProjectionMatrix(LEFT, P[LEFT], *ubo->invP[LEFT]);
+		const bool right_proj_ok = GetProjectionMatrix(RIGHT, P[RIGHT], *ubo->invP[RIGHT]);
+#else
 		XrFovf fov[NUM_EYES] = { 0 };
 
 		const bool override_outward_fov = (cl_fov_outward->value != 0.0f);
@@ -2990,16 +2999,17 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 		create_projection_matrixXR(nearz, farz, &fov[LEFT], P[LEFT]);
 		create_projection_matrixXR(nearz, farz, &fov[RIGHT], P[RIGHT]);
+#endif
 	}
 	else
 	{
-		float raw_proj[16];
+		float raw_proj[16] = { 0 };
 
 		float fov_x = fd->fov_x;
 		
 		if(stereo)
 		{
-			fov_x *= 0.5f;
+			fov_x *= 0.25f;
 		}
 
 		create_projection_matrix(raw_proj, vkpt_refdef.z_near, vkpt_refdef.z_far, fov_x, fd->fov_y);
@@ -3019,19 +3029,22 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 		mult_matrix_matrix(P[LEFT], viewport_proj, raw_proj);
 		mult_matrix_matrix(P[RIGHT], viewport_proj, raw_proj);
+
+		inverse(P[LEFT], *ubo->invP[LEFT]);
+		inverse(P[RIGHT], *ubo->invP[RIGHT]);
 	}
 
 	memcpy(ubo->V[LEFT], vkpt_refdef.view_matrix[LEFT], sizeof(float) * 16);
 	memcpy(ubo->P[LEFT], P[LEFT], sizeof(float) * 16);
 	memcpy(ubo->invV[LEFT], vkpt_refdef.view_matrix_inv[LEFT], sizeof(float) * 16);
-	inverse(P[LEFT], *ubo->invP[LEFT]);
+	//inverse(P[LEFT], *ubo->invP[LEFT]);
 
 	if(stereo)
 	{
 		memcpy(ubo->V[RIGHT], vkpt_refdef.view_matrix[RIGHT], sizeof(float) * 16);
 		memcpy(ubo->P[RIGHT], P[RIGHT], sizeof(float) * 16);
 		memcpy(ubo->invV[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT], sizeof(float) * 16);
-		inverse(P[RIGHT], *ubo->invP[RIGHT]);
+		//inverse(P[RIGHT], *ubo->invP[RIGHT]);
 	}
 
 	float vfov = fd->fov_y * (float)M_PI / 180.f;

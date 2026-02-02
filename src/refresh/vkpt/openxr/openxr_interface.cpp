@@ -2727,6 +2727,87 @@ void OpenXR::log_instance_info()
 	//Log::Write(Log::Level::Info, Fmt("Instance RuntimeName=%s RuntimeVersion=%s", instanceProperties.runtimeName, GetXrVersionString(instanceProperties.runtimeVersion).c_str()));
 }
 
+glm::mat4 create_projection(const float tan_left, const float tan_right, const float tan_up, float const tan_down, const float nearZ, const float farZ) 
+{
+	const float tan_width = (tan_right - tan_left);
+	const float tan_right_left_sum = (tan_right + tan_left);
+
+	const float tan_height = (tan_down - tan_up);
+	const float tan_up_down_sum = (tan_up + tan_down);
+
+	glm::mat4 projection(1);
+
+	if(farZ <= nearZ) 
+	{
+		// place the far plane at infinity
+		projection[0][0] = 2.0f / tan_width;
+		projection[1][0] = 0.0f;
+		projection[2][0] = tan_right_left_sum / tan_width;
+		projection[3][0] = 0.0f;
+
+		projection[0][1] = 0.0f;
+		projection[1][1] = 2.0f / tan_height;
+		projection[2][1] = tan_up_down_sum / tan_height;
+		projection[3][1] = 0.0f;
+
+		projection[0][2] = 0.0f;
+		projection[1][2] = 0.0f;
+		projection[2][2] = -1.0f;
+		projection[3][2] = -nearZ;
+
+		projection[0][3] = 0.0f;
+		projection[1][3] = 0.0f;
+		projection[2][3] = -1.0f;
+		projection[3][3] = 0.0f;
+	}
+	else 
+	{
+		// normal projection
+		projection[0][0] = 2.0f / tan_width;
+		projection[1][0] = 0.0f;
+		projection[2][0] = tan_right_left_sum / tan_width;
+		projection[3][0] = 0.0f;
+
+		projection[0][1] = 0.0f;
+		projection[1][1] = 2.0f / tan_height;
+		projection[2][1] = tan_up_down_sum / tan_height;
+		projection[3][1] = 0.0f;
+
+		projection[0][2] = 0.0f;
+		projection[1][2] = 0.0f;
+		projection[2][2] = -farZ / (farZ - nearZ);
+		projection[3][2] = -(farZ * nearZ) / (farZ - nearZ);
+
+		projection[0][3] = 0.0f;
+		projection[1][3] = 0.0f;
+		projection[2][3] = -1.0f;
+		projection[3][3] = 0.0f;
+	}
+
+	return projection;
+}
+
+
+glm::mat4 create_projection(const XrFovf& fov, const float nearZ, const float farZ, const bool flip_vertical)
+{
+	const float aspect_ratio = 1.0f;
+
+	const float tan_left = tanf(fov.angleLeft) * aspect_ratio;
+	const float tan_right = tanf(fov.angleRight) * aspect_ratio;
+
+	const float tan_up = tanf(fov.angleUp);
+	const float tan_down = tanf(fov.angleDown);
+
+	if (flip_vertical)
+	{
+		glm::mat4 projection_flipped = create_projection(tan_left, tan_right, tan_down, tan_up, nearZ, farZ);
+		return projection_flipped;
+	}
+
+	glm::mat4 projection = create_projection(tan_left, tan_right, tan_up, tan_down, nearZ, farZ);
+	return projection;
+}
+
 } // BVR
 
 BVR::OpenXR openxr_;
@@ -2830,9 +2911,9 @@ extern "C"
 		return true;
 	}
 
-	bool GetViewMatrix(const int view_id, const bool append, float* eye_pos_vec3, float yaw_deg, float* matrix_ptr)
+	bool GetViewMatrix(const int view_id, const bool append, float* eye_pos_vec3, float yaw_deg, float* view_matrix_ptr, float* view_matrix_inv_ptr)
 	{
-		if(!openxr_.is_session_running() || !matrix_ptr)
+		if(!openxr_.is_session_running() || !view_matrix_ptr || !view_matrix_inv_ptr)
 		{
 			return false;
 		}
@@ -2847,9 +2928,29 @@ extern "C"
 		const glm::vec3 game_euler_rad = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation = glm::fquat(game_euler_rad);
 
-		const XrPosef& xr_pose = xr_view.pose;
-		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+		const glm::vec3 game_position = { eye_pos_vec3[0], eye_pos_vec3[1], eye_pos_vec3[2] };
 
+		const BVR::GLMPose game_pose = BVR::GLMPose(game_position, game_rotation);
+		const glm::mat4 game_view_matrix = game_pose.to_matrix();
+
+		const XrPosef& xr_pose = xr_view.pose;
+		const BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+
+		glm::mat4 glm_inverse_view_matrix = glm_pose.to_matrix();
+
+		static bool apply_game_matrix = true;
+
+		if(apply_game_matrix)
+		{
+			glm_inverse_view_matrix = glm_inverse_view_matrix * game_view_matrix;
+		}
+
+		memcpy(view_matrix_inv_ptr, &glm_inverse_view_matrix, sizeof(float) * 16);
+
+		glm::mat4 view_matrix = inverse(glm_inverse_view_matrix);
+		memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
+
+#if 0
 		static float degx_0 = -90.0f;
 		static float degy_0 = 180.0f;
 		static float degz_0 = 0.0f;
@@ -2898,6 +2999,36 @@ extern "C"
 		{
 			memcpy(matrix_ptr, &glm_view_matrix, sizeof(float) * 16);
 		}
+#endif
+		
+		return true;
+	}
+
+	bool GetProjectionMatrix(const int view_id, float* projection_matrix_ptr, float* projection_matrix_inverse_ptr)
+	{
+		if(!openxr_.is_session_running() || !projection_matrix_ptr || !projection_matrix_inverse_ptr)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		const XrFovf& fov = xr_view.fov;
+		
+		const float nearZ = 1.0f;
+		const float farZ = 4096.0f;
+		const bool flip_vertical = false;
+
+		glm::mat4 projection_matrix = BVR::create_projection(fov, nearZ, farZ, flip_vertical);
+		memcpy(projection_matrix_ptr, &projection_matrix, sizeof(float) * 16);
+
+		glm::mat4 projection_matrix_inv = inverse(projection_matrix);
+		memcpy(projection_matrix_inverse_ptr, &projection_matrix_inv, sizeof(float) * 16);
 		
 		return true;
 	}
