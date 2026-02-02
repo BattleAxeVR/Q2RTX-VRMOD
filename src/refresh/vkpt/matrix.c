@@ -276,17 +276,27 @@ void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd,
 
 		mult_matrix_vector(ipd_offset_WS, view_matrix_inv, ipd_offset_LS);
 
-		float x_val = DotProduct(viewaxis[1], fd->vieworg);
-		float y_val = -DotProduct(viewaxis[2], fd->vieworg);
-		float z_val = -DotProduct(viewaxis[0], fd->vieworg);
-
 		float x_ipd_offset = ipd_offset_WS[0];
 		float y_ipd_offset = ipd_offset_WS[1];
 		float z_ipd_offset = ipd_offset_WS[2];
 
-		x_val += x_ipd_offset;
-		//y_val += y_ipd_offset;
-		//z_val += z_ipd_offset;
+		float world_space_x = fd->vieworg[0];
+		float world_space_y = fd->vieworg[1];
+		float world_space_z = fd->vieworg[2];
+
+		world_space_x += x_ipd_offset;
+		world_space_y += y_ipd_offset;
+		world_space_z += z_ipd_offset;
+
+		vec3_t vieworg_with_ipd_offset = { 0 };
+
+		vieworg_with_ipd_offset[0] = world_space_x;
+		vieworg_with_ipd_offset[1] = world_space_y;
+		vieworg_with_ipd_offset[2] = world_space_z;
+
+		float x_val = DotProduct(viewaxis[1], vieworg_with_ipd_offset);
+		float y_val = -DotProduct(viewaxis[2], vieworg_with_ipd_offset);
+		float z_val = -DotProduct(viewaxis[0], vieworg_with_ipd_offset);
 
 		view_matrix[12] = x_val;
 		view_matrix[13] = y_val;
