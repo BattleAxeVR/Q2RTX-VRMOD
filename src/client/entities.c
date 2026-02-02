@@ -1422,8 +1422,7 @@ void CL_CalcViewValues(void)
         // just use interpolated values
         for (i = 0; i < 3; i++) 
         {
-            cl.refdef.vieworg[i] = SHORT2COORD(ops->pmove.origin[i] +
-                lerp * (ps->pmove.origin[i] - ops->pmove.origin[i]));
+            cl.refdef.vieworg[i] = SHORT2COORD(ops->pmove.origin[i] + lerp * (ps->pmove.origin[i] - ops->pmove.origin[i]));
         }
     }
 
