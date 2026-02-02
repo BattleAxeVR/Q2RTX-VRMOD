@@ -234,10 +234,14 @@ void SV_WriteFrameToClient_Enhanced(client_t *client)
 
     // this is the frame we are delta'ing from
     oldframe = get_last_frame(client);
-    if (oldframe) {
+
+    if (oldframe) 
+    {
         oldstate = &oldframe->ps;
         delta = client->framenum - client->lastframe;
-    } else {
+    } 
+    else 
+    {
         oldstate = NULL;
         delta = 31;
     }
@@ -256,14 +260,21 @@ void SV_WriteFrameToClient_Enhanced(client_t *client)
 
     // ignore some parts of playerstate if not recording demo
     psFlags = 0;
-    if (!client->settings[CLS_RECORDING]) {
-        if (client->settings[CLS_NOGUN]) {
+
+    if (!client->settings[CLS_RECORDING]) 
+    {
+        if (client->settings[CLS_NOGUN]) 
+        {
             psFlags |= MSG_PS_IGNORE_GUNFRAMES;
-            if (client->settings[CLS_NOGUN] != 2) {
+
+            if (client->settings[CLS_NOGUN] != 2) 
+            {
                 psFlags |= MSG_PS_IGNORE_GUNINDEX;
             }
         }
-        if (client->settings[CLS_NOBLEND]) {
+
+        if (client->settings[CLS_NOBLEND]) 
+        {
             psFlags |= MSG_PS_IGNORE_BLEND;
         }
         if (frame->ps.pmove.pm_type < PM_DEAD) {
@@ -277,31 +288,45 @@ void SV_WriteFrameToClient_Enhanced(client_t *client)
     }
 
     clientEntityNum = 0;
-    if (client->protocol == PROTOCOL_VERSION_Q2PRO) {
-        if (frame->ps.pmove.pm_type < PM_DEAD && !client->settings[CLS_RECORDING]) {
+
+    if (client->protocol == PROTOCOL_VERSION_Q2PRO) 
+    {
+        if (frame->ps.pmove.pm_type < PM_DEAD && !client->settings[CLS_RECORDING]) 
+        {
             clientEntityNum = frame->clientNum + 1;
         }
-        if (client->settings[CLS_NOPREDICT]) {
+        if (client->settings[CLS_NOPREDICT]) 
+        {
             psFlags |= MSG_PS_IGNORE_PREDICTION;
         }
         suppressed = client->frameflags;
-    } else {
+    } 
+    else 
+    {
         suppressed = client->suppress_count;
     }
-    if (client->csr->extended) {
+
+    if (client->csr->extended) 
+    {
         psFlags |= MSG_PS_EXTENSIONS;
     }
 
     // delta encode the playerstate
     extraflags = MSG_WriteDeltaPlayerstate_Enhanced(oldstate, &frame->ps, psFlags);
 
-    if (client->protocol == PROTOCOL_VERSION_Q2PRO) {
+    if (client->protocol == PROTOCOL_VERSION_Q2PRO) 
+    {
         // delta encode the clientNum
-        if ((oldframe ? oldframe->clientNum : 0) != frame->clientNum) {
+        if ((oldframe ? oldframe->clientNum : 0) != frame->clientNum) 
+        {
             extraflags |= EPS_CLIENTNUM;
-            if (client->version < PROTOCOL_VERSION_Q2PRO_CLIENTNUM_SHORT) {
+
+            if (client->version < PROTOCOL_VERSION_Q2PRO_CLIENTNUM_SHORT) 
+            {
                 MSG_WriteByte(frame->clientNum);
-            } else {
+            } 
+            else 
+            {
                 MSG_WriteShort(frame->clientNum);
             }
         }
@@ -311,8 +336,7 @@ void SV_WriteFrameToClient_Enhanced(client_t *client)
     *b1 = svc_frame | (((extraflags & 0x70) << 1));
 
     // save 4 low bits of extraflags
-    *b2 = (suppressed & SUPPRESSCOUNT_MASK) |
-          ((extraflags & 0x0F) << SUPPRESSCOUNT_BITS);
+    *b2 = (suppressed & SUPPRESSCOUNT_MASK) | ((extraflags & 0x0F) << SUPPRESSCOUNT_BITS);
 
     client->suppress_count = 0;
     client->frameflags = 0;
@@ -330,8 +354,7 @@ Build a client frame structure
 */
 
 #if USE_FPS
-static void
-fix_old_origin(client_t *client, entity_packed_t *state, edict_t *ent, int e)
+static void fix_old_origin(client_t *client, entity_packed_t *state, edict_t *ent, int e)
 {
     server_entity_t *sent = &sv.entities[e];
     int i, j, k;
@@ -376,14 +399,20 @@ fix_old_origin(client_t *client, entity_packed_t *state, edict_t *ent, int e)
 
 static bool SV_EntityVisible(client_t *client, edict_t *ent, byte *mask)
 {
-    if (ent->num_clusters == -1)
+    if(ent->num_clusters == -1)
+    {
         // too many leafs for individual check, go by headnode
         return CM_HeadnodeVisible(CM_NodeNum(client->cm, ent->headnode), mask);
+    }
 
     // check individual leafs
-    for (int i = 0; i < ent->num_clusters; i++)
-        if (Q_IsBitSet(mask, ent->clusternums[i]))
+    for(int i = 0; i < ent->num_clusters; i++)
+    {
+        if(Q_IsBitSet(mask, ent->clusternums[i]))
+        {
             return true;
+        }
+    }
 
     return false;
 }
@@ -427,8 +456,11 @@ void SV_BuildClientFrame(client_t *client)
     int         max_packet_entities;
 
     clent = client->edict;
-    if (!clent->client)
+
+    if(!clent->client)
+    {
         return;        // not in game yet
+    }
 
     // this is the frame we are creating
     frame = &client->frames[client->framenum & UPDATE_MASK];
@@ -448,7 +480,9 @@ void SV_BuildClientFrame(client_t *client)
 
     // calculate the visible areas
     frame->areabytes = CM_WriteAreaBits(client->cm, frame->areabits, clientarea);
-    if (!frame->areabytes && client->protocol != PROTOCOL_VERSION_Q2PRO) {
+
+    if (!frame->areabytes && client->protocol != PROTOCOL_VERSION_Q2PRO) 
+    {
         frame->areabits[0] = 255;
         frame->areabytes = 1;
     }
@@ -457,14 +491,18 @@ void SV_BuildClientFrame(client_t *client)
     MSG_PackPlayer(&frame->ps, ps);
 
     // grab the current clientNum
-    if (g_features->integer & GMF_CLIENTNUM) {
+    if (g_features->integer & GMF_CLIENTNUM) 
+    {
         frame->clientNum = clent->client->clientNum;
-        if (!VALIDATE_CLIENTNUM(client->csr, frame->clientNum)) {
-            Com_WPrintf("%s: bad clientNum %d for client %d\n",
-                        __func__, frame->clientNum, client->number);
+
+        if (!VALIDATE_CLIENTNUM(client->csr, frame->clientNum)) 
+        {
+            Com_WPrintf("%s: bad clientNum %d for client %d\n", __func__, frame->clientNum, client->number);
             frame->clientNum = client->number;
         }
-    } else {
+    } 
+    else 
+    {
         frame->clientNum = client->number;
     }
 
@@ -487,42 +525,52 @@ void SV_BuildClientFrame(client_t *client)
 	{
 		BSP_ClusterVis(client->cm->cache, clientpvs, client->last_valid_cluster, DVIS_PVS2);
 	}
+
     BSP_ClusterVis(client->cm->cache, clientphs, clientcluster, DVIS_PHS);
 
     // build up the list of visible entities
     frame->num_entities = 0;
     frame->first_entity = svs.next_entity;
 
-    for (e = 1; e < client->ge->num_edicts; e++) {
+    for (e = 1; e < client->ge->num_edicts; e++) 
+    {
         ent = EDICT_NUM2(client->ge, e);
 
         // ignore entities not in use
-        if (!ent->inuse && (g_features->integer & GMF_PROPERINUSE)) {
+        if (!ent->inuse && (g_features->integer & GMF_PROPERINUSE)) 
+        {
             continue;
         }
 
         // ignore ents without visible models
-        if (ent->svflags & SVF_NOCLIENT)
-            continue;
-
-        // ignore ents without visible models unless they have an effect
-        if (!HAS_EFFECTS(ent)) {
+        if(ent->svflags & SVF_NOCLIENT)
+        {
             continue;
         }
 
-        if ((ent->s.effects & EF_GIB) && client->settings[CLS_NOGIBS]) {
+        // ignore ents without visible models unless they have an effect
+        if (!HAS_EFFECTS(ent)) 
+        {
+            continue;
+        }
+
+        if ((ent->s.effects & EF_GIB) && client->settings[CLS_NOGIBS]) 
+        {
             continue;
         }
 
         ent_visible = true;
 
         // ignore if not touching a PV leaf
-        if (ent != clent && !(client->csr->extended && ent->svflags & SVF_NOCULL)) {
+        if (ent != clent && !(client->csr->extended && ent->svflags & SVF_NOCULL)) 
+        {
             // check area
-			if (clientcluster >= 0 && !CM_AreasConnected(client->cm, clientarea, ent->areanum)) {
+			if (clientcluster >= 0 && !CM_AreasConnected(client->cm, clientarea, ent->areanum)) 
+            {
                 // doors can legally straddle two areas, so
                 // we may need to check another one
-                if (!CM_AreasConnected(client->cm, clientarea, ent->areanum2)) {
+                if (!CM_AreasConnected(client->cm, clientarea, ent->areanum2)) 
+                {
                     ent_visible = false;        // blocked by a door
                 }
             }
@@ -532,37 +580,52 @@ void SV_BuildClientFrame(client_t *client)
             bool beam_cull = ent->s.renderfx & RF_BEAM;
             bool sound_cull = client->csr->extended && ent->s.sound;
 
-            if (beam_cull || cull_nonvisible_entities) {
+            if (beam_cull || cull_nonvisible_entities) 
+            {
                 if (!SV_EntityVisible(client, ent, (beam_cull || sound_cull) ? clientphs : clientpvs))
                     ent_visible = false;       // not visible
             }
 
             // don't send sounds if they will be attenuated away
-            if (sound_cull) {
-                if (SV_EntityAttenuatedAway(org, ent)) {
-                    if (!ent->s.modelindex)
+            if (sound_cull) 
+            {
+                if (SV_EntityAttenuatedAway(org, ent)) 
+                {
+                    if(!ent->s.modelindex)
+                    {
                         ent_visible = false;
-                    if (ent_visible && !beam_cull && !SV_EntityVisible(client, ent, clientpvs))
+                    }
+                    
+                    if(ent_visible && !beam_cull && !SV_EntityVisible(client, ent, clientpvs))
+                    {
                         ent_visible = false;
+                    }
                 }
-            } else if (!ent->s.modelindex) {
-                if (Distance(org, ent->s.origin) > 400)
+            } 
+            else if (!ent->s.modelindex) 
+            {
+                if(Distance(org, ent->s.origin) > 400)
+                {
                     ent_visible = false;
+                }
             }
         }
 
         if(!ent_visible && (!sv_novis->integer || !ent->s.modelindex))
+        {
             continue;
+        }
         
-		if (ent->s.number != e) {
-			Com_WPrintf("%s: fixing ent->s.number: %d to %d\n",
-				__func__, ent->s.number, e);
+		if (ent->s.number != e) 
+        {
+			Com_WPrintf("%s: fixing ent->s.number: %d to %d\n", __func__, ent->s.number, e);
 			ent->s.number = e;
 		}
 
 		memcpy(&es, &ent->s, sizeof(entity_state_t));
 
-		if (!ent_visible) {
+		if (!ent_visible) 
+        {
 			// if the entity is invisible, kill its sound
 			es.sound = 0;
 		}
@@ -581,38 +644,49 @@ void SV_BuildClientFrame(client_t *client)
         // clear footsteps
         if (client->settings[CLS_NOFOOTSTEPS] && (state->event == EV_FOOTSTEP
             || (client->csr->extended && (state->event == EV_OTHER_FOOTSTEP ||
-                                          state->event == EV_LADDER_STEP)))) {
+                                          state->event == EV_LADDER_STEP)))) 
+        {
             state->event = 0;
         }
 
         // hide POV entity from renderer, unless this is player's own entity
-        if (e == frame->clientNum + 1 && ent != clent &&
-            (!Q2PRO_OPTIMIZE(client) || need_clientnum_fix)) {
+        if (e == frame->clientNum + 1 && ent != clent && (!Q2PRO_OPTIMIZE(client) || need_clientnum_fix)) 
+        {
             state->modelindex = 0;
         }
 
 #if USE_MVD_CLIENT
-        if (sv.state == ss_broadcast) {
+        if (sv.state == ss_broadcast) 
+        {
             // spectators only need to know about inline BSP models
-            if (state->solid != PACKED_BSP)
+            if(state->solid != PACKED_BSP)
+            {
                 state->solid = 0;
-        } else
+            }
+        } 
+        else
 #endif
-        if (ent->owner == clent) {
+        if (ent->owner == clent) 
+        {
             // don't mark players missiles as solid
             state->solid = 0;
-        } else if (client->esFlags & MSG_ES_LONGSOLID) {
+        } 
+        else if (client->esFlags & MSG_ES_LONGSOLID) 
+        {
             state->solid = sv.entities[e].solid32;
         }
 
         svs.next_entity++;
 
-        if (++frame->num_entities == max_packet_entities) {
+        if (++frame->num_entities == max_packet_entities) 
+        {
             break;
         }
     }
 
-    if (need_clientnum_fix)
+    if(need_clientnum_fix)
+    {
         frame->clientNum = client->slot;
+    }
 }
 
