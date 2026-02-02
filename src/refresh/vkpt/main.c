@@ -2849,7 +2849,12 @@ static void prepare_camera(const vec3_t position, const vec3_t direction, mat4_t
 static void prepare_viewmatrix(refdef_t *fd)
 {
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+
+#if SUPPORT_OPENXR
+	const float ipd = GetIPD();
+#else
 	const float ipd = fabs(cl_ipd->value);
+#endif
 
 	const bool zero_out_pitch = (stereo && ZERO_OUT_PITCH);
 
@@ -2861,7 +2866,7 @@ static void prepare_viewmatrix(refdef_t *fd)
 	create_view_matrix(zero_out_pitch, stereo, RIGHT, ipd, ipd_offset_right_WS, vkpt_refdef.view_matrix[RIGHT], fd);
 	create_view_matrix(zero_out_pitch, false, BOTH, 0.0f, ipd_offset_both_WS, vkpt_refdef.view_matrix[BOTH], fd);
 
-#if SUPPORT_OPENXR
+#if 0//SUPPORT_OPENXR
 	if(stereo)
 	{
 		GetViewMatrix(LEFT, false, fd->vieworg, fd->viewangles[YAW], vkpt_refdef.view_matrix[LEFT]);
