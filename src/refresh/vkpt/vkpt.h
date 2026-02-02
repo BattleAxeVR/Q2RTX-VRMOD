@@ -435,7 +435,8 @@ void bsp_mesh_register_textures(bsp_t *bsp);
 void bsp_mesh_animate_light_polys(bsp_mesh_t *wm);
 uint32_t encode_normal(const vec3_t normal);
 
-typedef struct vkpt_refdef_s {
+typedef struct vkpt_refdef_s 
+{
 	QVKUniformBuffer_t uniform_buffer;
 	InstanceBuffer uniform_instance_buffer;
 	refdef_t *fd;
