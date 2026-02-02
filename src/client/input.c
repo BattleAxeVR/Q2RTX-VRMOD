@@ -671,16 +671,18 @@ static void CL_BaseMove(vec3_t move)
 
     if(gamecontroller)
     {
+        const Sint16 gamepad_stick_deadzone = 1000;
+
         Sint16 gamepad_left_y = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_LEFTY);
 
-        if((gamepad_left_y < -1000) || (gamepad_left_y > 1000))
+        if((gamepad_left_y < -gamepad_stick_deadzone) || (gamepad_left_y > gamepad_stick_deadzone))
         {
             move[0] -= cl_forwardspeed->value * (float)gamepad_left_y / 32767.0f;
         }
 
         Sint16 gamepad_left_x = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_LEFTX);
 
-        if((gamepad_left_x < -1000) || (gamepad_left_x > 1000))
+        if((gamepad_left_x < -gamepad_stick_deadzone) || (gamepad_left_x > gamepad_stick_deadzone))
         {
             move[1] += cl_sidespeed->value * (float)gamepad_left_x / 32767.0f;
         }
@@ -690,17 +692,17 @@ static void CL_BaseMove(vec3_t move)
 #if SUPPORT_OPENXR
     if(Is_OpenXR_Session_Running())
     {
-        const float deadzone = 0.01f;
+        const float vr_stick_deadzone = 0.01f;
         const float forward_value = left_vr_controller.thumbstick_values_[1];
 
-        if (fabs(forward_value) > deadzone)
+        if (fabs(forward_value) > vr_stick_deadzone)
         {
-            move[0] -= cl_forwardspeed->value * forward_value;
+            move[0] = cl_forwardspeed->value * forward_value;
         }
 
         const float strafe_value = left_vr_controller.thumbstick_values_[0];
 
-        if (fabs(strafe_value) > deadzone)
+        if (fabs(strafe_value) > vr_stick_deadzone)
         {
             move[1] += cl_sidespeed->value * strafe_value;
         }
