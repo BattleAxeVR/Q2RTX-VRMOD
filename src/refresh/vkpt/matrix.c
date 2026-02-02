@@ -171,35 +171,76 @@ void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t pro
 	const float tan_height = (tan_down - tan_up);
 	const float tan_up_down_sum = (tan_up + tan_down);
 
-	float ymax = znear * tan_up;
-	float ymin = znear * tan_down;
+	if(zfar <= znear)
+	{
+		const float tan_width = (tan_right - tan_left);
+		const float tan_right_left_sum = (tan_right + tan_left);
 
-	float xmax = znear * tan_right;
-	float xmin = znear * tan_left;
+		const float tan_height = (tan_down - tan_up);
+		const float tan_up_down_sum = (tan_up + tan_down);
 
-	float width = xmax - xmin;
-	float height = ymax - ymin;
-	float depth = zfar - znear;
+		float ymax = znear * tan_up;
+		float ymin = znear * tan_down;
 
-	projection_matrix[0] = 2.0f * znear / width;
-	projection_matrix[4] = 0.0f;
-	projection_matrix[8] = (xmax + xmin) / width;
-	projection_matrix[12] = 0.0f;
+		float xmax = znear * tan_right;
+		float xmin = znear * tan_left;
 
-	projection_matrix[1] = 0.0f;
-	projection_matrix[5] = -2.0f * znear / height;
-	projection_matrix[9] = (ymax + ymin) / height;
-	projection_matrix[13] = 0.0f;
+		float width = xmax - xmin;
+		float height = ymax - ymin;
+		float depth = zfar - znear;
 
-	projection_matrix[2] = 0.0f;
-	projection_matrix[6] = 0.0f;
-	projection_matrix[10] = (zfar + znear) / depth;
-	projection_matrix[14] = 2.0f * zfar * znear / depth;
+		projection_matrix[0] = 2.0f / tan_width;
+		projection_matrix[4] = 0.0f;
+		projection_matrix[8] = tan_right_left_sum / tan_width;
+		projection_matrix[12] = 0.0f;
 
-	projection_matrix[3] = 0.0f;
-	projection_matrix[7] = 0.0f;
-	projection_matrix[11] = 1.0f;
-	projection_matrix[15] = 0.0f;
+		projection_matrix[1] = 0.0f;
+		projection_matrix[5] = 2.0f / tan_height;
+		projection_matrix[9] = tan_up_down_sum / tan_height;
+		projection_matrix[13] = 0.0f;
+
+		projection_matrix[2] = 0.0f;
+		projection_matrix[6] = 0.0f;
+		projection_matrix[10] = 1.0f;
+		projection_matrix[14] = -znear;
+
+		projection_matrix[3] = 0.0f;
+		projection_matrix[7] = 0.0f;
+		projection_matrix[11] = 1.0f;
+		projection_matrix[15] = 0.0f;
+	}
+	else
+	{
+		float ymax = znear * tan_up;
+		float ymin = znear * tan_down;
+
+		float xmax = znear * tan_right;
+		float xmin = znear * tan_left;
+
+		float width = xmax - xmin;
+		float height = ymax - ymin;
+		float depth = zfar - znear;
+
+		projection_matrix[0] = 2.0f * znear / width;
+		projection_matrix[4] = 0.0f;
+		projection_matrix[8] = (xmax + xmin) / width;
+		projection_matrix[12] = 0.0f;
+
+		projection_matrix[1] = 0.0f;
+		projection_matrix[5] = -2.0f * znear / height;
+		projection_matrix[9] = (ymax + ymin) / height;
+		projection_matrix[13] = 0.0f;
+
+		projection_matrix[2] = 0.0f;
+		projection_matrix[6] = 0.0f;
+		projection_matrix[10] = (zfar + znear) / depth;
+		projection_matrix[14] = 2.0f * zfar * znear / depth;
+
+		projection_matrix[3] = 0.0f;
+		projection_matrix[7] = 0.0f;
+		projection_matrix[11] = 1.0f;
+		projection_matrix[15] = 0.0f;
+	}
 }
 
 
