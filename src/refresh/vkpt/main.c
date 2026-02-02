@@ -2897,7 +2897,7 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 
-	if(false)//stereo || SUPPORT_OPENXR)
+	if(stereo || SUPPORT_OPENXR)
 	{
 		XrFovf fov[NUM_EYES] = { 0 };
 
