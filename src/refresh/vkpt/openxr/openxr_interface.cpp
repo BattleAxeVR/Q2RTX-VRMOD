@@ -57,6 +57,7 @@ bool OpenXR::start_session()
 		XrSessionCreateInfo createInfo{ XR_TYPE_SESSION_CREATE_INFO };
 		createInfo.next = get_graphics_binding();
 		createInfo.systemId = xr_system_id_;
+
 		XrResult create_session_res = xrCreateSession(xr_instance_, &createInfo, &xr_session_);
 
 		if (create_session_res != XR_SUCCESS)
