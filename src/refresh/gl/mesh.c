@@ -670,10 +670,15 @@ void GL_DrawAliasModel(const model_t *model)
     VectorCopy(ent->origin, origin);
 
     // cull the model, setup scale and translate vectors
-    if (newframenum == oldframenum)
+    if(newframenum == oldframenum)
+    {
         cull = cull_static_model(model);
+    }
     else
+    {
         cull = cull_lerped_model(model);
+    }
+
     if (cull == CULL_OUT)
         return;
 
@@ -684,35 +689,45 @@ void GL_DrawAliasModel(const model_t *model)
     setup_shadow();
 
     // select proper tessfunc
-    if (ent->flags & RF_SHELL_MASK) {
-        shellscale = (ent->flags & RF_WEAPONMODEL) ?
-            WEAPONSHELL_SCALE : POWERSUIT_SCALE;
-        tessfunc = newframenum == oldframenum ?
-            tess_static_shell : tess_lerped_shell;
-    } else if (shadelight) {
-        tessfunc = newframenum == oldframenum ?
-            tess_static_shade : tess_lerped_shade;
-    } else {
-        tessfunc = newframenum == oldframenum ?
-            tess_static_plain : tess_lerped_plain;
+    if (ent->flags & RF_SHELL_MASK) 
+    {
+        shellscale = (ent->flags & RF_WEAPONMODEL) ? WEAPONSHELL_SCALE : POWERSUIT_SCALE;
+        tessfunc = newframenum == oldframenum ? tess_static_shell : tess_lerped_shell;
+    } 
+    else if (shadelight) 
+    {
+        tessfunc = newframenum == oldframenum ? tess_static_shade : tess_lerped_shade;
+    } 
+    else 
+    {
+        tessfunc = newframenum == oldframenum ? tess_static_plain : tess_lerped_plain;
     }
 
     GL_RotateForEntity();
 
-    if (ent->flags & RF_WEAPONMODEL)
+    if(ent->flags & RF_WEAPONMODEL)
+    {
         setup_weaponmodel();
+    }
 
-    if (ent->flags & RF_DEPTHHACK)
+    if(ent->flags & RF_DEPTHHACK)
+    {
         GL_DepthRange(0, 0.25f);
+    }
 
     // draw all the meshes
-    for (i = 0; i < model->nummeshes; i++)
+    for(i = 0; i < model->nummeshes; i++)
+    {
         draw_alias_mesh(&model->meshes[i]);
+    }
 
-    if (ent->flags & RF_DEPTHHACK)
+    if(ent->flags & RF_DEPTHHACK)
+    {
         GL_DepthRange(0, 1);
+    }
 
-    if (ent->flags & RF_WEAPONMODEL) {
+    if (ent->flags & RF_WEAPONMODEL) 
+    {
         GL_Frustum(glr.fd.fov_x, glr.fd.fov_y, 1.0f, 1.0f);
         qglFrontFace(GL_CW);
     }

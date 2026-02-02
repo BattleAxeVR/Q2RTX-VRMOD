@@ -87,8 +87,10 @@ V_AddEntity
 */
 void V_AddEntity(entity_t *ent)
 {
-    if (r_numentities >= MAX_ENTITIES)
+    if(r_numentities >= MAX_ENTITIES)
+    {
         return;
+    }
 
     r_entities[r_numentities++] = *ent;
 }
@@ -102,8 +104,10 @@ V_AddParticle
 */
 void V_AddParticle(particle_t *p)
 {
-    if (r_numparticles >= MAX_PARTICLES)
+    if(r_numparticles >= MAX_PARTICLES)
+    {
         return;
+    }
     r_particles[r_numparticles++] = *p;
 }
 
@@ -119,9 +123,12 @@ void V_AddSphereLight(const vec3_t org, float intensity, float r, float g, float
 
     if (r_numdlights >= MAX_DLIGHTS)
         return;
+
     dl = &r_dlights[r_numdlights++];
+
     memset(dl, 0, sizeof(dlight_t));
     VectorCopy(org, dl->origin);
+
     dl->intensity = intensity;
     dl->color[0] = r;
     dl->color[1] = g;
@@ -169,8 +176,11 @@ static dlight_t* add_spot_light_common(const vec3_t org, const vec3_t dir, float
 void V_AddSpotLight(const vec3_t org, const vec3_t dir, float intensity, float r, float g, float b, float width_angle, float falloff_angle)
 {
     dlight_t *dl = add_spot_light_common(org, dir, intensity, r, g, b);
+
     if(!dl)
+    {
         return;
+    }
 
     dl->spot.emission_profile = DLIGHT_SPOT_EMISSION_PROFILE_FALLOFF;
     dl->spot.cos_total_width = cosf(DEG2RAD(width_angle));
@@ -180,8 +190,11 @@ void V_AddSpotLight(const vec3_t org, const vec3_t dir, float intensity, float r
 void V_AddSpotLightTexEmission(const vec3_t org, const vec3_t dir, float intensity, float r, float g, float b, float width_angle, qhandle_t emission_tex)
 {
     dlight_t *dl = add_spot_light_common(org, dir, intensity, r, g, b);
+
     if(!dl)
+    {
         return;
+    }
 
     dl->spot.emission_profile = DLIGHT_SPOT_EMISSION_PROFILE_AXIS_ANGLE_TEXTURE;
     dl->spot.total_width = DEG2RAD(width_angle);
@@ -197,23 +210,28 @@ void V_Flashlight(const entity_t *ent, const centity_state_t *cent_state)
 {
     // Flashlight origin
     vec3_t light_pos;
+
     // Flashlight direction vectors
     vec3_t view_dir, right_dir, up_dir;
 
-    if (!ent || cent_state->number == cl.frame.clientNum + 1) {
+    if (!ent || cent_state->number == cl.frame.clientNum + 1) 
+    {
         player_state_t* ps = &cl.frame.ps;
         player_state_t* ops = &cl.oldframe.ps;
 
         // Flashlight direction (as angles)
         vec3_t flashlight_angles;
 
-        if (cls.demo.playback) {
+        if (cls.demo.playback) 
+        {
             /* If a demo is played we don't have predicted_angles,
              * and we can't use cl.refdef.viewangles for the same reason
              * below. However, lerping the angles from the old & current frame
              * work nicely. */
             LerpAngles(cl.oldframe.ps.viewangles, cl.frame.ps.viewangles, cl.lerpfrac, flashlight_angles);
-        } else {
+        } 
+        else 
+        {
             /* Use cl.playerEntityOrigin+viewoffset, playerEntityAngles instead of
              * cl.refdef.vieworg, cl.refdef.viewangles as as the cl.refdef values
              * are the camera values, but not the player "eye" values in 3rd person mode. */
@@ -251,14 +269,19 @@ void V_Flashlight(const entity_t *ent, const centity_state_t *cent_state)
 
         VectorMA(light_pos, leftright, right_dir, light_pos);
         VectorMA(light_pos, flashlight_offset[1] * cl_gunscale->value, up_dir, light_pos);
-    } else {
+    } 
+    else 
+    {
         AngleVectors(ent->angles, view_dir, right_dir, up_dir);
         VectorCopy(ent->origin, light_pos);
     }
 
-    if(cls.ref_type == REF_TYPE_VKPT) {
+    if(cls.ref_type == REF_TYPE_VKPT) 
+    {
         V_AddSpotLightTexEmission(light_pos, view_dir, cl_flashlight_intensity->value, 1.f, 1.f, 1.f, 90.0f, flashlight_profile_tex);
-    } else {
+    } 
+    else 
+    {
         const int cent_num = cent_state ? cent_state->number : cl.frame.clientNum + 1;
         centity_t *cent = &cl_entities[cent_num];
         vec3_t start, end;
@@ -307,15 +330,18 @@ static void V_TestParticles(void)
     float       d, r, u;
 
     r_numparticles = MAX_PARTICLES;
-    for (i = 0; i < r_numparticles; i++) {
+
+    for (i = 0; i < r_numparticles; i++) 
+    {
         d = i * 0.25f;
         r = 4 * ((i & 7) - 3.5f);
         u = 4 * (((i >> 3) & 7) - 3.5f);
         p = &r_particles[i];
 
-        for (j = 0; j < 3; j++)
-            p->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * d +
-                           cl.v_right[j] * r + cl.v_up[j] * u;
+        for(j = 0; j < 3; j++)
+        {
+            p->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * d + cl.v_right[j] * r + cl.v_up[j] * u;
+        }
 
         p->color = 8;
         p->alpha = 1;
@@ -338,15 +364,17 @@ static void V_TestEntities(void)
     r_numentities = 32;
     memset(r_entities, 0, sizeof(r_entities));
 
-    for (i = 0; i < r_numentities; i++) {
+    for (i = 0; i < r_numentities; i++) 
+    {
         ent = &r_entities[i];
 
         r = 64 * ((i % 4) - 1.5f);
         f = 64 * (i / 4) + 128;
 
-        for (j = 0; j < 3; j++)
-            ent->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * f +
-                             cl.v_right[j] * r;
+        for(j = 0; j < 3; j++)
+        {
+            ent->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * f + cl.v_right[j] * r;
+        }
 
         ent->model = cl.baseclientinfo.model;
         ent->skin = cl.baseclientinfo.skin;
@@ -366,16 +394,22 @@ static void V_TestLights(void)
     float       f, r;
     dlight_t    *dl;
 
-    if (cl_testlights->integer != 1) {
+    if (cl_testlights->integer != 1) 
+    {
         dl = &r_dlights[0];
         memset(dl, 0, sizeof(dlight_t));
         r_numdlights = 1;
 
         VectorMA(cl.refdef.vieworg, 256, cl.v_forward, dl->origin);
-        if (cl_testlights->integer == -1)
+
+        if(cl_testlights->integer == -1)
+        {
             VectorSet(dl->color, -1, -1, -1);
+        }
         else
+        {
             VectorSet(dl->color, 1, 1, 1);
+        }
         dl->intensity = 256;
         dl->radius = 16;
         return;
@@ -384,15 +418,17 @@ static void V_TestLights(void)
     r_numdlights = 32;
     memset(r_dlights, 0, sizeof(r_dlights));
 
-    for (i = 0; i < r_numdlights; i++) {
+    for (i = 0; i < r_numdlights; i++) 
+    {
         dl = &r_dlights[i];
 
         r = 64 * ((i % 4) - 1.5f);
         f = 64 * (i / 4) + 128;
 
-        for (j = 0; j < 3; j++)
-            dl->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * f +
-                            cl.v_right[j] * r;
+        for(j = 0; j < 3; j++)
+        {
+            dl->origin[j] = cl.refdef.vieworg[j] + cl.v_forward[j] * f + cl.v_right[j] * r;
+        }
         dl->color[0] = ((i % 6) + 1) & 1;
         dl->color[1] = (((i % 6) + 1) & 2) >> 1;
         dl->color[2] = (((i % 6) + 1) & 4) >> 2;
@@ -409,14 +445,21 @@ static void V_TestDebugLines(void)
 
     bool depth_test = cl_testdebuglines->integer == 1 || cl_testdebuglines->integer == 3;
     bool print_id = cl_testdebuglines->integer >= 3;
-    for (int i = 0; i < r_numentities; i++) {
+
+    for (int i = 0; i < r_numentities; i++) 
+    {
         const entity_t *ent = r_entities + i;
-        if (ent->id == 1 /* gun */)
+
+        if(ent->id == 1 /* gun */)
+        {
             continue;
+        }
+
         uint32_t color = colors[ent->id % q_countof(colors)];
         R_AddDebugPoint(ent->origin, point_size, color, 0, depth_test);
 
-        if (print_id) {
+        if (print_id) 
+        {
             vec3_t text_org;
             VectorCopy(ent->origin, text_org);
             text_org[2] += point_size;
@@ -431,7 +474,8 @@ static void V_TestDebugLines(void)
 
 void CL_UpdateBlendSetting(void)
 {
-    if (cls.netchan.protocol < PROTOCOL_VERSION_R1Q2) {
+    if (cls.netchan.protocol < PROTOCOL_VERSION_R1Q2) 
+    {
         return;
     }
 
@@ -453,8 +497,11 @@ static void V_Gun_Next_f(void)
 static void V_Gun_Prev_f(void)
 {
     gun_frame--;
-    if (gun_frame < 0)
+
+    if(gun_frame < 0)
+    {
         gun_frame = 0;
+    }
     Com_Printf("frame %i\n", gun_frame);
 }
 
@@ -462,7 +509,8 @@ static void V_Gun_Model_f(void)
 {
     char    name[MAX_QPATH];
 
-    if (Cmd_Argc() != 2) {
+    if (Cmd_Argc() != 2) 
+    {
         gun_model = 0;
         return;
     }
@@ -478,10 +526,14 @@ static int entitycmpfnc(const void *_a, const void *_b)
     const entity_t *b = (const entity_t *)_b;
 
     // all other models are sorted by model then skin
-    if (a->model == b->model)
+    if(a->model == b->model)
+    {
         return a->skin - b->skin;
+    }
     else
+    {
         return a->model - b->model;
+    }
 }
 
 static void V_SetLightLevel(void)
@@ -493,16 +545,26 @@ static void V_SetLightLevel(void)
 
     // pick the greatest component, which should be the same
     // as the mono value returned by software
-    if (shadelight[0] > shadelight[1]) {
-        if (shadelight[0] > shadelight[2]) {
+
+    if (shadelight[0] > shadelight[1]) 
+    {
+        if (shadelight[0] > shadelight[2]) 
+        {
             cl.lightlevel = 150.0f * shadelight[0];
-        } else {
+        } 
+        else 
+        {
             cl.lightlevel = 150.0f * shadelight[2];
         }
-    } else {
-        if (shadelight[1] > shadelight[2]) {
+    } 
+    else 
+    {
+        if (shadelight[1] > shadelight[2]) 
+        {
             cl.lightlevel = 150.0f * shadelight[1];
-        } else {
+        } 
+        else 
+        {
             cl.lightlevel = 150.0f * shadelight[2];
         }
     }
@@ -518,8 +580,10 @@ float V_CalcFov(float fov_x, float width, float height)
     float    a;
     float    x;
 
-    if (fov_x <= 0 || fov_x > 179)
+    if(fov_x <= 0 || fov_x > 179)
+    {
         Com_Error(ERR_DROP, "%s: bad fov: %f", __func__, fov_x);
+    }
 
     x = width / tan(fov_x * (M_PI / 360));
 
@@ -540,7 +604,8 @@ void V_RenderView(void)
 {
     // an invalid frame will just use the exact previous refdef
     // we can't use the old frame if the video mode has changed, though...
-    if (cl.frame.valid) {
+    if(cl.frame.valid)
+    {
         V_ClearScene();
 
         // build a refresh entity list and calc cl.sim*
@@ -549,26 +614,42 @@ void V_RenderView(void)
         CL_AddEntities();
 
 #if USE_DEBUG
-        if (cl_testparticles->integer)
+        if(cl_testparticles->integer)
+        {
             V_TestParticles();
-        if (cl_testentities->integer)
+        }
+
+        if(cl_testentities->integer)
+        {
             V_TestEntities();
-        if (cl_testlights->integer)
+        }
+
+        if(cl_testlights->integer)
+        {
             V_TestLights();
-        if (cl_testblend->integer) {
+        }
+
+        if(cl_testblend->integer)
+        {
             cl.refdef.blend[0] = 1;
             cl.refdef.blend[1] = 0.5f;
             cl.refdef.blend[2] = 0.25f;
             cl.refdef.blend[3] = 0.5f;
         }
-        if (cl_testdebuglines->integer)
+
+        if(cl_testdebuglines->integer)
+        {
             V_TestDebugLines();
+        }
 #endif
 
         // Render client-side flash light, but skip if "flashlight" effect is already used on client ent
         bool client_flashlight = (cl_entities[cl.frame.clientNum + 1].current.morefx & EFX_FLASHLIGHT) != 0;
+
         if(cl_flashlight->integer && !client_flashlight)
+        {
             V_Flashlight(NULL, NULL);
+        }
 
         // never let it sit exactly on a node line, because a water plane can
         // dissapear when viewed with the eye exactly on it.
@@ -583,30 +664,47 @@ void V_RenderView(void)
         cl.refdef.height = scr_vrect.height;
 
         // adjust for non-4/3 screens
-        if (cl_adjustfov->integer) {
+        if(cl_adjustfov->integer)
+        {
             cl.refdef.fov_y = cl.fov_y;
             cl.refdef.fov_x = V_CalcFov(cl.refdef.fov_y, cl.refdef.height, cl.refdef.width);
-        } else {
+        }
+        else
+        {
             cl.refdef.fov_x = cl.fov_x;
             cl.refdef.fov_y = V_CalcFov(cl.refdef.fov_x, cl.refdef.width, cl.refdef.height);
         }
 
         cl.refdef.time = cl.time * 0.001f;
 
-        if (cl.frame.areabytes) {
+        if(cl.frame.areabytes)
+        {
             cl.refdef.areabits = cl.frame.areabits;
-        } else {
+        }
+        else
+        {
             cl.refdef.areabits = NULL;
         }
 
-        if (!cl_add_entities->integer)
+        if(!cl_add_entities->integer)
+        {
             r_numentities = 0;
-        if (!cl_add_particles->integer)
+        }
+
+        if(!cl_add_particles->integer)
+        {
             r_numparticles = 0;
-        if (!cl_add_lights->integer)
+        }
+
+        if(!cl_add_lights->integer)
+        {
             r_numdlights = 0;
-        if (!cl_add_blend->integer)
+        }
+
+        if(!cl_add_blend->integer)
+        {
             Vector4Clear(cl.refdef.blend);
+        }
 
         cl.refdef.num_entities = r_numentities;
         cl.refdef.entities = r_entities;
@@ -683,10 +781,16 @@ void V_Init(void)
 	cl_show_lights = Cvar_Get("cl_show_lights", "0", 0);
     cl_flashlight = Cvar_Get("cl_flashlight", "0", 0);
     cl_flashlight_intensity = Cvar_Get("cl_flashlight_intensity", "20000", CVAR_ARCHIVE);
+
     if(cls.ref_type == REF_TYPE_VKPT)
+    {
         flashlight_profile_tex = R_RegisterImage("flashlight_profile", IT_PIC, IF_PERMANENT | IF_BILERP);
+    }
     else
+    {
         flashlight_profile_tex = -1;
+    }
+
     cl_add_particles = Cvar_Get("cl_particles", "1", 0);
     cl_add_entities = Cvar_Get("cl_entities", "1", 0);
     cl_add_blend = Cvar_Get("cl_blend", "1", 0);
@@ -702,7 +806,10 @@ void V_Init(void)
 void V_Shutdown(void)
 {
     if(flashlight_profile_tex != -1)
+    {
         R_UnregisterImage(flashlight_profile_tex);
+    }
+
     Cmd_Deregister(v_cmds);
 }
 
