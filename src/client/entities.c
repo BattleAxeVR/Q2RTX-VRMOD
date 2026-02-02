@@ -1053,15 +1053,17 @@ CL_AddViewWeapon
 static void CL_AddViewWeapon(void)
 {
     player_state_t *ps, *ops;
-    entity_t    gun;        // view model
-    int         i, shell_flags;
+    entity_t gun; // view model
+    int i, shell_flags;
 
     // allow the gun to be completely removed
-    if (cl_player_model->integer == CL_PLAYER_MODEL_DISABLED) {
+    if (cl_player_model->integer == CL_PLAYER_MODEL_DISABLED) 
+    {
         return;
     }
 
-    if (info_hand->integer == 2) {
+    if (info_hand->integer == 2) 
+    {
         return;
     }
 
@@ -1071,24 +1073,28 @@ static void CL_AddViewWeapon(void)
 
     memset(&gun, 0, sizeof(gun));
 
-    if (gun_model) {
+    if (gun_model) 
+    {
         gun.model = gun_model;  // development tool
-    } else {
+    } 
+    else 
+    {
         gun.model = cl.model_draw[ps->gunindex & GUNINDEX_MASK];
         gun.skinnum = ps->gunindex >> GUNINDEX_BITS;
     }
-    if (!gun.model) {
+
+    if (!gun.model) 
+    {
         return;
     }
 
 	gun.id = RESERVED_ENTITIY_GUN;
 
     // set up gun position
-    for (i = 0; i < 3; i++) {
-        gun.origin[i] = cl.refdef.vieworg[i] + ops->gunoffset[i] +
-                        CL_KEYLERPFRAC * (ps->gunoffset[i] - ops->gunoffset[i]);
-        gun.angles[i] = cl.refdef.viewangles[i] + LerpAngle(ops->gunangles[i],
-                        ps->gunangles[i], CL_KEYLERPFRAC);
+    for (i = 0; i < 3; i++) 
+    {
+        gun.origin[i] = cl.refdef.vieworg[i] + ops->gunoffset[i] + CL_KEYLERPFRAC * (ps->gunoffset[i] - ops->gunoffset[i]);
+        gun.angles[i] = cl.refdef.viewangles[i] + LerpAngle(ops->gunangles[i], ps->gunangles[i], CL_KEYLERPFRAC);
     }
 
     // Adjust the gun scale so that the gun doesn't intersect with walls.
@@ -1103,14 +1109,21 @@ static void CL_AddViewWeapon(void)
 
     VectorCopy(gun.origin, gun.oldorigin);      // don't lerp at all
 
-    if (gun_frame) {
+    if (gun_frame) 
+    {
         gun.frame = gun_frame;  // development tool
         gun.oldframe = gun_frame;   // development tool
-    } else {
+    } 
+    else 
+    {
         gun.frame = ps->gunframe;
-        if (gun.frame == 0) {
+
+        if (gun.frame == 0) 
+        {
             gun.oldframe = 0;   // just changed weapons, don't lerp from old
-        } else {
+        } 
+        else 
+        {
             gun.oldframe = ops->gunframe;
             gun.backlerp = 1.0f - CL_KEYLERPFRAC;
         }
@@ -1118,7 +1131,8 @@ static void CL_AddViewWeapon(void)
 
     gun.flags = RF_MINLIGHT | RF_DEPTHHACK | RF_WEAPONMODEL;
 
-    if (cl_gunalpha->value != 1) {
+    if (cl_gunalpha->value != 1) 
+    {
         gun.alpha = Cvar_ClampValue(cl_gunalpha, 0.1f, 1.0f);
         gun.flags |= RF_TRANSLUCENT;
     }
@@ -1127,18 +1141,23 @@ static void CL_AddViewWeapon(void)
 	shell_flags = shell_effect_hack();
 
 	// same entity in rtx mode
-	if (cls.ref_type == REF_TYPE_VKPT) {
+	if (cls.ref_type == REF_TYPE_VKPT) 
+    {
 		gun.flags |= shell_flags;
 	}
 
 	model_t* model = MOD_ForHandle(gun.model);
-	if (model && strstr(model->name, "v_flareg"))
-		gun.scale *= 0.3f; // The flare gun is modeled too large, scale it down to match other weapons
+
+    if(model && strstr(model->name, "v_flareg"))
+    {
+        gun.scale *= 0.3f; // The flare gun is modeled too large, scale it down to match other weapons
+    }
 
     V_AddEntity(&gun);
 
 	// separate entity in non-rtx mode
-    if (shell_flags && cls.ref_type != REF_TYPE_VKPT) {
+    if (shell_flags && cls.ref_type != REF_TYPE_VKPT) 
+    {
         gun.alpha = 0.30f * cl_gunalpha->value;
         gun.flags |= shell_flags | RF_TRANSLUCENT;
         V_AddEntity(&gun);
@@ -1152,7 +1171,8 @@ static void CL_SetupFirstPersonView(void)
     float lerp;
 
     // add kick angles
-    if (cl_kickangles->integer) {
+    if (cl_kickangles->integer) 
+    {
         ps = CL_KEYPS;
         ops = CL_OLDKEYPS;
 
@@ -1182,7 +1202,8 @@ static void CL_SetupThirdPersionView(void)
     static const vec3_t mins = { -4, -4, -4 }, maxs = { 4, 4, 4 };
 
     // if dead, set a nice view angle
-    if (cl.frame.ps.stats[STAT_HEALTH] <= 0) {
+    if (cl.frame.ps.stats[STAT_HEALTH] <= 0) 
+    {
         cl.refdef.viewangles[ROLL] = 0;
         cl.refdef.viewangles[PITCH] = 10;
     }
@@ -1201,9 +1222,10 @@ static void CL_SetupThirdPersionView(void)
     VectorMA(cl.refdef.vieworg, -range * fscale, cl.v_forward, cl.refdef.vieworg);
     VectorMA(cl.refdef.vieworg, -range * rscale, cl.v_right, cl.refdef.vieworg);
 
-    CM_BoxTrace(&trace, cl.playerEntityOrigin, cl.refdef.vieworg,
-                mins, maxs, cl.bsp->nodes, MASK_SOLID);
-    if (trace.fraction != 1.0f) {
+    CM_BoxTrace(&trace, cl.playerEntityOrigin, cl.refdef.vieworg, mins, maxs, cl.bsp->nodes, MASK_SOLID);
+
+    if (trace.fraction != 1.0f) 
+    {
         VectorCopy(trace.endpos, cl.refdef.vieworg);
     }
 
@@ -1220,15 +1242,22 @@ static void CL_FinishViewValues(void)
 {
     centity_t *ent;
 
-    if (cl_player_model->integer != CL_PLAYER_MODEL_THIRD_PERSON)
+    if(cl_player_model->integer != CL_PLAYER_MODEL_THIRD_PERSON)
+    {
         goto first;
+    }
 
     ent = &cl_entities[cl.frame.clientNum + 1];
-    if (ent->serverframe != cl.frame.number)
-        goto first;
 
-    if (!ent->current.modelindex)
+    if(ent->serverframe != cl.frame.number)
+    {
         goto first;
+    }
+
+    if(!ent->current.modelindex)
+    {
+        goto first;
+    }
 
     CL_SetupThirdPersionView();
     return;
@@ -1239,20 +1268,29 @@ first:
 
 static inline float lerp_client_fov(float ofov, float nfov, float lerp)
 {
-    if (cls.demo.playback) {
+    if (cls.demo.playback) 
+    {
         int fov = info_fov->integer;
 
-        if (fov < 1)
+        if(fov < 1)
+        {
             fov = 90;
-        else if (fov > 160)
+        }
+        else if(fov > 160)
+        {
             fov = 160;
+        }
 
-        if (info_uf->integer & UF_LOCALFOV)
+        if(info_uf->integer & UF_LOCALFOV)
+        {
             return fov;
+        }
 
-        if (!(info_uf->integer & UF_PLAYERFOV)) {
+        if (!(info_uf->integer & UF_PLAYERFOV)) 
+        {
             if (ofov >= 90)
                 ofov = fov;
+
             if (nfov >= 90)
                 nfov = fov;
         }
@@ -1276,7 +1314,8 @@ void CL_CalcViewValues(void)
     vec3_t viewoffset;
     float lerp;
 
-    if (!cl.frame.valid) {
+    if (!cl.frame.valid) 
+    {
         return;
     }
 
@@ -1287,7 +1326,8 @@ void CL_CalcViewValues(void)
     lerp = cl.lerpfrac;
 
     // calculate the origin
-    if (!cls.demo.playback && cl_predict->integer && !(ps->pmove.pm_flags & PMF_NO_PREDICTION)) {
+    if (!cls.demo.playback && cl_predict->integer && !(ps->pmove.pm_flags & PMF_NO_PREDICTION)) 
+    {
         // use predicted values
         unsigned delta = cls.realtime - cl.predicted_step_time;
         float backlerp = lerp - 1.0f;
@@ -1295,33 +1335,45 @@ void CL_CalcViewValues(void)
         VectorMA(cl.predicted_origin, backlerp, cl.prediction_error, cl.refdef.vieworg);
 
         // smooth out stair climbing
-        if (cl.predicted_step < 127 * 0.125f) {
+        if (cl.predicted_step < 127 * 0.125f) 
+        {
             delta <<= 1; // small steps
         }
-        if (delta < 100) {
+        if (delta < 100) 
+        {
             cl.refdef.vieworg[2] -= cl.predicted_step * (100 - delta) * 0.01f;
         }
-    } else {
+    } 
+    else 
+    {
         int i;
 
         // just use interpolated values
-        for (i = 0; i < 3; i++) {
+        for (i = 0; i < 3; i++) 
+        {
             cl.refdef.vieworg[i] = SHORT2COORD(ops->pmove.origin[i] +
                 lerp * (ps->pmove.origin[i] - ops->pmove.origin[i]));
         }
     }
 
     // if not running a demo or on a locked frame, add the local angle movement
-    if (cls.demo.playback) {
+    if (cls.demo.playback) 
+    {
         LerpAngles(ops->viewangles, ps->viewangles, lerp, cl.refdef.viewangles);
-    } else if (ps->pmove.pm_type < PM_DEAD) {
+    } 
+    else if (ps->pmove.pm_type < PM_DEAD) 
+    {
         // use predicted values
         VectorCopy(cl.predicted_angles, cl.refdef.viewangles);
-    } else if (ops->pmove.pm_type < PM_DEAD && cls.serverProtocol > PROTOCOL_VERSION_DEFAULT) {
+    } 
+    else if (ops->pmove.pm_type < PM_DEAD && cls.serverProtocol > PROTOCOL_VERSION_DEFAULT) 
+    {
         // lerp from predicted angles, since enhanced servers
         // do not send viewangles each frame
         LerpAngles(cl.predicted_angles, ps->viewangles, lerp, cl.refdef.viewangles);
-    } else {
+    } 
+    else 
+    {
         // just use interpolated values
         LerpAngles(ops->viewangles, ps->viewangles, lerp, cl.refdef.viewangles);
     }
@@ -1347,7 +1399,8 @@ void CL_CalcViewValues(void)
     VectorCopy(cl.refdef.vieworg, cl.playerEntityOrigin);
     VectorCopy(cl.refdef.viewangles, cl.playerEntityAngles);
 
-    if (cl.playerEntityAngles[PITCH] > 180) {
+    if (cl.playerEntityAngles[PITCH] > 180) 
+    {
         cl.playerEntityAngles[PITCH] -= 360;
     }
 
@@ -1380,12 +1433,18 @@ void CL_AddTestModel(void)
             VectorCopy(cl_testmodel_position, entity.oldorigin);
 
             entity.alpha = Q_clipf(cl_testalpha->value, 0.f, 1.f);
-            if (entity.alpha < 1.f)
+
+            if(entity.alpha < 1.f)
+            {
                 entity.flags |= RF_TRANSLUCENT;
+            }
 
             int numframes = model->numframes;
-            if (model->iqmData)
+
+            if(model->iqmData)
+            {
                 numframes = (int)model->iqmData->num_poses;
+            }
 
             if (numframes > 1 && prevtime != 0)
             {
@@ -1444,10 +1503,13 @@ void CL_GetEntitySoundOrigin(unsigned entnum, vec3_t org)
     mmodel_t    *cm;
     vec3_t      mid;
 
-    if (entnum >= cl.csr.max_edicts)
+    if(entnum >= cl.csr.max_edicts)
+    {
         Com_Error(ERR_DROP, "%s: bad entity", __func__);
+    }
 
-    if (!entnum || entnum == listener_entnum) {
+    if (!entnum || entnum == listener_entnum) 
+    {
         // should this ever happen?
         VectorCopy(listener_origin, org);
         return;
@@ -1459,9 +1521,12 @@ void CL_GetEntitySoundOrigin(unsigned entnum, vec3_t org)
     LerpVector(ent->prev.origin, ent->current.origin, cl.lerpfrac, org);
 
     // offset the origin for BSP models
-    if (ent->current.solid == PACKED_BSP) {
+    if (ent->current.solid == PACKED_BSP) 
+    {
         cm = cl.model_clip[ent->current.modelindex];
-        if (cm) {
+
+        if (cm) 
+        {
             VectorAvg(cm->mins, cm->maxs, mid);
             VectorAdd(org, mid, org);
         }
