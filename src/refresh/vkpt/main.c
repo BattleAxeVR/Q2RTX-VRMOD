@@ -2863,7 +2863,6 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	ubo->prev_taa_output_height = ubo->taa_output_height;
 
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
-	const float ipd = fabs(cl_ipd->value);
 
 	if(stereo || SUPPORT_OPENXR)
 	{
