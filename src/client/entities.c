@@ -25,6 +25,8 @@ extern qhandle_t cl_mod_powerscreen;
 extern qhandle_t cl_mod_laser;
 extern qhandle_t cl_mod_dmspot;
 
+extern cvar_t *cl_stereo;
+
 /*
 =========================================================================
 
@@ -1052,17 +1054,17 @@ CL_AddViewWeapon
 */
 static void CL_AddViewWeapon(void)
 {
-    player_state_t *ps, *ops;
+    player_state_t* ps, * ops;
     entity_t gun; // view model
     int i, shell_flags;
 
     // allow the gun to be completely removed
-    if (cl_player_model->integer == CL_PLAYER_MODEL_DISABLED) 
+    if(cl_player_model->integer == CL_PLAYER_MODEL_DISABLED)
     {
         return;
     }
 
-    if (info_hand->integer == 2) 
+    if(info_hand->integer == 2)
     {
         return;
     }
@@ -1073,25 +1075,25 @@ static void CL_AddViewWeapon(void)
 
     memset(&gun, 0, sizeof(gun));
 
-    if (gun_model) 
+    if(gun_model)
     {
         gun.model = gun_model;  // development tool
-    } 
-    else 
+    }
+    else
     {
         gun.model = cl.model_draw[ps->gunindex & GUNINDEX_MASK];
         gun.skinnum = ps->gunindex >> GUNINDEX_BITS;
     }
 
-    if (!gun.model) 
+    if(!gun.model)
     {
         return;
     }
 
-	gun.id = RESERVED_ENTITIY_GUN;
+    gun.id = RESERVED_ENTITIY_GUN;
 
     // set up gun position
-    for (i = 0; i < 3; i++) 
+    for(i = 0; i < 3; i++)
     {
         gun.origin[i] = cl.refdef.vieworg[i] + ops->gunoffset[i] + CL_KEYLERPFRAC * (ps->gunoffset[i] - ops->gunoffset[i]);
         gun.angles[i] = cl.refdef.viewangles[i] + LerpAngle(ops->gunangles[i], ps->gunangles[i], CL_KEYLERPFRAC);
@@ -1109,7 +1111,15 @@ static void CL_AddViewWeapon(void)
 
     VectorCopy(gun.origin, gun.oldorigin);      // don't lerp at all
 
-    if (gun_frame) 
+    // Disable weapon animations in stereo / VR mode
+    const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+
+    if(stereo)
+    {
+        gun.frame = 19;
+        gun.oldframe = 19;
+    }
+    else if (gun_frame)
     {
         gun.frame = gun_frame;  // development tool
         gun.oldframe = gun_frame;   // development tool
