@@ -372,8 +372,7 @@ VkResult vkpt_destroy_all(VkptInitFlags_t destroy_flags)
 	return VK_SUCCESS;
 }
 
-void
-vkpt_reload_shader(void)
+void vkpt_reload_shader(void)
 {
 	char buf[1024];
 #ifdef _WIN32
@@ -408,10 +407,22 @@ static void vkpt_reload_textures(void)
 //
 //
 
+#if 1
 vkpt_refdef_t vkpt_refdef = {
 	.z_near = 1.0f,
 	.z_far  = 4096.0f,
 };
+#elif 1
+vkpt_refdef_t vkpt_refdef = {
+	.z_near = 0.015625f,
+	.z_far  = 4096.0f,
+};
+#else
+vkpt_refdef_t vkpt_refdef = {
+	.z_near = 0.015625f,
+	.z_far  = 0.0f,
+};
+#endif
 
 QVK_t qvk = {
 	.draw_width         = 1920,
