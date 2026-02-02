@@ -49,6 +49,7 @@ bool Is_OpenXR_Session_Running();
 bool GetEyePosition(const int view_id, float* eye_pos_vec3, float* tracking_to_world_matrix);
 bool GetViewMatrix(const int view_id, const bool append, float* eye_pos_vec3, float yaw_deg, float* matrix_ptr);
 bool GetFov(const int view_id, XrFovf* fov_ptr);
+float GetIPD();
 
 bool GetHandPosition(const int hand_id, float* hand_pos_vec3, float* tracking_to_world_matrix);
 bool GetHandMatrix(const int hand_id, const bool append, float* matrix_ptr);

@@ -2726,7 +2726,7 @@ void OpenXR::log_instance_info()
 
 BVR::OpenXR openxr_;
 bool started_session_ = false;
-static float world_scale = 1000.0f;
+static float world_scale = 1.0f;
 
 // C Interface wrapper for simplicity
 extern "C"
@@ -2915,6 +2915,36 @@ extern "C"
 		fov = xr_view.fov;
 
 		return true;
+	}
+
+	float GetIPD()
+	{
+		if(!openxr_.is_session_running())
+		{
+			return 0.0f;
+		}
+
+		XrView left_view = {};
+		
+		if(!openxr_.get_view(LEFT, left_view))
+		{
+			return 0.0f;
+		}
+
+		XrView right_view = {};
+
+		if(!openxr_.get_view(RIGHT, right_view))
+		{
+			return 0.0f;
+		}
+
+		const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose);
+		const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose);
+
+		const glm::vec3 left_to_right_eye = right_eye_pose.translation_ - left_eye_pose.translation_;
+		const float ipd = length(left_to_right_eye);
+
+		return ipd;
 	}
 
 	bool GetHandPosition(const int hand_id, float* hand_pos_vec3, float* tracking_to_world_matrix)
