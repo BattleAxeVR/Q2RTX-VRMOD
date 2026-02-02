@@ -1928,8 +1928,11 @@ static void process_bsp_entity(const entity_t* entity, int* instance_count)
 		return;
 	}
 	
-	float transform[16];
-	create_entity_matrix(transform, (entity_t*)entity);
+	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+	const int view_id = BOTH;
+
+	float transform[16] = { 0 };
+	create_entity_matrix(view_id, transform, (entity_t*)entity);
 
 	bsp_model_t* model = vkpt_refdef.bsp_mesh_world.models + (~entity->model);
 
@@ -1945,7 +1948,8 @@ static void process_bsp_entity(const entity_t* entity, int* instance_count)
 
 		for (int corner = 0; corner < 8; corner++)
 		{
-			vec3_t corner_pt = {
+			vec3_t corner_pt = 
+			{
 				(corner & 1) ? model->aabb_max[0] : model->aabb_min[0],
 				(corner & 2) ? model->aabb_max[1] : model->aabb_min[1],
 				(corner & 4) ? model->aabb_max[2] : model->aabb_min[2]
@@ -1956,8 +1960,10 @@ static void process_bsp_entity(const entity_t* entity, int* instance_count)
 
 			cluster = BSP_PointLeaf(bsp_world_model->nodes, corner_pt_world)->cluster;
 
-			if (cluster >= 0)
+			if(cluster >= 0)
+			{
 				break;
+			}
 		}
 	}
 
@@ -1973,6 +1979,7 @@ static void process_bsp_entity(const entity_t* entity, int* instance_count)
 	ModelInstance* mi = uniform_instance_buffer->model_instances + current_instance_idx;
 	memcpy(&mi->transform, transform, sizeof(transform));
 	memcpy(&mi->transform_prev, transform, sizeof(transform));
+
 	mi->material = 0;
 	mi->cluster = cluster;
 	mi->source_buffer_idx = VERTEX_BUFFER_WORLD;
@@ -2028,6 +2035,9 @@ static void process_regular_entity(
 
 	float transform[16] = { 0 };
 
+	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+	const int view_id = BOTH;
+
 	if(is_viewer_weapon)
 	{
 #if SUPPORT_OPENXR
@@ -2068,7 +2078,7 @@ static void process_regular_entity(
 		transform[11] = 0.0f;
 		transform[15] = 1.0f;
 #else
-		create_viewweapon_matrix(transform, (entity_t*)entity);
+		create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
 #endif
 		
 		const bool hand_ok = false;// GetHandMatrix(hand_id, true, transform);
@@ -2079,12 +2089,12 @@ static void process_regular_entity(
 		else
 #endif
 		{
-			create_viewweapon_matrix(transform, (entity_t*)entity);
+			create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
 		}
 	}
 	else
 	{
-		create_entity_matrix(transform, (entity_t*)entity);
+		create_entity_matrix(view_id, transform, (entity_t*)entity);
 	}
 	
 	int current_instance_index = *instance_count;
@@ -2122,12 +2132,18 @@ static void process_regular_entity(
 	{
 		const model_geometry_t* geom = NULL;
 
-		if (mesh_filter & MESH_FILTER_MASKED)
+		if(mesh_filter & MESH_FILTER_MASKED)
+		{
 			geom = &vbo->geom_masked;
-		else if (mesh_filter & MESH_FILTER_TRANSPARENT)
+		}
+		else if(mesh_filter & MESH_FILTER_TRANSPARENT)
+		{
 			geom = &vbo->geom_transparent;
+		}
 		else
+		{
 			geom = &vbo->geom_opaque;
+		}
 		
 		if (geom->accel)
 		{
@@ -2165,29 +2181,41 @@ static void process_regular_entity(
 
 		material_and_shell_t mat_shell = compute_mesh_material_flags(entity, model, mesh, is_viewer_weapon, is_double_sided, alpha);
 
-		if (!mat_shell.material_id)
+		if(!mat_shell.material_id)
+		{
 			continue;
+		}
 
 		if (MAT_IsMasked(mat_shell.material_id))
 		{
-			if (contains_masked)
+			if(contains_masked)
+			{
 				*contains_masked = true;
+			}
 
-			if (!(mesh_filter & MESH_FILTER_MASKED))
+			if(!(mesh_filter & MESH_FILTER_MASKED))
+			{
 				continue;
+			}
 		}
 		else if (MAT_IsTransparent(mat_shell.material_id) || (alpha < 1.0f))
 		{
 			if(contains_transparent)
+			{
 				*contains_transparent = true;
+			}
 
 			if(!(mesh_filter & MESH_FILTER_TRANSPARENT))
+			{
 				continue;
+			}
 		}
 		else
 		{
-			if (!(mesh_filter & MESH_FILTER_OPAQUE))
+			if(!(mesh_filter & MESH_FILTER_OPAQUE))
+			{
 				continue;
+			}
 		}
 
 		entity_hash_t hash;
@@ -2200,8 +2228,7 @@ static void process_regular_entity(
 		
 		ModelInstance* mi = uniform_instance_buffer->model_instances + current_instance_index;
 
-		fill_model_instance(mi, entity, model, mesh, transform, mat_shell,
-			current_instance_index, iqm_matrix_index);
+		fill_model_instance(mi, entity, model, mesh, transform, mat_shell, current_instance_index, iqm_matrix_index);
 
 		if (use_static_blas)
 		{
@@ -2321,16 +2348,19 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 
 			if (model->num_light_polys > 0)
 			{
+				const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+				const int view_id = BOTH;
+
 				float transform[16] = { 0 };
 				const bool is_viewer_weapon = (entity->flags & RF_WEAPONMODEL) != 0;
 
 				if(is_viewer_weapon)
 				{
-					create_viewweapon_matrix(transform, (entity_t*)entity);
+					create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
 				}
 				else
 				{
-					create_entity_matrix(transform, (entity_t*)entity);
+					create_entity_matrix(view_id, transform, (entity_t*)entity);
 				}
 
 				instance_model_lights(model->num_light_polys, model->light_polys, transform);
@@ -2821,13 +2851,15 @@ static void prepare_viewmatrix(refdef_t *fd)
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 	const float ipd = fabs(cl_ipd->value);
 
-	const bool zero_out_pitch = false;// (stereo && ZERO_OUT_PITCH);
+	const bool zero_out_pitch = (stereo && ZERO_OUT_PITCH);
 
 	vec4_t ipd_offset_left_WS = { 0 };
 	vec4_t ipd_offset_right_WS = { 0 };
+	vec4_t ipd_offset_both_WS = { 0 };
 
 	create_view_matrix(zero_out_pitch, stereo, LEFT, ipd, ipd_offset_left_WS, vkpt_refdef.view_matrix[LEFT], fd);
 	create_view_matrix(zero_out_pitch, stereo, RIGHT, ipd, ipd_offset_right_WS, vkpt_refdef.view_matrix[RIGHT], fd);
+	create_view_matrix(zero_out_pitch, false, BOTH, 0.0f, ipd_offset_both_WS, vkpt_refdef.view_matrix[BOTH], fd);
 
 #if SUPPORT_OPENXR
 	if(stereo)
@@ -2839,6 +2871,7 @@ static void prepare_viewmatrix(refdef_t *fd)
 
 	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
 	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
+	inverse(vkpt_refdef.view_matrix[BOTH], vkpt_refdef.view_matrix_inv[BOTH]);
 }
 
 
@@ -2864,7 +2897,7 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 
-	if(stereo || SUPPORT_OPENXR)
+	if(false)//stereo || SUPPORT_OPENXR)
 	{
 		XrFovf fov[NUM_EYES] = { 0 };
 
@@ -2961,7 +2994,8 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 		// In some cases (ex.: player setup), 'fd' will describe a viewport that is not full screen.
 		// Simulate that with a projection matrix adjustment to avoid modifying the rendering code.
 
-		float viewport_proj[16] = {
+		float viewport_proj[16] = 
+		{
 			[0] = (float)fd->width / (float)qvk.extent_unscaled.width,
 			[12] = (float)(fd->x * 2 + fd->width - (int)qvk.extent_unscaled.width) / (float)qvk.extent_unscaled.width,
 			[5] = (float)fd->height / (float)qvk.extent_unscaled.height,

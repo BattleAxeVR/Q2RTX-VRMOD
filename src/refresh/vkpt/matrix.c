@@ -58,12 +58,12 @@ static void internal_create_entity_matrix(mat4_t matrix, entity_t *e, bool mirro
 	matrix[15] = 1.0f;
 }
 
-void create_entity_matrix(mat4_t matrix, entity_t *e)
+void create_entity_matrix(int view_id, mat4_t matrix, entity_t *e)
 {
 	internal_create_entity_matrix(matrix, e, false);
 }
 
-void create_viewweapon_matrix(mat4_t matrix, entity_t *e)
+void create_viewweapon_matrix(int stereo, int view_id, mat4_t matrix, entity_t *e)
 {
 	extern cvar_t   *info_hand;
 	extern cvar_t   *cl_adjustfov;
@@ -71,7 +71,7 @@ void create_viewweapon_matrix(mat4_t matrix, entity_t *e)
 
 	internal_create_entity_matrix(matrix, e, info_hand->integer == 1);
 
-	if (cl_gunfov->value > 0) 
+	if (!stereo && (cl_gunfov->value > 0)) 
 	{
 		float gunfov_x, gunfov_y;
 		gunfov_x = Cvar_ClampValue(cl_gunfov, 30, 160);
@@ -115,9 +115,8 @@ void create_viewweapon_matrix(mat4_t matrix, entity_t *e)
 		mat4_t tmp2;
 		mult_matrix_matrix(tmp2, adjust, tmp);
 
-		mult_matrix_matrix(matrix, vkpt_refdef.view_matrix_inv[LEFT], tmp2);
+		mult_matrix_matrix(matrix, vkpt_refdef.view_matrix_inv[view_id], tmp2);
 	}
-
 }
 
 void create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_x, float fov_y)
@@ -265,14 +264,15 @@ void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd,
 
 	float abs_ipd = fabs(ipd);
 
-	if(stereo && (abs_ipd > 0.0f))
+	if(stereo && (abs_ipd > 0.0f) && (view_id == LEFT))
 	{
 		const float half_ipd = (abs_ipd * 0.5f);
 
 		mat4_t view_matrix_inv = { 0 };
 		inverse(view_matrix, view_matrix_inv);
 
-		const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
+		//const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
+		const float ipd_offset_mag = -half_ipd;
 		const vec4_t ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 0.0f };
 
 		mult_matrix_vector(ipd_offset_WS, view_matrix_inv, ipd_offset_LS);

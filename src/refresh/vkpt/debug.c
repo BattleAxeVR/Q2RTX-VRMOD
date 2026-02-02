@@ -90,8 +90,10 @@ static inline bool intersect_z_near(vec3_t a, vec3_t b)
 
 static void VKPT_DrawDebugLines(VkCommandBuffer cmd_buf)
 {
-	if (LIST_EMPTY(&r_debug_lines_active))
+	if(LIST_EMPTY(&r_debug_lines_active))
+	{
 		return;
+	}
 
 	BufferResource_t *coord_buf = &debug_line_buffers[qvk.current_frame_index].coord_buf;
 	BufferResource_t *color_buf = &debug_line_buffers[qvk.current_frame_index].color_buf;
@@ -101,33 +103,41 @@ static void VKPT_DrawDebugLines(VkCommandBuffer cmd_buf)
 
 	r_debug_line_t *l, *next;
 	int numverts = 0;
-	LIST_FOR_EACH_SAFE(r_debug_line_t, l, next, &r_debug_lines_active, entry) {
-		vec3_t view_start, view_end;
 
-		mult_matrix_vector3(view_start, vkpt_refdef.view_matrix[LEFT], l->start);
-		mult_matrix_vector3(view_end, vkpt_refdef.view_matrix[LEFT], l->end);
+	LIST_FOR_EACH_SAFE(r_debug_line_t, l, next, &r_debug_lines_active, entry) 
+	{
+		vec3_t view_start = { 0 };
+		vec3_t view_end = { 0 };
 
-		mult_matrix_vector3(view_start, vkpt_refdef.view_matrix[RIGHT], l->start);
-		mult_matrix_vector3(view_end, vkpt_refdef.view_matrix[RIGHT], l->end);
+		mult_matrix_vector3(view_start, vkpt_refdef.view_matrix[BOTH], l->start);
+		mult_matrix_vector3(view_end, vkpt_refdef.view_matrix[BOTH], l->end);
 
-		if (!intersect_z_near(view_start, view_end))
+		if(!intersect_z_near(view_start, view_end))
+		{
 			// Cull line behind camera.
 			continue;
-		if (!l->depth_test) {
+		}
+		
+		if (!l->depth_test) 
+		{
 			// Negative Z coord indicates disabled depth testing
 			view_start[2] = -view_start[2];
 			view_end[2] = -view_end[2];
 		}
+
 		VectorCopy(view_start, coord_ptr[0]);
 		VectorCopy(view_end, coord_ptr[1]);
 		coord_ptr += 2;
+
 		WN32(color_ptr + 0, l->color.u32);
 		WN32(color_ptr + 1, l->color.u32);
 		color_ptr += 2;
 
 		numverts += 2;
 
-		if (!l->time) { // one-frame render
+		if (!l->time) 
+		{ 
+			// one-frame render
 			List_Remove(&l->entry);
 			List_Insert(&r_debug_lines_free, &l->entry);
 		}
@@ -138,7 +148,8 @@ static void VKPT_DrawDebugLines(VkCommandBuffer cmd_buf)
 
 	VkClearValue clear_value = { .color = { .uint32 = { 0, 0, 0, 0 } } };
 
-	VkRenderPassBeginInfo render_pass_info = {
+	VkRenderPassBeginInfo render_pass_info = 
+	{
 		.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 		.renderPass        = render_pass_debug_line,
 		.framebuffer       = framebuffer_debug_line,
@@ -148,16 +159,18 @@ static void VKPT_DrawDebugLines(VkCommandBuffer cmd_buf)
 		.pClearValues      = &clear_value
 	};
 
-	VkDescriptorSet desc_sets[] = {
+	VkDescriptorSet desc_sets[] = 
+	{
 		qvk.desc_set_ubo,
 		qvk_get_current_desc_set_textures(),
 	};
 
 	vkCmdBeginRenderPass(cmd_buf, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
-	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			pipeline_layout_debug_line, 0, LENGTH(desc_sets), desc_sets, 0, 0);
+	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout_debug_line, 0, LENGTH(desc_sets), desc_sets, 0, 0);
+
 	VkDeviceSize offsets[] = { 0, 0 };
 	VkBuffer vertex_buffers[] = {coord_buf->buffer, color_buf->buffer};
+
 	vkCmdBindVertexBuffers(cmd_buf, 0, 2, vertex_buffers, offsets);
 	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_debug_line);
 	vkCmdSetLineWidth(cmd_buf, vkpt_debug_linewidth->value);

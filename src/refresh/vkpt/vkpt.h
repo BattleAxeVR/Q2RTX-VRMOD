@@ -439,8 +439,8 @@ typedef struct vkpt_refdef_s {
 	QVKUniformBuffer_t uniform_buffer;
 	InstanceBuffer uniform_instance_buffer;
 	refdef_t *fd;
-	float view_matrix[NUM_EYES][16];
-	float view_matrix_inv[NUM_EYES][16];
+	float view_matrix[NUM_EYES + 1][16];
+	float view_matrix_inv[NUM_EYES + 1][16];
 
 	float z_near, z_far;
 
@@ -465,8 +465,8 @@ typedef struct sun_light_s {
 
 void mult_matrix_matrix(mat4_t p, const mat4_t a, const mat4_t b);
 void mult_matrix_vector(vec4_t v, const mat4_t a, const vec4_t b);
-void create_entity_matrix(mat4_t matrix, entity_t *e);
-void create_viewweapon_matrix(mat4_t matrix, entity_t *e);
+void create_entity_matrix(int view_id, mat4_t matrix, entity_t *e);
+void create_viewweapon_matrix(int stereo, int view_id, mat4_t matrix, entity_t *e);
 void create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_x, float fov_y);
 void create_projection_matrixXR(float* znear_ptr, float* zfar_ptr, XrFovf* fov, mat4_t matrix);
 void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd, vec4_t ipd_offset_WS, mat4_t matrix, refdef_t *fd);
