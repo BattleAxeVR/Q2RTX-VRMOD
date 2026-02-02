@@ -264,26 +264,33 @@ void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd,
 
 	float abs_ipd = fabs(ipd);
 
-	if(stereo && (abs_ipd > 0.0f) && (view_id == LEFT))
+	if(stereo && (abs_ipd > 0.0f))
 	{
 		const float half_ipd = (abs_ipd * 0.5f);
 
 		mat4_t view_matrix_inv = { 0 };
 		inverse(view_matrix, view_matrix_inv);
 
-		//const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
-		const float ipd_offset_mag = -half_ipd;
+		const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
 		const vec4_t ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 0.0f };
 
 		mult_matrix_vector(ipd_offset_WS, view_matrix_inv, ipd_offset_LS);
 
-		view_matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
-		view_matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
-		view_matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
+		float x_val = DotProduct(viewaxis[1], fd->vieworg);
+		float y_val = -DotProduct(viewaxis[2], fd->vieworg);
+		float z_val = -DotProduct(viewaxis[0], fd->vieworg);
 
-		view_matrix[12] += ipd_offset_WS[0];
-		view_matrix[13] += ipd_offset_WS[1];
-		view_matrix[14] += ipd_offset_WS[2];
+		float x_ipd_offset = ipd_offset_WS[0];
+		float y_ipd_offset = ipd_offset_WS[1];
+		float z_ipd_offset = ipd_offset_WS[2];
+
+		x_val += x_ipd_offset;
+		//y_val += y_ipd_offset;
+		//z_val += z_ipd_offset;
+
+		view_matrix[12] = x_val;
+		view_matrix[13] = y_val;
+		view_matrix[14] = z_val;
 	}
 	else
 	{
