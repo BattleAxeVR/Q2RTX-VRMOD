@@ -68,7 +68,8 @@ INPUT SUBSYSTEM
 ===============================================================================
 */
 
-typedef struct {
+typedef struct 
+{
     bool        modified;
     int         old_dx;
     int         old_dy;
@@ -81,28 +82,43 @@ static cvar_t    *in_grab;
 
 static bool IN_GetCurrentGrab(void)
 {
-    if (cls.active != ACT_ACTIVATED)
+    if(cls.active != ACT_ACTIVATED)
+    {
         return false;  // main window doesn't have focus
-
-    if (r_config.flags & QVF_FULLSCREEN)
-        return true;   // full screen
-
-    if (cls.key_dest & (KEY_MENU | KEY_CONSOLE))
-        return false;  // menu or console is up
-
-    if (cls.state != ca_active && cls.state != ca_cinematic)
-        return false;  // not connected
-
-    if (in_grab->integer >= 2) {
-        if (cls.demo.playback && !Key_IsDown(K_SHIFT))
-            return false;  // playing a demo (and not using freelook)
-
-        if (cl.frame.ps.pmove.pm_type == PM_FREEZE)
-            return false;  // spectator mode
     }
 
-    if (in_grab->integer >= 1)
+    if(r_config.flags & QVF_FULLSCREEN)
+    {
+        return true;   // full screen
+    }
+
+    if(cls.key_dest & (KEY_MENU | KEY_CONSOLE))
+    {
+        return false;  // menu or console is up
+    }
+
+    if(cls.state != ca_active && cls.state != ca_cinematic)
+    {
+        return false;  // not connected
+    }
+
+    if (in_grab->integer >= 2) 
+    {
+        if(cls.demo.playback && !Key_IsDown(K_SHIFT))
+        {
+            return false;  // playing a demo (and not using freelook)
+        }
+
+        if(cl.frame.ps.pmove.pm_type == PM_FREEZE)
+        {
+            return false;  // spectator mode
+        }
+    }
+
+    if(in_grab->integer >= 1)
+    {
         return true;   // regular playing mode
+    }
 
     return false;
 }
@@ -114,7 +130,8 @@ IN_Activate
 */
 void IN_Activate(void)
 {
-    if (vid.grab_mouse) {
+    if (vid.grab_mouse) 
+    {
         vid.grab_mouse(IN_GetCurrentGrab());
     }
 }
@@ -137,7 +154,8 @@ IN_Frame
 */
 void IN_Frame(void)
 {
-    if (input.modified) {
+    if (input.modified) 
+    {
         IN_Restart_f();
     }
 }
@@ -149,7 +167,8 @@ IN_WarpMouse
 */
 void IN_WarpMouse(int x, int y)
 {
-    if (vid.warp_mouse) {
+    if (vid.warp_mouse) 
+    {
         vid.warp_mouse(x, y);
     }
 }
@@ -161,11 +180,13 @@ IN_Shutdown
 */
 void IN_Shutdown(void)
 {
-    if (in_grab) {
+    if (in_grab) 
+    {
         in_grab->changed = NULL;
     }
 
-    if (vid.shutdown_mouse) {
+    if (vid.shutdown_mouse) 
+    {
         vid.shutdown_mouse();
     }
 
@@ -191,12 +212,15 @@ void IN_Init(void)
 {
     in_enable = Cvar_Get("in_enable", "1", 0);
     in_enable->changed = in_changed_hard;
-    if (!in_enable->integer) {
+
+    if (!in_enable->integer) 
+    {
         Com_Printf("Mouse input disabled.\n");
         return;
     }
 
-    if (!vid.init_mouse()) {
+    if (!vid.init_mouse()) 
+    {
         Cvar_Set("in_enable", "0");
         return;
     }
