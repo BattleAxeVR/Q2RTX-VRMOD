@@ -2883,19 +2883,29 @@ static void prepare_viewmatrix(refdef_t *fd)
 	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
 	create_view_matrix(false, BOTH, 0.0f, vkpt_refdef.view_matrix[BOTH], fd);
 
-	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
-	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
-	inverse(vkpt_refdef.view_matrix[BOTH], vkpt_refdef.view_matrix_inv[BOTH]);
-
 #if SUPPORT_OPENXR
 	const int apply_xr_view = (cl_xr_view->value == 1.0f) ? 1 : 0;
 
 	if(stereo && apply_xr_view)
 	{
-		GetViewMatrix(LEFT, false, fd->vieworg, fd->viewangles[YAW], vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
-		GetViewMatrix(RIGHT, false, fd->vieworg, fd->viewangles[YAW], vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
+		const float game_x = fd->vieworg[0];
+		const float game_y = fd->vieworg[1];
+		const float game_z = fd->vieworg[2];
+
+#if APPLY_STEREO_VIEW_YAW
+		const float yaw_deg = fd->viewangles[YAW];
+#else
+		const float yaw_deg = 0.0f;
+#endif
+
+		GetViewMatrix(LEFT, game_x, game_y, game_z, yaw_deg, vkpt_refdef.view_matrix[LEFT]);
+		GetViewMatrix(RIGHT, game_x, game_y, game_z, yaw_deg, vkpt_refdef.view_matrix[RIGHT]);
 	}
 #endif
+
+	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
+	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
+	inverse(vkpt_refdef.view_matrix[BOTH], vkpt_refdef.view_matrix_inv[BOTH]);
 }
 
 

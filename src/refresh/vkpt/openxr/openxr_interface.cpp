@@ -2910,9 +2910,9 @@ extern "C"
 		return true;
 	}
 
-	bool GetViewMatrix(const int view_id, const bool append, float* eye_pos_vec3, float yaw_deg, float* view_matrix_ptr, float* view_matrix_inv_ptr)
+	bool GetViewMatrix(const int view_id, float game_x, float game_y, float game_z, float yaw_deg, float* view_matrix_ptr)
 	{
-		if(!openxr_.is_session_running() || !view_matrix_ptr || !view_matrix_inv_ptr)
+		if(!openxr_.is_session_running() || !view_matrix_ptr)
 		{
 			return false;
 		}
@@ -2924,6 +2924,27 @@ extern "C"
 			return false;
 		}
 
+		const XrPosef& xr_pose = xr_view.pose;
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+
+		//const glm::fquat CCW_180_rotation_about_y = glm::fquat(0, 1, 0, 0);
+		//const glm::fquat CCW_180_rotation_about_x = glm::fquat(0, 0, 1, 0);
+		//const glm::fquat CCW_180_rotation_about_z = glm::fquat(0, 0, 0, 1);
+
+
+		//glm_pose.rotation_ = BVR::default_rotation;
+		glm_pose.rotation_ = BVR::CCW_180_rotation_about_y;
+		//glm_pose.rotation_ = BVR::CCW_180_rotation_about_x;
+		//glm_pose.rotation_ = BVR::CCW_180_rotation_about_z;
+
+		//static bool rotate_x = false;
+		//static bool rotate_y = false;
+		//static bool rotate_z = false;
+
+		//glm_pose.rotation_ = BVR::CCW_180_rotation_about_x;
+		//glm_pose.rotation_ = BVR::CCW_180_rotation_about_y;
+
+#if 0
 		static float deg_x = 0.0f;
 		static float deg_y = 0.0f;
 		static float deg_z = 0.0f;
@@ -2933,29 +2954,21 @@ extern "C"
 
 		const glm::vec3 game_euler_rad = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation = glm::fquat(game_euler_rad);
+#endif
+		//const glm::fquat final_rotation = BVR::default_rotation;// game_rotation* extra_rotation;
 
-		const glm::fquat final_rotation = game_rotation * extra_rotation;
+		static bool apply_game_position = true;
 
-		const glm::vec3 game_position = { eye_pos_vec3[0], eye_pos_vec3[1], eye_pos_vec3[2] };
-
-		const BVR::GLMPose game_pose = BVR::GLMPose(game_position, final_rotation);
-		const glm::mat4 game_view_matrix = game_pose.to_matrix();
-
-		const XrPosef& xr_pose = xr_view.pose;
-		const BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
-
-		glm::mat4 glm_inverse_view_matrix = glm_pose.to_matrix();
-
-		static bool apply_game_matrix = true;
-
-		if(apply_game_matrix)
+		if(apply_game_position)
 		{
-			glm_inverse_view_matrix = game_view_matrix * glm_inverse_view_matrix;
+			const glm::vec3 game_position = { game_x, game_y, game_z };
+			glm_pose.translation_ += game_position;
+
+			//const BVR::GLMPose game_pose = BVR::GLMPose(game_position, final_rotation);
+			//const glm::mat4 game_view_matrix = game_pose.to_matrix();
 		}
 
-		memcpy(view_matrix_inv_ptr, &glm_inverse_view_matrix, sizeof(float) * 16);
-
-		glm::mat4 view_matrix = inverse(glm_inverse_view_matrix);
+		glm::mat4 view_matrix = inverse(glm_pose.to_matrix());
 		memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
 
 #if 0
