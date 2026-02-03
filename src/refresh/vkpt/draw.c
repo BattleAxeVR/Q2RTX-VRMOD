@@ -22,12 +22,17 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "client/client.h"
 #include "refresh/images.h"
 
+extern cvar_t *cl_stereo;
+extern cvar_t *cl_blit_scale;
+extern cvar_t *cl_blit_bias;
+
 #include <assert.h>
 
 #include "vkpt.h"
 #include "shader/global_textures.h"
 
-enum {
+enum 
+{
 	STRETCH_PIC_SDR,
 	STRETCH_PIC_HDR,
 	STRETCH_PIC_NUM_PIPELINES
@@ -45,29 +50,34 @@ enum
 #define TEXNUM_WHITE (~0)
 #define MAX_STRETCH_PICS (1<<14)
 
-static drawStatic_t draw = {
+static drawStatic_t draw = 
+{
 	.scale = 1.0f,
 	.alpha_scale = 1.0f
 };
 
 static int num_stretch_pics = 0;
-typedef struct {
+
+typedef struct 
+{
 	float x, y, w,   h;
 	float s, t, w_s, h_t;
 	uint32_t color, tex_handle;
 } StretchPic_t;
 
 // Not using global UBO b/c it's only filled when a world is drawn, but here we need it all the time
-typedef struct {
+typedef struct 
+{
 	float hdr_color_scale;
 	float tm_hdr_saturation_scale;
 } StretchPic_UBO_t;
 
-typedef struct {
+typedef struct 
+{
 	vec2_t input_dimensions;
 	int stereo;
 	int view_id;
-	vec2_t uv_mult;
+	vec2_t uv_scale_bias;
 } FinalBlitPushConstants_t;
 
 static clipRect_t clip_rect;
@@ -96,32 +106,34 @@ static VkDescriptorSet         desc_set_final_blit[MAX_FRAMES_IN_FLIGHT];
 extern cvar_t* cvar_ui_hdr_nits;
 extern cvar_t* cvar_tm_hdr_saturation_scale;
 
-VkExtent2D
-vkpt_draw_get_extent(void)
+VkExtent2D vkpt_draw_get_extent(void)
 {
 	return qvk.extent_unscaled;
 }
 
-static inline void enqueue_stretch_pic(
-		float x, float y, float w, float h,
-		float s1, float t1, float s2, float t2,
-		uint32_t color, int tex_handle)
+static inline void enqueue_stretch_pic(float x, float y, float w, float h, float s1, float t1, float s2, float t2, uint32_t color, int tex_handle)
 {
-	if (draw.alpha_scale == 0.f)
+	if(draw.alpha_scale == 0.f)
+	{
 		return;
+	}
 
-	if(num_stretch_pics == MAX_STRETCH_PICS) {
+	if(num_stretch_pics == MAX_STRETCH_PICS) 
+	{
 		Com_EPrintf("Error: stretch pic queue full!\n");
 		assert(0);
 		return;
 	}
+
 	assert(tex_handle);
 	StretchPic_t *sp = stretch_pic_queue + num_stretch_pics++;
 
 	if (clip_enable)
 	{
-		if (x >= clip_rect.right || x + w <= clip_rect.left || y >= clip_rect.bottom || y + h <= clip_rect.top)
+		if(x >= clip_rect.right || x + w <= clip_rect.left || y >= clip_rect.bottom || y + h <= clip_rect.top)
+		{
 			return;
+		}
 
 		if (x < clip_rect.left)
 		{
@@ -191,17 +203,18 @@ static inline void enqueue_stretch_pic(
 
 	sp->color = color;
 	sp->tex_handle = tex_handle;
-	if(tex_handle >= 0 && tex_handle < MAX_RIMAGES
-	&& !r_images[tex_handle].registration_sequence) {
+
+	if(tex_handle >= 0 && tex_handle < MAX_RIMAGES && !r_images[tex_handle].registration_sequence) 
+	{
 		sp->tex_handle = TEXNUM_WHITE;
 	}
 }
 
-static void
-create_render_pass(void)
+static void create_render_pass(void)
 {
 	LOG_FUNC();
-	VkAttachmentDescription color_attachment = {
+	VkAttachmentDescription color_attachment = 
+	{
 		.format         = qvk.surf_format.format,
 		.samples        = VK_SAMPLE_COUNT_1_BIT,
 		.loadOp         = VK_ATTACHMENT_LOAD_OP_LOAD,
@@ -214,18 +227,21 @@ create_render_pass(void)
 		.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
 	};
 
-	VkAttachmentReference color_attachment_ref = {
+	VkAttachmentReference color_attachment_ref = 
+	{
 		.attachment = 0, /* index in fragment shader */
 		.layout     = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 	};
 
-	VkSubpassDescription subpass = {
+	VkSubpassDescription subpass = 
+	{
 		.pipelineBindPoint    = VK_PIPELINE_BIND_POINT_GRAPHICS,
 		.colorAttachmentCount = 1,
 		.pColorAttachments    = &color_attachment_ref,
 	};
 
-	VkSubpassDependency dependencies[] = {
+	VkSubpassDependency dependencies[] = 
+	{
 		{
 			.srcSubpass    = VK_SUBPASS_EXTERNAL,
 			.dstSubpass    = 0, /* index for own subpass */
@@ -237,7 +253,8 @@ create_render_pass(void)
 		},
 	};
 
-	VkRenderPassCreateInfo render_pass_info = {
+	VkRenderPassCreateInfo render_pass_info = 
+	{
 		.sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
 		.attachmentCount = 1,
 		.pAttachments    = &color_attachment,
@@ -251,12 +268,13 @@ create_render_pass(void)
 	ATTACH_LABEL_VARIABLE(render_pass_stretch_pic, RENDER_PASS);
 }
 
-VkResult
-vkpt_draw_initialize()
+VkResult vkpt_draw_initialize()
 {
 	num_stretch_pics = 0;
 	LOG_FUNC();
-	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+
+	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+	{
 		_VK(buffer_create(buf_stretch_pic_queue + i, sizeof(StretchPic_t) * MAX_STRETCH_PICS, 
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
@@ -265,10 +283,12 @@ vkpt_draw_initialize()
 		_VK(buffer_create(buf_ubo + i, sizeof(StretchPic_UBO_t),
 			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT));
+
 		buffer_attach_name(buf_stretch_pic_queue + i, va("stretch pic ubo %d", i));
 	}
 
-	VkDescriptorSetLayoutBinding layout_bindings[] = {
+	VkDescriptorSetLayoutBinding layout_bindings[] = 
+	{
 		{
 			.descriptorType  = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 			.descriptorCount = 1,
@@ -277,7 +297,8 @@ vkpt_draw_initialize()
 		},
 	};
 
-	VkDescriptorSetLayoutCreateInfo layout_info = {
+	VkDescriptorSetLayoutCreateInfo layout_info = 
+	{
 		.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
 		.bindingCount = LENGTH(layout_bindings),
 		.pBindings    = layout_bindings,
@@ -286,12 +307,14 @@ vkpt_draw_initialize()
 	_VK(vkCreateDescriptorSetLayout(qvk.device, &layout_info, NULL, &desc_set_layout_sbo));
 	ATTACH_LABEL_VARIABLE(desc_set_layout_sbo, DESCRIPTOR_SET_LAYOUT);
 
-	VkDescriptorPoolSize pool_size = {
+	VkDescriptorPoolSize pool_size = 
+	{
 		.type            = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
 		.descriptorCount = MAX_FRAMES_IN_FLIGHT,
 	};
 
-	VkDescriptorPoolCreateInfo pool_info = {
+	VkDescriptorPoolCreateInfo pool_info = 
+	{
 		.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.poolSizeCount = 1,
 		.pPoolSizes    = &pool_size,
@@ -301,7 +324,8 @@ vkpt_draw_initialize()
 	_VK(vkCreateDescriptorPool(qvk.device, &pool_info, NULL, &desc_pool_sbo));
 	ATTACH_LABEL_VARIABLE(desc_pool_sbo, DESCRIPTOR_POOL);
 
-	VkDescriptorSetLayoutBinding layout_bindings_ubo[] = {
+	VkDescriptorSetLayoutBinding layout_bindings_ubo[] = 
+	{
 		{
 			.descriptorType  = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 			.descriptorCount = 1,
@@ -310,7 +334,8 @@ vkpt_draw_initialize()
 		},
 	};
 
-	VkDescriptorSetLayoutCreateInfo layout_info_ubo = {
+	VkDescriptorSetLayoutCreateInfo layout_info_ubo = 
+	{
 		.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
 		.bindingCount = LENGTH(layout_bindings_ubo),
 		.pBindings    = layout_bindings_ubo,
@@ -319,12 +344,14 @@ vkpt_draw_initialize()
 	_VK(vkCreateDescriptorSetLayout(qvk.device, &layout_info_ubo, NULL, &desc_set_layout_ubo));
 	ATTACH_LABEL_VARIABLE(desc_set_layout_ubo, DESCRIPTOR_SET_LAYOUT);
 
-	VkDescriptorPoolSize pool_size_ubo = {
+	VkDescriptorPoolSize pool_size_ubo = 
+	{
 		.type            = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 		.descriptorCount = MAX_FRAMES_IN_FLIGHT,
 	};
 
-	VkDescriptorPoolCreateInfo pool_info_ubo = {
+	VkDescriptorPoolCreateInfo pool_info_ubo = 
+	{
 		.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.poolSizeCount = 1,
 		.pPoolSizes    = &pool_size_ubo,
@@ -334,7 +361,8 @@ vkpt_draw_initialize()
 	_VK(vkCreateDescriptorPool(qvk.device, &pool_info_ubo, NULL, &desc_pool_ubo));
 	ATTACH_LABEL_VARIABLE(desc_pool_ubo, DESCRIPTOR_POOL);
 
-	VkDescriptorSetLayoutBinding layout_binding_final_blit[] = {
+	VkDescriptorSetLayoutBinding layout_binding_final_blit[] = 
+	{
 		{
 			.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 			.descriptorCount = 1,
@@ -349,7 +377,8 @@ vkpt_draw_initialize()
 		},
 	};
 
-	VkDescriptorSetLayoutCreateInfo layout_info_final_blit = {
+	VkDescriptorSetLayoutCreateInfo layout_info_final_blit = 
+	{
 		.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
 		.bindingCount = LENGTH(layout_binding_final_blit),
 		.pBindings    = layout_binding_final_blit,
@@ -358,7 +387,8 @@ vkpt_draw_initialize()
 	_VK(vkCreateDescriptorSetLayout(qvk.device, &layout_info_final_blit, NULL, &desc_set_layout_final_blit));
 	ATTACH_LABEL_VARIABLE(desc_set_layout_final_blit, DESCRIPTOR_SET_LAYOUT);
 
-	VkDescriptorPoolSize pool_size_final_blit[] = {
+	VkDescriptorPoolSize pool_size_final_blit[] = 
+	{
 		{
 			.type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 			.descriptorCount = MAX_FRAMES_IN_FLIGHT,
@@ -369,7 +399,8 @@ vkpt_draw_initialize()
 		},
 	};
 
-	VkDescriptorPoolCreateInfo pool_info_final_blit = {
+	VkDescriptorPoolCreateInfo pool_info_final_blit = 
+	{
 		.sType         = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.poolSizeCount = LENGTH(pool_size_final_blit),
 		.pPoolSizes    = pool_size_final_blit,
@@ -379,38 +410,44 @@ vkpt_draw_initialize()
 	_VK(vkCreateDescriptorPool(qvk.device, &pool_info_final_blit, NULL, &desc_pool_final_blit));
 	ATTACH_LABEL_VARIABLE(desc_pool_final_blit, DESCRIPTOR_POOL);
 
-	VkDescriptorSetAllocateInfo descriptor_set_alloc_info = {
+	VkDescriptorSetAllocateInfo descriptor_set_alloc_info = 
+	{
 		.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
 		.descriptorPool     = desc_pool_sbo,
 		.descriptorSetCount = 1,
 		.pSetLayouts        = &desc_set_layout_sbo,
 	};
 
-	VkDescriptorSetAllocateInfo descriptor_set_alloc_info_ubo = {
+	VkDescriptorSetAllocateInfo descriptor_set_alloc_info_ubo = 
+	{
 		.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
 		.descriptorPool     = desc_pool_ubo,
 		.descriptorSetCount = 1,
 		.pSetLayouts        = &desc_set_layout_ubo,
 	};
 
-	VkDescriptorSetAllocateInfo descriptor_set_alloc_info_final_blit = {
+	VkDescriptorSetAllocateInfo descriptor_set_alloc_info_final_blit = 
+	{
 		.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
 		.descriptorPool     = desc_pool_final_blit,
 		.descriptorSetCount = 1,
 		.pSetLayouts        = &desc_set_layout_final_blit,
 	};
 
-	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+	{
 		_VK(vkAllocateDescriptorSets(qvk.device, &descriptor_set_alloc_info, desc_set_sbo + i));
 		BufferResource_t *sbo = buf_stretch_pic_queue + i;
 
-		VkDescriptorBufferInfo buf_info = {
+		VkDescriptorBufferInfo buf_info = 
+		{
 			.buffer = sbo->buffer,
 			.offset = 0,
 			.range  = sizeof(stretch_pic_queue),
 		};
 
-		VkWriteDescriptorSet output_buf_write = {
+		VkWriteDescriptorSet output_buf_write = 
+		{
 			.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 			.dstSet          = desc_set_sbo[i],
 			.dstBinding      = 0,
@@ -425,13 +462,15 @@ vkpt_draw_initialize()
 		_VK(vkAllocateDescriptorSets(qvk.device, &descriptor_set_alloc_info_ubo, desc_set_ubo + i));
 		BufferResource_t *ubo = buf_ubo + i;
 
-		VkDescriptorBufferInfo buf_info_ubo = {
+		VkDescriptorBufferInfo buf_info_ubo = 
+		{
 			.buffer = ubo->buffer,
 			.offset = 0,
 			.range  = sizeof(StretchPic_UBO_t),
 		};
 
-		VkWriteDescriptorSet output_buf_write_ubo = {
+		VkWriteDescriptorSet output_buf_write_ubo = 
+		{
 			.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 			.dstSet          = desc_set_ubo[i],
 			.dstBinding      = 2,
@@ -448,11 +487,12 @@ vkpt_draw_initialize()
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_draw_destroy()
+VkResult vkpt_draw_destroy()
 {
 	LOG_FUNC();
-	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+
+	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+	{
 		buffer_destroy(buf_stretch_pic_queue + i);
 		buffer_destroy(buf_ubo + i);
 	}
@@ -466,19 +506,22 @@ vkpt_draw_destroy()
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_draw_destroy_pipelines()
+VkResult vkpt_draw_destroy_pipelines()
 {
 	LOG_FUNC();
-	for(int i = 0; i < STRETCH_PIC_NUM_PIPELINES; i++) {
+	for(int i = 0; i < STRETCH_PIC_NUM_PIPELINES; i++) 
+	{
 		vkDestroyPipeline(qvk.device, pipeline_stretch_pic[i], NULL);
 	}
-	for(int i = 0; i < FINAL_BLIT_NUM_PIPELINES; i++) {
+	for(int i = 0; i < FINAL_BLIT_NUM_PIPELINES; i++) 
+	{
 		vkDestroyPipeline(qvk.device, pipeline_final_blit[i], NULL);
 	}
 	vkDestroyPipelineLayout(qvk.device, pipeline_layout_stretch_pic, NULL);
 	vkDestroyPipelineLayout(qvk.device, pipeline_layout_final_blit, NULL);
-	for(int i = 0; i < qvk.num_swap_chain_images; i++) {
+
+	for(int i = 0; i < qvk.num_swap_chain_images; i++) 
+	{
 		vkDestroyFramebuffer(qvk.device, framebuffer_stretch_pic[i], NULL);
 	}
 	free(framebuffer_stretch_pic);
@@ -489,15 +532,15 @@ vkpt_draw_destroy_pipelines()
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_draw_create_pipelines()
+VkResult vkpt_draw_create_pipelines()
 {
 	LOG_FUNC();
 
 	create_render_pass();
 
 	assert(desc_set_layout_sbo);
-	VkDescriptorSetLayout desc_set_layouts[] = {
+	VkDescriptorSetLayout desc_set_layouts[] = 
+	{
 		desc_set_layout_sbo, qvk.desc_set_layout_textures, desc_set_layout_ubo
 	};
 	CREATE_PIPELINE_LAYOUT(qvk.device, &pipeline_layout_stretch_pic, 
@@ -505,13 +548,15 @@ vkpt_draw_create_pipelines()
 		.pSetLayouts    = desc_set_layouts
 	);
 
-	VkPushConstantRange push_constant_range_final_blit = {
+	VkPushConstantRange push_constant_range_final_blit = 
+	{
 		.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT,
 		.offset     = 0,
 		.size       = sizeof(FinalBlitPushConstants_t)
 	};
 
-	VkDescriptorSetLayout desc_set_layouts_final_blit[] = {
+	VkDescriptorSetLayout desc_set_layouts_final_blit[] = 
+	{
 		qvk.desc_set_layout_ubo, desc_set_layout_final_blit
 	};
 	CREATE_PIPELINE_LAYOUT(qvk.device, &pipeline_layout_final_blit,
@@ -521,12 +566,14 @@ vkpt_draw_create_pipelines()
 		.pPushConstantRanges = &push_constant_range_final_blit
 	);
 
-	VkSpecializationMapEntry specEntries[] = {
+	VkSpecializationMapEntry specEntries[] = 
+	{
 		{ .constantID = 0, .offset = 0, .size = sizeof(uint32_t) }
 	};
 
 	// "HDR display" flag
-	uint32_t spec_data[] = {
+	uint32_t spec_data[] = 
+	{
 		0,
 		1,
 	};
@@ -534,17 +581,20 @@ vkpt_draw_create_pipelines()
 	VkSpecializationInfo specInfo_SDR = {.mapEntryCount = 1, .pMapEntries = specEntries, .dataSize = sizeof(uint32_t), .pData = &spec_data[0]};
 	VkSpecializationInfo specInfo_HDR = {.mapEntryCount = 1, .pMapEntries = specEntries, .dataSize = sizeof(uint32_t), .pData = &spec_data[1]};
 
-	VkPipelineShaderStageCreateInfo shader_info_SDR[] = {
+	VkPipelineShaderStageCreateInfo shader_info_SDR[] = 
+	{
 		SHADER_STAGE(QVK_MOD_STRETCH_PIC_VERT, VK_SHADER_STAGE_VERTEX_BIT),
 		SHADER_STAGE_SPEC(QVK_MOD_STRETCH_PIC_FRAG, VK_SHADER_STAGE_FRAGMENT_BIT, &specInfo_SDR)
 	};
 
-	VkPipelineShaderStageCreateInfo shader_info_HDR[] = {
+	VkPipelineShaderStageCreateInfo shader_info_HDR[] = 
+	{
 		SHADER_STAGE(QVK_MOD_STRETCH_PIC_VERT, VK_SHADER_STAGE_VERTEX_BIT),
 		SHADER_STAGE_SPEC(QVK_MOD_STRETCH_PIC_FRAG, VK_SHADER_STAGE_FRAGMENT_BIT, &specInfo_HDR)
 	};
 
-	VkPipelineVertexInputStateCreateInfo vertex_input_info = {
+	VkPipelineVertexInputStateCreateInfo vertex_input_info = 
+	{
 		.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
 		.vertexBindingDescriptionCount   = 0,
 		.pVertexBindingDescriptions      = NULL,
@@ -552,13 +602,15 @@ vkpt_draw_create_pipelines()
 		.pVertexAttributeDescriptions    = NULL,
 	};
 
-	VkPipelineInputAssemblyStateCreateInfo input_assembly_info = {
+	VkPipelineInputAssemblyStateCreateInfo input_assembly_info = 
+	{
 		.sType                  = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
 		.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,
 		.primitiveRestartEnable = VK_FALSE,
 	};
 
-	VkViewport viewport = {
+	VkViewport viewport = 
+	{
 		.x        = 0.0f,
 		.y        = 0.0f,
 		.width    = (float) vkpt_draw_get_extent().width,
@@ -567,12 +619,14 @@ vkpt_draw_create_pipelines()
 		.maxDepth = 1.0f,
 	};
 
-	VkRect2D scissor = {
+	VkRect2D scissor = 
+	{
 		.offset = { 0, 0 },
 		.extent = vkpt_draw_get_extent(),
 	};
 
-	VkPipelineViewportStateCreateInfo viewport_state = {
+	VkPipelineViewportStateCreateInfo viewport_state = 
+	{
 		.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
 		.viewportCount = 1,
 		.pViewports    = &viewport,
@@ -580,7 +634,8 @@ vkpt_draw_create_pipelines()
 		.pScissors     = &scissor,
 	};
 
-	VkPipelineRasterizationStateCreateInfo rasterizer_state = {
+	VkPipelineRasterizationStateCreateInfo rasterizer_state = 
+	{
 		.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
 		.depthClampEnable        = VK_FALSE,
 		.rasterizerDiscardEnable = VK_FALSE, /* skip rasterizer */
@@ -594,7 +649,8 @@ vkpt_draw_create_pipelines()
 		.depthBiasSlopeFactor    = 0.0f,
 	};
 
-	VkPipelineMultisampleStateCreateInfo multisample_state = {
+	VkPipelineMultisampleStateCreateInfo multisample_state = 
+	{
 		.sType                 = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
 		.sampleShadingEnable   = VK_FALSE,
 		.rasterizationSamples  = VK_SAMPLE_COUNT_1_BIT,
@@ -604,7 +660,8 @@ vkpt_draw_create_pipelines()
 		.alphaToOneEnable      = VK_FALSE,
 	};
 
-	VkPipelineColorBlendAttachmentState color_blend_attachment = {
+	VkPipelineColorBlendAttachmentState color_blend_attachment = 
+	{
 		.colorWriteMask      = VK_COLOR_COMPONENT_R_BIT
 			                 | VK_COLOR_COMPONENT_G_BIT
 			                 | VK_COLOR_COMPONENT_B_BIT
@@ -618,7 +675,8 @@ vkpt_draw_create_pipelines()
 		.alphaBlendOp        = VK_BLEND_OP_ADD,
 	};
 
-	VkPipelineColorBlendStateCreateInfo color_blend_state = {
+	VkPipelineColorBlendStateCreateInfo color_blend_state = 
+	{
 		.sType           = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
 		.logicOpEnable   = VK_FALSE,
 		.logicOp         = VK_LOGIC_OP_COPY,
@@ -627,7 +685,8 @@ vkpt_draw_create_pipelines()
 		.blendConstants  = { 0.0f, 0.0f, 0.0f, 0.0f },
 	};
 
-	VkGraphicsPipelineCreateInfo pipeline_info = {
+	VkGraphicsPipelineCreateInfo pipeline_info = 
+	{
 		.sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 		.stageCount          = LENGTH(shader_info_SDR),
 
@@ -657,17 +716,21 @@ vkpt_draw_create_pipelines()
 	ATTACH_LABEL_VARIABLE(pipeline_stretch_pic[STRETCH_PIC_HDR], PIPELINE);
 
 
-	VkSpecializationMapEntry final_blit_spec_entries[] = {
+	VkSpecializationMapEntry final_blit_spec_entries[] = 
+	{
 		{ .constantID = 0, .offset = 0, .size = sizeof(uint32_t) },
 		{ .constantID = 1, .offset = 4, .size = sizeof(uint32_t) }
 	};
 
 	pipeline_info.layout = pipeline_layout_final_blit;
-	for (int i = 0; i < FINAL_BLIT_NUM_PIPELINES; i++) {
+
+	for (int i = 0; i < FINAL_BLIT_NUM_PIPELINES; i++) 
+	{
 		uint32_t final_blit_spec_data[2] = {(i & FINAL_BLIT_FILTERED) ? 1 : 0, (i & FINAL_BLIT_WARPED) ? 1 : 0};
 		VkSpecializationInfo spec_info_final_blit = {.mapEntryCount = LENGTH(final_blit_spec_entries), .pMapEntries = final_blit_spec_entries, .dataSize = sizeof(uint32_t) * 2, .pData = final_blit_spec_data};
 
-		VkPipelineShaderStageCreateInfo shader_info_final_blit[] = {
+		VkPipelineShaderStageCreateInfo shader_info_final_blit[] = 
+		{
 			SHADER_STAGE(QVK_MOD_FINAL_BLIT_VERT, VK_SHADER_STAGE_VERTEX_BIT),
 			SHADER_STAGE_SPEC(QVK_MOD_FINAL_BLIT_FRAG, VK_SHADER_STAGE_FRAGMENT_BIT, &spec_info_final_blit)
 		};
@@ -678,12 +741,16 @@ vkpt_draw_create_pipelines()
 	}
 
 	framebuffer_stretch_pic = malloc(qvk.num_swap_chain_images * sizeof(*framebuffer_stretch_pic));
-	for(int i = 0; i < qvk.num_swap_chain_images; i++) {
-		VkImageView attachments[] = {
+
+	for(int i = 0; i < qvk.num_swap_chain_images; i++) 
+	{
+		VkImageView attachments[] = 
+		{
 			qvk.swap_chain_image_views[i]
 		};
 
-		VkFramebufferCreateInfo fb_create_info = {
+		VkFramebufferCreateInfo fb_create_info = 
+		{
 			.sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
 			.renderPass      = render_pass_stretch_pic,
 			.attachmentCount = 1,
@@ -700,18 +767,18 @@ vkpt_draw_create_pipelines()
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_draw_clear_stretch_pics()
+VkResult vkpt_draw_clear_stretch_pics()
 {
 	num_stretch_pics = 0;
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_draw_submit_stretch_pics(VkCommandBuffer cmd_buf)
+VkResult vkpt_draw_submit_stretch_pics(VkCommandBuffer cmd_buf)
 {
-	if (num_stretch_pics == 0)
+	if(num_stretch_pics == 0)
+	{
 		return VK_SUCCESS;
+	}
 
 	BufferResource_t *buf_spq = buf_stretch_pic_queue + qvk.current_frame_index;
 	StretchPic_t *spq_dev = (StretchPic_t *) buffer_map(buf_spq);
@@ -726,7 +793,8 @@ vkpt_draw_submit_stretch_pics(VkCommandBuffer cmd_buf)
 	buffer_unmap(ubo_res);
 	ubo = NULL;
 
-	VkRenderPassBeginInfo render_pass_info = {
+	VkRenderPassBeginInfo render_pass_info = 
+	{
 		.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 		.renderPass        = render_pass_stretch_pic,
 		.framebuffer       = framebuffer_stretch_pic[qvk.current_swap_chain_image_index],
@@ -734,15 +802,15 @@ vkpt_draw_submit_stretch_pics(VkCommandBuffer cmd_buf)
 		.renderArea.extent = vkpt_draw_get_extent()
 	};
 
-	VkDescriptorSet desc_sets[] = {
+	VkDescriptorSet desc_sets[] = 
+	{
 		desc_set_sbo[qvk.current_frame_index],
 		qvk_get_current_desc_set_textures(),
 		desc_set_ubo[qvk.current_frame_index],
 	};
 
 	vkCmdBeginRenderPass(cmd_buf, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
-	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			pipeline_layout_stretch_pic, 0, LENGTH(desc_sets), desc_sets, 0, 0);
+	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout_stretch_pic, 0, LENGTH(desc_sets), desc_sets, 0, 0);
 	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_stretch_pic[qvk.surf_is_hdr ? STRETCH_PIC_HDR : STRETCH_PIC_SDR]);
 	vkCmdDraw(cmd_buf, 4, num_stretch_pics, 0, 0);
 	vkCmdEndRenderPass(cmd_buf);
@@ -751,23 +819,31 @@ vkpt_draw_submit_stretch_pics(VkCommandBuffer cmd_buf)
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped)
+VkResult vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped)
 {
-	VkDescriptorImageInfo img_info_input = {
+	VkDescriptorImageInfo img_info_input = 
+	{
 		.imageLayout = VK_IMAGE_LAYOUT_GENERAL,
 		.imageView   = qvk.images_views[image_index],
 		.sampler     = qvk.tex_sampler,
 	};
+
 	VkImageView debug_lines_view = vpkt_debugdraw_imageview();
-	if (!debug_lines_view)
+
+	if(!debug_lines_view)
+	{
 		debug_lines_view = qvk.images_views[VKPT_IMG_CLEAR];
-	VkDescriptorImageInfo img_info_debug_lines = {
+	}
+
+	VkDescriptorImageInfo img_info_debug_lines = 
+	{
 		.imageLayout = VK_IMAGE_LAYOUT_GENERAL,
 		.imageView   = debug_lines_view,
 		.sampler     = qvk.tex_sampler_nearest,
 	};
-	VkWriteDescriptorSet elem_images[] = {
+
+	VkWriteDescriptorSet elem_images[] = 
+	{
 		{
 			.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 			.dstSet          = desc_set_final_blit[qvk.current_frame_index],
@@ -790,7 +866,8 @@ vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D ex
 
 	vkUpdateDescriptorSets(qvk.device, LENGTH(elem_images), elem_images, 0, NULL);
 
-	VkRenderPassBeginInfo render_pass_info = {
+	VkRenderPassBeginInfo render_pass_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 		.renderPass = render_pass_stretch_pic,
 		.framebuffer = framebuffer_stretch_pic[qvk.current_swap_chain_image_index],
@@ -798,7 +875,8 @@ vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D ex
 		.renderArea.extent = vkpt_draw_get_extent()
 	};
 
-	VkDescriptorSet desc_sets[] = {
+	VkDescriptorSet desc_sets[] = 
+	{
 		qvk.desc_set_ubo,
 		desc_set_final_blit[qvk.current_frame_index]
 	};
@@ -806,16 +884,16 @@ vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D ex
 	FinalBlitPushConstants_t push_constants = {.input_dimensions = {extent.width, extent.height}};
 	push_constants.stereo = 0;
 	push_constants.view_id = 0;
-	push_constants.uv_mult[0] = 1.0f;
-	push_constants.uv_mult[1] = 1.0f;
+	push_constants.uv_scale_bias[0] = 1.0f;
+	push_constants.uv_scale_bias[1] = 1.0f;
 
 	vkCmdBeginRenderPass(cmd_buf, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
-	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS,
-		pipeline_layout_final_blit, 0, LENGTH(desc_sets), desc_sets, 0, 0);
+	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS,pipeline_layout_final_blit, 0, LENGTH(desc_sets), desc_sets, 0, 0);
+
 	int pipeline_idx = (filtered ? FINAL_BLIT_FILTERED : 0) | (warped ? FINAL_BLIT_WARPED : 0);
 	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_final_blit[pipeline_idx]);
-	vkCmdPushConstants(cmd_buf, pipeline_layout_final_blit,
-		VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push_constants), &push_constants);
+	vkCmdPushConstants(cmd_buf, pipeline_layout_final_blit,	VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push_constants), &push_constants);
+
 	vkCmdDraw(cmd_buf, 4, 1, 0, 0);
 	vkCmdEndRenderPass(cmd_buf);
 
@@ -887,12 +965,8 @@ VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, 
 	FinalBlitPushConstants_t push_constants = {.input_dimensions = {extent.width, extent.height}};
 	push_constants.stereo = 1;
 	push_constants.view_id = view_id;
-
-	static float uv_x = 1.0f;
-	static float uv_y = 1.0f;
-
-	push_constants.uv_mult[0] = uv_x;
-	push_constants.uv_mult[1] = uv_y;
+	push_constants.uv_scale_bias[0] = cl_blit_scale->value;
+	push_constants.uv_scale_bias[1] = cl_blit_bias->value;
 
 	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout_final_blit, 0, LENGTH(desc_sets), desc_sets, 0, 0);
 
@@ -919,47 +993,40 @@ void R_SetClipRect_RTX(const clipRect_t *clip)
 	}
 }
 
-void
-R_ClearColor_RTX(void)
+void R_ClearColor_RTX(void)
 {
 	draw.colors[0].u32 = U32_WHITE;
 	draw.colors[1].u32 = U32_WHITE;
 }
 
-void
-R_SetAlpha_RTX(float alpha)
+void R_SetAlpha_RTX(float alpha)
 {
     alpha = powf(fabsf(alpha), 0.4545f); // un-sRGB the alpha
 	draw.colors[0].u8[3] = draw.colors[1].u8[3] = alpha * 255;
 }
 
-void
-R_SetAlphaScale_RTX(float alpha)
+void R_SetAlphaScale_RTX(float alpha)
 {
 	draw.alpha_scale = alpha;
 }
 
-void
-R_SetColor_RTX(uint32_t color)
+void R_SetColor_RTX(uint32_t color)
 {
 	draw.colors[0].u32   = color;
 	draw.colors[1].u8[3] = draw.colors[0].u8[3];
 }
 
-void
-R_LightPoint_RTX(const vec3_t origin, vec3_t light)
+void R_LightPoint_RTX(const vec3_t origin, vec3_t light)
 {
 	VectorSet(light, 1, 1, 1);
 }
 
-void
-R_SetScale_RTX(float scale)
+void R_SetScale_RTX(float scale)
 {
 	draw.scale = scale;
 }
 
-void
-R_DrawStretchPic_RTX(int x, int y, int w, int h, qhandle_t pic)
+void R_DrawStretchPic_RTX(int x, int y, int w, int h, qhandle_t pic)
 {
 	enqueue_stretch_pic(
 		x,    y,    w,    h,
@@ -967,26 +1034,27 @@ R_DrawStretchPic_RTX(int x, int y, int w, int h, qhandle_t pic)
 		draw.colors[0].u32, pic);
 }
 
-void
-R_DrawPic_RTX(int x, int y, qhandle_t pic)
+void R_DrawPic_RTX(int x, int y, qhandle_t pic)
 {
 	image_t *image = IMG_ForHandle(pic);
 	R_DrawStretchPic(x, y, image->width, image->height, pic);
 }
 
-void
-R_DrawStretchRaw_RTX(int x, int y, int w, int h)
+void R_DrawStretchRaw_RTX(int x, int y, int w, int h)
 {
 	if(!qvk.raw_image)
+	{
 		return;
+	}
 	R_DrawStretchPic(x, y, w, h, qvk.raw_image - r_images);
 }
 
-void
-R_UpdateRawPic_RTX(int pic_w, int pic_h, const uint32_t *pic)
+void R_UpdateRawPic_RTX(int pic_w, int pic_h, const uint32_t *pic)
 {
 	if(qvk.raw_image)
+	{
 		R_UnregisterImage(qvk.raw_image - r_images);
+	}
 
 	size_t raw_size = pic_w * pic_h * 4;
 	byte *raw_data = Z_Malloc(raw_size);
@@ -995,10 +1063,10 @@ R_UpdateRawPic_RTX(int pic_w, int pic_h, const uint32_t *pic)
 	qvk.raw_image = r_images + R_RegisterRawImage(va("**raw[%d]**", raw_id++), pic_w, pic_h, raw_data, IT_SPRITE, IF_SRGB);
 }
 
-void
-R_DiscardRawPic_RTX(void)
+void R_DiscardRawPic_RTX(void)
 {
-	if(qvk.raw_image) {
+	if(qvk.raw_image) 
+	{
 		R_UnregisterImage(qvk.raw_image - r_images);
 		qvk.raw_image = NULL;
 	}
@@ -1008,7 +1076,8 @@ void R_DrawKeepAspectPic_RTX(int x, int y, int w, int h, qhandle_t pic)
 {
     image_t *image = IMG_ForHandle(pic);
 
-    if (image->flags & IF_SCRAP) {
+    if (image->flags & IF_SCRAP) 
+	{
         R_DrawStretchPic_RTX(x, y, w, h, pic);
         return;
     }
@@ -1025,43 +1094,47 @@ void R_DrawKeepAspectPic_RTX(int x, int y, int w, int h, qhandle_t pic)
 
 #define DIV64 (1.0f / 64.0f)
 
-void
-R_TileClear_RTX(int x, int y, int w, int h, qhandle_t pic)
+void R_TileClear_RTX(int x, int y, int w, int h, qhandle_t pic)
 {
 	enqueue_stretch_pic(x, y, w, h,
 		x * DIV64, y * DIV64, (x + w) * DIV64, (y + h) * DIV64,
 		U32_WHITE, pic);
 }
 
-void
-R_DrawFill8_RTX(int x, int y, int w, int h, int c)
+void R_DrawFill8_RTX(int x, int y, int w, int h, int c)
 {
 	if(!w || !h)
-		return;
-	enqueue_stretch_pic(x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f,
-		d_8to24table[c & 0xff], TEXNUM_WHITE);
-}
-
-void
-R_DrawFill32_RTX(int x, int y, int w, int h, uint32_t color)
-{
-	if(!w || !h)
-		return;
-	enqueue_stretch_pic(x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f,
-		color, TEXNUM_WHITE);
-}
-
-static inline void
-draw_char(int x, int y, int flags, int c, qhandle_t font)
-{
-	if ((c & 127) == 32) {
+	{
 		return;
 	}
 
-	if (flags & UI_ALTCOLOR) {
+	enqueue_stretch_pic(x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f, d_8to24table[c & 0xff], TEXNUM_WHITE);
+}
+
+void R_DrawFill32_RTX(int x, int y, int w, int h, uint32_t color)
+{
+	if(!w || !h)
+	{
+		return;
+	}
+
+	enqueue_stretch_pic(x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f,	color, TEXNUM_WHITE);
+}
+
+static inline void draw_char(int x, int y, int flags, int c, qhandle_t font)
+{
+	if ((c & 127) == 32) 
+	{
+		return;
+	}
+
+	if (flags & UI_ALTCOLOR) 
+	{
 		c |= 0x80;
 	}
-	if (flags & UI_XORCOLOR) {
+
+	if (flags & UI_XORCOLOR) 
+	{
 		c ^= 0x80;
 	}
 
@@ -1070,21 +1143,18 @@ draw_char(int x, int y, int flags, int c, qhandle_t font)
 
 	float eps = 1e-5f; /* fixes some ugly artifacts */
 
-	enqueue_stretch_pic(x, y, CHAR_WIDTH, CHAR_HEIGHT,
-		s + eps, t + eps, s + 0.0625f - eps, t + 0.0625f - eps,
-		draw.colors[c >> 7].u32, font);
+	enqueue_stretch_pic(x, y, CHAR_WIDTH, CHAR_HEIGHT, s + eps, t + eps, s + 0.0625f - eps, t + 0.0625f - eps, draw.colors[c >> 7].u32, font);
 }
 
-void
-R_DrawChar_RTX(int x, int y, int flags, int c, qhandle_t font)
+void R_DrawChar_RTX(int x, int y, int flags, int c, qhandle_t font)
 {
 	draw_char(x, y, flags, c & 255, font);
 }
 
-int
-R_DrawString_RTX(int x, int y, int flags, size_t maxlen, const char *s, qhandle_t font)
+int R_DrawString_RTX(int x, int y, int flags, size_t maxlen, const char *s, qhandle_t font)
 {
-	while(maxlen-- && *s) {
+	while(maxlen-- && *s) 
+	{
 		byte c = *s++;
 		draw_char(x, y, flags, c, font);
 		x += CHAR_WIDTH;
