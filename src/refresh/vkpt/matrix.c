@@ -32,6 +32,7 @@ static void internal_create_entity_matrix(mat4_t matrix, entity_t *e, bool mirro
 	float scale = (e->scale > 0.f) ? e->scale : 1.f;
 
 	vec3_t scales = { scale, scale, scale };
+
 	if (mirror)
 	{
 		scales[1] *= -1.f;
@@ -496,13 +497,17 @@ void inverse(const mat4_t m, mat4_t inv)
 	det = 1.0f / det;
 
 	for(int i = 0; i < 16; i++)
+	{
 		inv[i] = inv[i] * det;
+	}
 }
 
 void mult_matrix_matrix(mat4_t p, const mat4_t a, const mat4_t b)
 {
-	for(int i = 0; i < 4; i++) {
-		for(int j = 0; j < 4; j++) {
+	for(int i = 0; i < 4; i++) 
+	{
+		for(int j = 0; j < 4; j++) 
+		{
 			p[i * 4 + j] =
 				a[0 * 4 + j] * b[i * 4 + 0] +
 				a[1 * 4 + j] * b[i * 4 + 1] +
@@ -515,7 +520,8 @@ void mult_matrix_matrix(mat4_t p, const mat4_t a, const mat4_t b)
 void mult_matrix_vector(vec4_t v, const mat4_t a, const vec4_t b)
 {
 	int j;
-	for (j = 0; j < 4; j++) {
+	for (j = 0; j < 4; j++) 
+	{
 		v[j] =
 			a[0 * 4 + j] * b[0] +
 			a[1 * 4 + j] * b[1] +
