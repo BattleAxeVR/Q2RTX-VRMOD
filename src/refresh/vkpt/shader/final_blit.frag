@@ -125,6 +125,8 @@ void main()
 
     if (push.stereo == 1)
     {
+        uv.x *= push.uv_scale_bias.x;
+
         if (push.view_id == 0)
         {
             // Left eye
@@ -132,7 +134,6 @@ void main()
         else
         {
              // Right eye    
-             uv.x *= push.uv_scale_bias.x;
              uv.x += push.uv_scale_bias.y;
         }
         
