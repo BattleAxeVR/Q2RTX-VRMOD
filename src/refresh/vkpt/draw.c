@@ -946,18 +946,6 @@ VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, 
 		},
 	};
 
-#if 0
-	vkUpdateDescriptorSets(qvk.device, LENGTH(elem_images), elem_images, 0, NULL);
-
-	VkRenderPassBeginInfo render_pass_info = {
-		.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-		.renderPass = render_pass_stretch_pic,
-		.framebuffer = framebuffer_stretch_pic[qvk.current_swap_chain_image_index],
-		.renderArea.offset = { 0, 0 },
-		.renderArea.extent = vkpt_draw_get_extent()
-	};
-#endif
-
 	VkDescriptorSet desc_sets[] = 
 	{
 		qvk.desc_set_ubo,
