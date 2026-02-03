@@ -700,7 +700,8 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 
 	int image = 24; // VKPT_IMG_TAA_OUTPUT
 
-	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, input_extent, false, false, view_id);
+	//VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, input_extent, false, false, view_id);
+	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, extent, false, false, view_id);
 
 	vkCmdEndRendering(command_buffer);
 
