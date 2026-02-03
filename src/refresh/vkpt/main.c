@@ -2053,47 +2053,10 @@ static void process_regular_entity(
 
 	if(is_viewer_weapon)
 	{
-#if SUPPORT_OPENXR
-		const int hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
-
-#if 0
-		vec3_t origin = {};
-		origin[0] = entity->origin[0];
-		origin[1] = entity->origin[1];
-		origin[2] = entity->origin[2];
-
-		float scale = 1.0f;// (entity->scale > 0.0f) ? entity->scale : 1.0f;
-
-		vec3_t scales = { scale, scale, scale };
-
-		if (info_hand->integer == 1)
-		{
-			scales[1] *= -1.0f;
-		}
-
-		transform[0]  = scales[0];
-		transform[4]  = scales[1];
-		transform[8]  = scales[2];
-		transform[12] = origin[0];
-
-		transform[1]  = scales[0];
-		transform[5]  = scales[1];
-		transform[9]  = scales[2];
-		transform[13] = origin[1];
-
-		transform[2]  = scales[0];
-		transform[6]  = scales[1];
-		transform[10] = scales[2];
-		transform[14] = origin[2];
-
-		transform[3]  = 0.0f;
-		transform[7]  = 0.0f;
-		transform[11] = 0.0f;
-		transform[15] = 1.0f;
-#else
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
 		create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
-#endif
-		
+
+		const int hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
 		const bool hand_ok = GetHandMatrix(hand_id, transform);
 
 		if(hand_ok)
