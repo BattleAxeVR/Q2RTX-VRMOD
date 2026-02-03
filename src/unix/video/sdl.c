@@ -769,6 +769,12 @@ static void pump_events(void)
         case SDL_CONTROLLERBUTTONUP:
             cbutton_event(&event.cbutton);
             break;
+        case SDL_CONTROLLERAXISMOTION:
+            if((event.caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT) || (event.caxis.axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT))
+            {
+                Key_Event2(K_MOUSE1, (event.caxis.value > 1000), event.caxis.timestamp);
+            }
+            break;
 #endif
         }
     }
