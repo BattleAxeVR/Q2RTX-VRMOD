@@ -3012,35 +3012,6 @@ extern "C"
 		return true;
 	}
 
-	bool GetProjectionMatrix(const int view_id, float* projection_matrix_ptr, float* projection_matrix_inverse_ptr)
-	{
-		if(!openxr_.is_session_running() || !projection_matrix_ptr || !projection_matrix_inverse_ptr)
-		{
-			return false;
-		}
-
-		XrView xr_view = {};
-
-		if(!openxr_.get_view(view_id, xr_view))
-		{
-			return false;
-		}
-
-		const XrFovf& fov = xr_view.fov;
-		
-		static float nearZ = 1.0f;
-		static float farZ = 4096.0f;
-		static bool flip_vertical = false;
-
-		glm::mat4 projection_matrix = BVR::create_projection(fov, nearZ, farZ, flip_vertical);
-		memcpy(projection_matrix_ptr, &projection_matrix, sizeof(float) * 16);
-
-		glm::mat4 projection_matrix_inv = inverse(projection_matrix);
-		memcpy(projection_matrix_inverse_ptr, &projection_matrix_inv, sizeof(float) * 16);
-		
-		return true;
-	}
-
 	bool GetFov(const int view_id, XrFovf* fov_ptr)
 	{
 		if(!openxr_.is_session_running() || !fov_ptr)

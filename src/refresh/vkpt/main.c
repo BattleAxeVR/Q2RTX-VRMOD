@@ -2919,10 +2919,6 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 	if(stereo && apply_xr_proj)
 	{
-#if SUPPORT_OPENXR
-		const bool left_proj_ok = GetProjectionMatrix(LEFT, P[LEFT], *ubo->invP[LEFT]);
-		const bool right_proj_ok = GetProjectionMatrix(RIGHT, P[RIGHT], *ubo->invP[RIGHT]);
-#else
 		XrFovf fov[NUM_EYES] = { 0 };
 
 		const bool override_outward_fov = (cl_fov_outward->value != 0.0f);
@@ -2933,8 +2929,14 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 		bool override_fov = (override_outward_fov || override_inward_fov || override_up_fov || override_down_fov);
 
 #if SUPPORT_OPENXR
-		if (override_fov || !GetFov(LEFT, &fov[LEFT]) || !GetFov(RIGHT, &fov[RIGHT]))
+		const bool left_fov_ok = GetFov(LEFT, &fov[LEFT]);
+		const bool right_fov_ok = GetFov(RIGHT, &fov[RIGHT]);
+		const bool fov_ok = (left_fov_ok && right_fov_ok);
+
+		override_fov |= !fov_ok;
 #endif
+
+		if (override_fov)
 		{
 			//Hardcoded PSVR 2 defaults, for testing/debugging/fallback
 			const float UPWARD_FOV_RAD   = DEG2RAD(53.0401382f);
@@ -2998,7 +3000,6 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 		create_projection_matrixXR(nearz, farz, &fov[LEFT], P[LEFT]);
 		create_projection_matrixXR(nearz, farz, &fov[RIGHT], P[RIGHT]);
-#endif
 	}
 	else
 	{
