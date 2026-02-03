@@ -1150,7 +1150,7 @@ static void CL_AddViewWeapon(int hand_id)
     // Disable weapon animations in stereo / VR mode
     const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 
-    if(stereo)
+    if(true)//stereo)
     {
         gun.frame = 19;
         gun.oldframe = 19;
@@ -1228,9 +1228,9 @@ static void CL_SetupFirstPersonView(void)
         VectorAdd(cl.refdef.viewangles, kickangles, cl.refdef.viewangles);
     }
 
-    const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+    const int stereo = false;// (cl_stereo->value == 1.0f) ? 1 : 0;
 
-    if(stereo)
+    if(false)//stereo)
     {
         const bool dual_wield = false;
 
