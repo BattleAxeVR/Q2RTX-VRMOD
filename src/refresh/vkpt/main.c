@@ -2879,15 +2879,9 @@ static void prepare_viewmatrix(refdef_t *fd)
 		ipd = ipd_override;
 	}
 
-	const bool zero_out_pitch = false;// (stereo && ZERO_OUT_PITCH);
-
-	vec4_t ipd_offset_left_WS = { 0 };
-	vec4_t ipd_offset_right_WS = { 0 };
-	vec4_t ipd_offset_both_WS = { 0 };
-
-	create_view_matrix(zero_out_pitch, stereo, LEFT, ipd, ipd_offset_left_WS, vkpt_refdef.view_matrix[LEFT], fd);
-	create_view_matrix(zero_out_pitch, stereo, RIGHT, ipd, ipd_offset_right_WS, vkpt_refdef.view_matrix[RIGHT], fd);
-	create_view_matrix(zero_out_pitch, false, BOTH, 0.0f, ipd_offset_both_WS, vkpt_refdef.view_matrix[BOTH], fd);
+	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
+	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
+	create_view_matrix(false, BOTH, 0.0f, vkpt_refdef.view_matrix[BOTH], fd);
 
 	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
 	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);

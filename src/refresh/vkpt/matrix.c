@@ -280,16 +280,26 @@ void create_orthographic_matrix(mat4_t matrix, float xmin, float xmax, float ymi
 	matrix[15] = 1;
 }
 
-void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd, vec4_t ipd_offset_WS, mat4_t view_matrix, refdef_t *fd)
+void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, refdef_t *fd)
 {
 	vec3_t viewaxis[3];
 	AnglesToAxis(fd->viewangles, viewaxis);
 
-	if(zero_out_pitch)
+	if(stereo)
 	{
 		vec3_t viewangles = { 0 };
+
+#if APPLY_STEREO_VIEW_PITCH
+		viewangles[PITCH] = fd->viewangles[PITCH];
+#endif
+
+#if APPLY_STEREO_VIEW_YAW
 		viewangles[YAW] = fd->viewangles[YAW];
+#endif
+
+#if APPLY_STEREO_VIEW_ROLL
 		viewangles[ROLL] = fd->viewangles[ROLL];
+#endif
 
 		AnglesToAxis(viewangles, viewaxis);
 	}
@@ -330,6 +340,7 @@ void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd,
 		const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
 		const vec4_t ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 0.0f };
 
+		vec4_t ipd_offset_WS = { 0 };
 		mult_matrix_vector(ipd_offset_WS, view_matrix_inv, ipd_offset_LS);
 
 		float x_ipd_offset = ipd_offset_WS[0];
@@ -363,11 +374,6 @@ void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd,
 		view_matrix[12] = DotProduct(viewaxis[1], fd->vieworg);
 		view_matrix[13] = -DotProduct(viewaxis[2], fd->vieworg);
 		view_matrix[14] = -DotProduct(viewaxis[0], fd->vieworg);
-
-		ipd_offset_WS[0] = 0.0f;
-		ipd_offset_WS[1] = 0.0f;
-		ipd_offset_WS[2] = 0.0f;
-		ipd_offset_WS[3] = 0.0f;
 	}
 }
 

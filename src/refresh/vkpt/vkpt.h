@@ -455,7 +455,8 @@ extern vkpt_refdef_t vkpt_refdef;
 
 extern BufferResource_t buf_accel_scratch;
 
-typedef struct sun_light_s {
+typedef struct sun_light_s 
+{
 	vec3_t direction;
 	vec3_t direction_envmap;
 	vec3_t color;
@@ -470,10 +471,9 @@ void create_entity_matrix(int view_id, mat4_t matrix, entity_t *e);
 void create_viewweapon_matrix(int stereo, int view_id, mat4_t matrix, entity_t *e);
 void create_projection_matrix(mat4_t matrix, float znear, float zfar, float fov_x, float fov_y);
 void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t matrix);
-void create_view_matrix(bool zero_out_pitch, int stereo, int view_id, float ipd, vec4_t ipd_offset_WS, mat4_t matrix, refdef_t *fd);
+void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, refdef_t *fd);
 void inverse(const mat4_t m, mat4_t inv);
-void create_orthographic_matrix(mat4_t matrix, float xmin, float xmax,
-		float ymin, float ymax, float znear, float zfar);
+void create_orthographic_matrix(mat4_t matrix, float xmin, float xmax, float ymin, float ymax, float znear, float zfar);
 
 #define PROFILER_LIST \
 	PROFILER_DO(FRAME_TIME,                 0) \
