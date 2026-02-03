@@ -45,6 +45,8 @@ cvar_t  *cl_fov_up;
 cvar_t  *cl_fov_down;
 cvar_t  *cl_xr_view;
 cvar_t  *cl_xr_proj;
+cvar_t  *cl_blit_scale;
+cvar_t  *cl_blit_bias;
 
 cvar_t  *cl_autopause;
 
@@ -2848,6 +2850,9 @@ static void CL_InitLocal(void)
 
     cl_xr_view = Cvar_Get("xr_view", "1", 0);
     cl_xr_proj = Cvar_Get("xr_proj", "0", 0);
+
+    cl_blit_scale = Cvar_Get("blit_scale", "1", 0);
+    cl_blit_bias = Cvar_Get("blit_bias", "0", 0);
 
     cl_timeout = Cvar_Get("cl_timeout", "120", 0);
     cl_timeout->changed = cl_timeout_changed;
