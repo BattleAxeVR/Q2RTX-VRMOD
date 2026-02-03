@@ -101,6 +101,7 @@ extern cvar_t *cl_fov_up;
 extern cvar_t *cl_fov_down;
 extern cvar_t *cl_xr_view;
 extern cvar_t *cl_xr_proj;
+extern cvar_t *cl_xr_ipd_mult;
 
 static int drs_current_scale = 0;
 static int drs_effective_scale = 0;
@@ -2862,11 +2863,21 @@ static void prepare_viewmatrix(refdef_t *fd)
 {
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 
+	float ipd = 0.0f;
+
 #if SUPPORT_OPENXR
-	const float ipd = GetIPD();
-#else
-	const float ipd = fabs(cl_ipd->value);
+	if(cl_xr_ipd_mult->value > 0.0f)
+	{
+		ipd = GetIPD() * cl_xr_ipd_mult->value;
+	}
 #endif
+
+	const float ipd_override = fabs(cl_ipd->value);
+
+	if(ipd_override > 0.0f)
+	{
+		ipd = ipd_override;
+	}
 
 	const bool zero_out_pitch = false;// (stereo && ZERO_OUT_PITCH);
 
