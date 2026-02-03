@@ -1941,7 +1941,6 @@ static void process_bsp_entity(const entity_t* entity, int* instance_count)
 		return;
 	}
 	
-	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 	const int view_id = BOTH;
 
 	float transform[16] = { 0 };
@@ -2048,7 +2047,7 @@ static void process_regular_entity(
 
 	float transform[16] = { 0 };
 
-	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+	const int stereo = false;// (cl_stereo->value == 1.0f) ? 1 : 0;
 	const int view_id = BOTH;
 
 	if(is_viewer_weapon)
@@ -2361,7 +2360,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 
 			if (model->num_light_polys > 0)
 			{
-				const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+				const int stereo = false;// (cl_stereo->value == 1.0f) ? 1 : 0;
 				const int view_id = BOTH;
 
 				float transform[16] = { 0 };
@@ -2861,7 +2860,7 @@ static void prepare_camera(const vec3_t position, const vec3_t direction, mat4_t
 
 static void prepare_viewmatrix(refdef_t *fd)
 {
-	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+	const int stereo = false;// (cl_stereo->value == 1.0f) ? 1 : 0;
 
 #if SUPPORT_OPENXR
 	const float ipd = GetIPD();
@@ -2869,7 +2868,7 @@ static void prepare_viewmatrix(refdef_t *fd)
 	const float ipd = fabs(cl_ipd->value);
 #endif
 
-	const bool zero_out_pitch = (stereo && ZERO_OUT_PITCH);
+	const bool zero_out_pitch = false;// (stereo && ZERO_OUT_PITCH);
 
 	vec4_t ipd_offset_left_WS = { 0 };
 	vec4_t ipd_offset_right_WS = { 0 };
@@ -2915,8 +2914,8 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	ubo->prev_taa_output_width = ubo->taa_output_width;
 	ubo->prev_taa_output_height = ubo->taa_output_height;
 
-	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
-	const int apply_xr_proj = (cl_xr_proj->value == 1.0f) ? 1 : 0;
+	const int stereo = false;// (cl_stereo->value == 1.0f) ? 1 : 0;
+	const int apply_xr_proj = false;// (cl_xr_proj->value == 1.0f) ? 1 : 0;
 
 	if(stereo && apply_xr_proj)
 	{
@@ -3099,32 +3098,11 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	ubo->prev_gpu_slice_width = qvk.gpu_slice_width_prev;
 	ubo->screen_image_width = qvk.extent_screen_images.width;
 	ubo->screen_image_height = qvk.extent_screen_images.height;
-
-	if(false)//stereo)
-	{
-		ubo->width /= 2;
-		ubo->prev_width /= 2;
-		ubo->inv_width *= 2.0f;
-		ubo->unscaled_width /= 2;
-		//ubo->taa_image_width /= 2;
-		//ubo->taa_output_width /= 2;
-		ubo->current_gpu_slice_width /= 2;
-		ubo->prev_gpu_slice_width /= 2;
-		//ubo->screen_image_width /= 2;
-
-		static int frame = 0;
-		frame++;
-		if(frame % 2 == 0)
-		{
-			//ubo->width += 100;
-		}
-	}
-	
 	ubo->water_normal_texture = water_normal_texture - r_images;
 	ubo->pt_swap_checkerboard = 0;
-	ubo->ui_color_scale =
-		qvk.surf_is_hdr ? (cvar_ui_hdr_nits->value * 0.0125) // an scRGB luminance of 1.0 is defined as 80 nits
-						: 1.f /* no change */;
+
+	// an scRGB luminance of 1.0 is defined as 80 nits
+	ubo->ui_color_scale = qvk.surf_is_hdr ? (cvar_ui_hdr_nits->value * 0.0125) : 1.0f; // no change
 
 	qvk.extent_render_prev = qvk.extent_render;
 	qvk.gpu_slice_width_prev = qvk.gpu_slice_width;
