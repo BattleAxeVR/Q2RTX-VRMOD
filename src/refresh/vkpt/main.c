@@ -3008,7 +3008,7 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 		
 		if(stereo)
 		{
-			fov_x *= 0.25f;
+			fov_x *= 0.5f;
 		}
 
 		create_projection_matrix(raw_proj, vkpt_refdef.z_near, vkpt_refdef.z_far, fov_x, fd->fov_y);
