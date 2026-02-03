@@ -656,8 +656,15 @@ static void CL_AdjustAngles(int msec)
             cl.viewangles[YAW] -= speed * cl_yawspeed->value * turn_value;
         }
 
-        // No point in updating the pitch of the guns / view in VR mode, as the old gun position would be overridden by the aim pose;
-        // Up/Down on the right controller could be useful for climbing up/down or jump/crouch, maybe, like SkyrimVR. TODO
+#if !APPLY_CONTROLLER_TRACKING_TO_GUN
+        const float pitch_value = right_vr_controller.thumbstick_values_[1];
+
+        if (fabs(pitch_value) > deadzone)
+        {
+            cl.viewangles[PITCH] -= speed * cl_pitchspeed->value * pitch_value;
+        }
+#endif
+
     }
 #endif
 }
