@@ -34,11 +34,12 @@ layout(constant_id = 1) const uint spec_final_blit_water_warp = 0;
 #define GLOBAL_UBO_DESC_SET_IDX 0
 #include "global_ubo.h"
 
-layout(push_constant, std430) uniform PushConstants {
+layout(push_constant, std430) uniform PushConstants 
+{
     vec2 input_dimensions;
     int stereo;
     int view_id;
-    vec2 uv_mult;
+    vec2 uv_scale_bias;
 } push;
 
 layout(set = 1, binding = 0) uniform sampler2D final_blit_input_image;
@@ -113,8 +114,7 @@ vec3 filter_lanczos(sampler2D img, vec2 uv)
     return o_rgba.rgb / o_rgba.w;
 }
 
-void
-main()
+void main()
 {
     vec2 uv = tex_coord;
 
@@ -132,8 +132,8 @@ main()
         else
         {
              // Right eye    
-             uv.x *= push.uv_mult.x;
-             uv.x += push.uv_mult.y; // use y as bias for testing, since we don't need to scale V normally
+             //uv.x *= push.uv_mult.x;
+             //uv.x += push.uv_mult.y;
              uv.x += 1.5f;
         }
         
