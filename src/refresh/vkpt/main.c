@@ -2053,20 +2053,12 @@ static void process_regular_entity(
 
 	if(is_viewer_weapon)
 	{
-#if APPLY_CONTROLLER_TRACKING_TO_GUN
 		create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
 		const int hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
-		const bool hand_ok = GetHandMatrix(hand_id, transform);
-
-		if(hand_ok)
-		{
-		}
-		else
+		GetHandMatrix(hand_id, transform);
 #endif
-		{
-			create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
-		}
 	}
 	else
 	{
