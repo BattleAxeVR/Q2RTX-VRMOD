@@ -793,13 +793,15 @@ VkResult vkpt_draw_submit_stretch_pics(VkCommandBuffer cmd_buf)
 	buffer_unmap(ubo_res);
 	ubo = NULL;
 
+	VkExtent2D extent = vkpt_draw_get_extent();
+
 	VkRenderPassBeginInfo render_pass_info = 
 	{
 		.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 		.renderPass        = render_pass_stretch_pic,
 		.framebuffer       = framebuffer_stretch_pic[qvk.current_swap_chain_image_index],
 		.renderArea.offset = { 0, 0 },
-		.renderArea.extent = vkpt_draw_get_extent()
+		.renderArea.extent = extent
 	};
 
 	VkDescriptorSet desc_sets[] = 
