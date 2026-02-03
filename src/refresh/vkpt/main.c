@@ -3994,14 +3994,14 @@ void R_EndFrame_RTX(void)
 				vkpt_final_blit(cmd_buf, VKPT_IMG_TAA_OUTPUT, qvk.extent_taa_output, true, waterwarp);
 		}
 
+#if SUPPORT_OPENXR
+		OpenXR_Endframe(&cmd_buf, qvk.extent_taa_output);
+#endif
+
 		frame_ready = false;
 	}
 
 	vkpt_draw_submit_stretch_pics(cmd_buf);
-
-#if SUPPORT_OPENXR
-	OpenXR_Endframe(&cmd_buf);
-#endif
 
 	VkSemaphore wait_semaphores[] = { qvk.semaphores[qvk.current_frame_index][0].image_available };
 	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
