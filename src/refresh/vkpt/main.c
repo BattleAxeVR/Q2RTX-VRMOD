@@ -2917,84 +2917,77 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 	const int apply_xr_proj = (cl_xr_proj->value == 1.0f) ? 1 : 0;
 
-	if(stereo && apply_xr_proj)
-	{
-		XrFovf fov[NUM_EYES] = { 0 };
-
-		const bool override_outward_fov = (cl_fov_outward->value != 0.0f);
-		const bool override_inward_fov = (cl_fov_inward->value != 0.0f);
-		const bool override_up_fov = (cl_fov_up->value != 0.0f);
-		const bool override_down_fov = (cl_fov_down->value != 0.0f);
-
-		bool override_fov = (override_outward_fov || override_inward_fov || override_up_fov || override_down_fov);
+	XrFovf fov[NUM_EYES] = { 0 };
 
 #if SUPPORT_OPENXR
-		const bool left_fov_ok = GetFov(LEFT, &fov[LEFT]);
-		const bool right_fov_ok = GetFov(RIGHT, &fov[RIGHT]);
-		const bool fov_ok = (left_fov_ok && right_fov_ok);
-
-		override_fov |= !fov_ok;
+	const bool left_fov_ok = GetFov(LEFT, &fov[LEFT]);
+	const bool right_fov_ok = GetFov(RIGHT, &fov[RIGHT]);
+	const bool fov_ok = (left_fov_ok && right_fov_ok);
+	const bool use_default_fov = !fov_ok;
+#else
+	const bool use_default_fov = true;
 #endif
 
-		if (override_fov)
+	if(stereo && apply_xr_proj)
+	{
+
+		if(use_default_fov)
 		{
 			//Hardcoded PSVR 2 defaults, for testing/debugging/fallback
 			const float UPWARD_FOV_RAD   = DEG2RAD(53.0401382f);
 			const float DOWNWARD_FOV_RAD = -UPWARD_FOV_RAD;
 
+			fov[LEFT].angleUp = fov[RIGHT].angleUp = UPWARD_FOV_RAD;
+			fov[LEFT].angleDown = fov[RIGHT].angleDown = DOWNWARD_FOV_RAD;
+
 			const float OUTWARD_FOV_RAD  = DEG2RAD(61.4999962f);
 			const float INWARD_FOV_RAD   = DEG2RAD(43.4464722f);
 
-			if(override_outward_fov)
-			{
-				const float outward_fov_rad_override = DEG2RAD(fabs(cl_fov_outward->value));
+			fov[LEFT].angleLeft = -OUTWARD_FOV_RAD;
+			fov[LEFT].angleRight = INWARD_FOV_RAD;
 
-				fov[LEFT].angleLeft = -outward_fov_rad_override;
-				fov[RIGHT].angleRight = outward_fov_rad_override;
-			}
-			else
-			{
-				fov[LEFT].angleLeft = -OUTWARD_FOV_RAD;
-				fov[RIGHT].angleRight = OUTWARD_FOV_RAD;
-			}
-
-			if(override_inward_fov)
-			{
-				const float inward_fov_rad_override = DEG2RAD(fabs(cl_fov_inward->value));
-
-				fov[LEFT].angleRight = inward_fov_rad_override;
-				fov[RIGHT].angleLeft = -inward_fov_rad_override;
-				
-			}
-			else
-			{
-				fov[LEFT].angleRight = INWARD_FOV_RAD;
-				fov[RIGHT].angleLeft = -INWARD_FOV_RAD;
-			}
-
-			if(override_up_fov)
-			{
-				const float up_fov_rad_override = DEG2RAD(fabs(cl_fov_up->value));
-
-				fov[LEFT].angleUp = fov[RIGHT].angleUp = up_fov_rad_override;
-			}
-			else
-			{
-				fov[LEFT].angleUp = fov[RIGHT].angleUp = UPWARD_FOV_RAD;
-			}
-
-			if(override_down_fov)
-			{
-				const float down_fov_rad_override = -DEG2RAD(fabs(cl_fov_down->value));
-
-				fov[LEFT].angleDown = fov[RIGHT].angleDown = down_fov_rad_override;
-			}
-			else
-			{
-				fov[LEFT].angleDown = fov[RIGHT].angleDown = DOWNWARD_FOV_RAD;
-			}
+			fov[RIGHT].angleLeft = -INWARD_FOV_RAD;
+			fov[RIGHT].angleRight = OUTWARD_FOV_RAD;
 		}
 
+		const bool override_outward_fov = (cl_fov_outward->value != 0.0f);
+
+		if(override_outward_fov)
+		{
+			const float outward_fov_rad_override = DEG2RAD(fabs(cl_fov_outward->value));
+
+			fov[LEFT].angleLeft = -outward_fov_rad_override;
+			fov[RIGHT].angleRight = outward_fov_rad_override;
+		}
+
+		const bool override_inward_fov = (cl_fov_inward->value != 0.0f);
+
+		if(override_inward_fov)
+		{
+			const float inward_fov_rad_override = DEG2RAD(fabs(cl_fov_inward->value));
+
+			fov[LEFT].angleRight = inward_fov_rad_override;
+			fov[RIGHT].angleLeft = -inward_fov_rad_override;
+		}
+
+		const bool override_up_fov = (cl_fov_up->value != 0.0f);
+		
+		if(override_up_fov)
+		{
+			const float up_fov_rad_override = DEG2RAD(fabs(cl_fov_up->value));
+
+			fov[LEFT].angleUp = fov[RIGHT].angleUp = up_fov_rad_override;
+		}
+		
+		const bool override_down_fov = (cl_fov_down->value != 0.0f);
+
+		if(override_down_fov)
+		{
+			const float down_fov_rad_override = -DEG2RAD(fabs(cl_fov_down->value));
+
+			fov[LEFT].angleDown = fov[RIGHT].angleDown = down_fov_rad_override;
+		}
+		
 		float nearz = vkpt_refdef.z_near;
 		float farz = vkpt_refdef.z_far;
 
