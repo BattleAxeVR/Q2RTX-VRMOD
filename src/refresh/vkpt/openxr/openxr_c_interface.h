@@ -56,6 +56,10 @@ bool GetHandMatrix(const int hand_id, const bool append, float* matrix_ptr);
 
 bool GetVRControllerState(const int hand_id, const bool update, VRControllerState* vr_controller_state_ptr);
 
+bool GetYaw(const int view_id, const bool in_radians, float* yaw_ptr);
+bool GetPitch(const int view_id, const bool in_radians, float* pitch_ptr);
+bool GetRoll(const int view_id, const bool in_radians, float* roll_ptr);
+
 #endif // SUPPORT_OPENXR
 
 #endif // OPENXR_C_INTERFACE_H

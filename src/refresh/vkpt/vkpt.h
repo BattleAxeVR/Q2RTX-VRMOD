@@ -440,8 +440,8 @@ typedef struct vkpt_refdef_s
 	QVKUniformBuffer_t uniform_buffer;
 	InstanceBuffer uniform_instance_buffer;
 	refdef_t *fd;
-	float view_matrix[NUM_EYES + 1][16];
-	float view_matrix_inv[NUM_EYES + 1][16];
+	float view_matrix[NUM_EYES][16];
+	float view_matrix_inv[NUM_EYES][16];
 
 	float z_near, z_far;
 

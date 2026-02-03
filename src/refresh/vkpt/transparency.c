@@ -170,19 +170,25 @@ void update_transparency(VkCommandBuffer command_buffer, const float* view_matri
 
 	uint32_t beam_num = 0;
 	uint32_t sprite_num = 0;
+
 	for (int i = 0; i < entity_num; i++)
 	{
 		if (entities[i].flags & RF_BEAM)
 		{
 			// write_beam_geometry skips zero-width beams as well
 			if(entities[i].frame > 0)
+			{
 				++beam_num;
+			}
 		}
 		else if ((entities[i].model & 0x80000000) == 0)
 		{
 			const model_t* model = MOD_ForHandle(entities[i].model);
-			if (model && model->type == MOD_SPRITE)
+
+			if(model && model->type == MOD_SPRITE)
+			{
 				++sprite_num;
+			}
 		}
 	}
 	beam_num = min(beam_num, TR_BEAM_MAX_NUM);
@@ -247,10 +253,7 @@ void vkpt_get_transparency_buffers(
 	}
 }
 
-void vkpt_get_beam_aabb_buffer(
-	BufferResource_t** aabb_buffer,
-	uint64_t* aabb_offset,
-	uint32_t* num_aabbs)
+void vkpt_get_beam_aabb_buffer(BufferResource_t** aabb_buffer, uint64_t* aabb_offset, uint32_t* num_aabbs)
 {
 	*aabb_buffer = &transparency.beam_aabb_buffer;
 	*aabb_offset = 0;

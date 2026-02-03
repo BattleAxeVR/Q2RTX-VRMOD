@@ -109,8 +109,8 @@ static void VKPT_DrawDebugLines(VkCommandBuffer cmd_buf)
 		vec3_t view_start = { 0 };
 		vec3_t view_end = { 0 };
 
-		mult_matrix_vector3(view_start, vkpt_refdef.view_matrix[BOTH], l->start);
-		mult_matrix_vector3(view_end, vkpt_refdef.view_matrix[BOTH], l->end);
+		mult_matrix_vector3(view_start, vkpt_refdef.view_matrix[LEFT], l->start);
+		mult_matrix_vector3(view_end, vkpt_refdef.view_matrix[LEFT], l->end);
 
 		if(!intersect_z_near(view_start, view_end))
 		{

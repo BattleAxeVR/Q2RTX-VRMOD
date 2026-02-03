@@ -2910,6 +2910,119 @@ extern "C"
 		return true;
 	}
 
+	float sqr(float x)
+	{
+		return x * x;
+	}
+
+	bool GetYaw(const int view_id, const bool in_radians, float* yaw_ptr)
+	{
+		if(!openxr_.is_session_running() || !yaw_ptr)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		const XrPosef& xr_pose = xr_view.pose;
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+		glm::fquat& rotation = glm_pose.rotation_;
+
+		double a = 2.0 * ( (rotation.w * rotation.z) + (rotation.x * rotation.y));
+		double b = ( sqr(rotation.w) + sqr(rotation.x) - sqr(rotation.y) - sqr(rotation.z));
+
+		double yaw_rad = atan2(a, b);
+
+		if(in_radians)
+		{
+			*yaw_ptr = (float)yaw_rad;
+		}
+		else
+		{
+			float yaw_deg = (float)rad2deg(yaw_rad);
+			*yaw_ptr = yaw_deg;
+		}
+
+		return true;
+	}
+
+	bool GetPitch(const int view_id, const bool in_radians, float* pitch_ptr)
+	{
+		if(!openxr_.is_session_running() || !pitch_ptr)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		const XrPosef& xr_pose = xr_view.pose;
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+		glm::fquat& rotation = glm_pose.rotation_;
+
+		double a = 2.0 * (rotation.w * rotation.y - rotation.z * rotation.x);
+
+		float pitch_rad = (float)asin(a);
+
+		if(in_radians)
+		{
+			*pitch_ptr = pitch_rad;
+		}
+		else
+		{
+			float pitch_deg = rad2deg(pitch_rad);
+			*pitch_ptr = pitch_deg;
+		}
+		
+		return true;
+	}
+
+	bool GetRoll(const int view_id, const bool in_radians, float* roll_ptr)
+	{
+		if(!openxr_.is_session_running() || !roll_ptr)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		const XrPosef& xr_pose = xr_view.pose;
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+		glm::fquat& rotation = glm_pose.rotation_;
+
+		double a = 2.0 * ( (rotation.w * rotation.z) + (rotation.x * rotation.y));
+		double b = ( sqr(rotation.w) + sqr(rotation.x) - sqr(rotation.y) - sqr(rotation.z));
+
+		double roll_rad = atan2(a, b);
+
+		if(in_radians)
+		{
+			*roll_ptr = -(float)roll_rad;
+		}
+		else
+		{
+			float yaw_deg = -(float)rad2deg(roll_rad);
+			*roll_ptr = yaw_deg;
+		}
+
+		return true;
+	}
+
+
 	bool GetViewMatrix(const int view_id, float game_x, float game_y, float game_z, float yaw_deg, float* view_matrix_ptr)
 	{
 		if(!openxr_.is_session_running() || !view_matrix_ptr)
@@ -2924,104 +3037,33 @@ extern "C"
 			return false;
 		}
 
+		glm::mat4 game_matrix(1);
+		memcpy(&game_matrix, view_matrix_ptr, sizeof(float) * 16);
+
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+		
+		const glm::vec3 game_position = { game_x, game_y, game_z };
+		const glm::mat4 game_translation_matrix = glm::translate(glm::mat4(1), game_position);
+		const glm::mat4 game_translation_matrix_inverse = glm::translate(glm::mat4(1), -game_position);
 
-		//const glm::fquat CCW_180_rotation_about_y = glm::fquat(0, 1, 0, 0);
-		//const glm::fquat CCW_180_rotation_about_x = glm::fquat(0, 0, 1, 0);
-		//const glm::fquat CCW_180_rotation_about_z = glm::fquat(0, 0, 0, 1);
+		glm::mat4 xr_matrix = glm_pose.to_matrix();
 
-
-		//glm_pose.rotation_ = BVR::default_rotation;
-		glm_pose.rotation_ = BVR::CCW_180_rotation_about_y;
-		//glm_pose.rotation_ = BVR::CCW_180_rotation_about_x;
-		//glm_pose.rotation_ = BVR::CCW_180_rotation_about_z;
-
-		//static bool rotate_x = false;
-		//static bool rotate_y = false;
-		//static bool rotate_z = false;
-
-		//glm_pose.rotation_ = BVR::CCW_180_rotation_about_x;
-		//glm_pose.rotation_ = BVR::CCW_180_rotation_about_y;
-
-#if 0
-		static float deg_x = 0.0f;
-		static float deg_y = 0.0f;
-		static float deg_z = 0.0f;
-
-		const glm::vec3 extra_euler_rad = { deg2rad(deg_x), deg2rad(deg_y), deg2rad(deg_z) };
-		const glm::fquat extra_rotation = glm::fquat(extra_euler_rad);
-
-		const glm::vec3 game_euler_rad = { 0.0f, deg2rad(yaw_deg), 0.0f };
-		const glm::fquat game_rotation = glm::fquat(game_euler_rad);
-#endif
-		//const glm::fquat final_rotation = BVR::default_rotation;// game_rotation* extra_rotation;
-
-		static bool apply_game_position = true;
-
-		if(apply_game_position)
-		{
-			const glm::vec3 game_position = { game_x, game_y, game_z };
-			glm_pose.translation_ += game_position;
-
-			//const BVR::GLMPose game_pose = BVR::GLMPose(game_position, final_rotation);
-			//const glm::mat4 game_view_matrix = game_pose.to_matrix();
-		}
-
-		glm::mat4 view_matrix = inverse(glm_pose.to_matrix());
-		memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
-
-#if 0
-		static float degx_0 = -90.0f;
-		static float degy_0 = 180.0f;
+		static float degx_0 = 0.0f;// -90.0f;
+		static float degy_0 = 0.0f;// 180.0f;
 		static float degz_0 = 0.0f;
 
 		glm::vec3 extra_euler_rad = { deg2rad(degx_0), deg2rad(degy_0), deg2rad(degz_0) };
 
 		glm::fquat rot = glm::fquat(extra_euler_rad);
+		glm::mat4 rotation_matrix = glm::mat4_cast(rot);
 
-		//glm_pose.rotation_ = game_rotation * BVR::CCW_90_rotation_about_x * glm_pose.rotation_;
-		glm_pose.rotation_ = game_rotation * glm_pose.rotation_ * rot;
-		glm_pose.rotation_ = glm::normalize(glm_pose.rotation_);
+		//glm::mat4 glm_view_matrix = game_matrix * inverse(xr_matrix) * rotation_matrix;
+		//glm::mat4 glm_view_matrix = game_matrix;// *inverse(xr_matrix)* rotation_matrix;
+		glm::mat4 glm_view_matrix = game_translation_matrix * rotation_matrix;// *game_translation_matrix_inverse;
 
-		glm::vec3 game_position;
-		memcpy(&game_position, eye_pos_vec3, sizeof(float) * 3);
+		memcpy(view_matrix_ptr, &glm_view_matrix, sizeof(float) * 16);
 
-		glm_pose.translation_ *= world_scale;
-
-		// axis[0], axis[1], axis[2], forward, right, up
-		//view_matrix[12] = DotProduct(viewaxis[1], fd->vieworg); // right, +x
-		//view_matrix[13] = -DotProduct(viewaxis[2], fd->vieworg); // up, = -y ?
-		//view_matrix[14] = -DotProduct(viewaxis[0], fd->vieworg); // forward, = -z
-
-		static bool append_game_position = true;
-
-		if(append_game_position)
-		{
-			glm_pose.translation_ += game_position;
-		}
-
-		glm::mat4 glm_view_matrix = glm_pose.to_matrix();
-		//glm_view_matrix = glm::inverse(glm_view_matrix);
-
-		//glm_view_matrix[12] *= -1.0f;
-		glm_view_matrix[0] *= -1.0f;
-
-		if(append)
-		{
-			glm::mat4 orig_view_matrix;
-			memcpy(&orig_view_matrix, matrix_ptr, sizeof(float) * 16);
-
-			glm_view_matrix = glm_view_matrix * orig_view_matrix;
-
-			memcpy(matrix_ptr, &glm_view_matrix, sizeof(float) * 16);
-		}
-		else
-		{
-			memcpy(matrix_ptr, &glm_view_matrix, sizeof(float) * 16);
-		}
-#endif
-		
 		return true;
 	}
 

@@ -283,24 +283,60 @@ void create_orthographic_matrix(mat4_t matrix, float xmin, float xmax, float ymi
 
 void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, refdef_t *fd)
 {
-	vec3_t viewaxis[3];
+	vec3_t viewaxis[3] = { 0 };
 	AnglesToAxis(fd->viewangles, viewaxis);
 
 	if(stereo)
 	{
 		vec3_t viewangles = { 0 };
 
+		float pitch = 0.0f;
+		float yaw = 0.0f;
+		float roll = 0.0f;
+
+#if APPLY_VR_VIEW_PITCH
+		float vr_pitch = 0.0f;
+
+		if(GetPitch(view_id, false, &vr_pitch))
+		{
+			pitch += vr_pitch;
+		}
+#endif
+
 #if APPLY_STEREO_VIEW_PITCH
-		viewangles[PITCH] = fd->viewangles[PITCH];
+		pitch += fd->viewangles[PITCH];
+#endif
+
+#if APPLY_VR_VIEW_YAW
+		float vr_yaw = 0.0f;
+
+		if(GetYaw(view_id, false, &vr_yaw))
+		{
+			yaw += vr_yaw;
+		}
 #endif
 
 #if APPLY_STEREO_VIEW_YAW
-		viewangles[YAW] = fd->viewangles[YAW];
+		float game_yaw = fd->viewangles[YAW];
+		yaw += game_yaw;
 #endif
 
 #if APPLY_STEREO_VIEW_ROLL
-		viewangles[ROLL] = fd->viewangles[ROLL];
+		roll += fd->viewangles[ROLL];
 #endif
+
+#if APPLY_VR_VIEW_ROLL
+		float vr_roll = 0.0f;
+
+		if(GetRoll(view_id, false, &vr_roll))
+		{
+			roll += vr_roll;
+		}
+#endif
+
+		viewangles[PITCH] = pitch;
+		viewangles[YAW] = yaw;
+		viewangles[ROLL] = roll;
 
 		AnglesToAxis(viewangles, viewaxis);
 	}
