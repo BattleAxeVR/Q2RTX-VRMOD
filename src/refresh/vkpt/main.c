@@ -2930,18 +2930,26 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 
 	if(stereo && apply_xr_proj)
 	{
-
 		if(use_default_fov)
 		{
+#if USE_PSVR2_DEFAULT_FOV
 			//Hardcoded PSVR 2 defaults, for testing/debugging/fallback
 			const float UPWARD_FOV_RAD   = DEG2RAD(53.0401382f);
 			const float DOWNWARD_FOV_RAD = -UPWARD_FOV_RAD;
 
-			fov[LEFT].angleUp = fov[RIGHT].angleUp = UPWARD_FOV_RAD;
-			fov[LEFT].angleDown = fov[RIGHT].angleDown = DOWNWARD_FOV_RAD;
-
 			const float OUTWARD_FOV_RAD  = DEG2RAD(61.4999962f);
 			const float INWARD_FOV_RAD   = DEG2RAD(43.4464722f);
+#else
+			//Results here should match when apply_xr_proj is false, below (and it does. Unit test passed)
+			const float UPWARD_FOV_RAD   = DEG2RAD(fd->fov_y * 0.5f);
+			const float DOWNWARD_FOV_RAD = -UPWARD_FOV_RAD;
+
+			const float OUTWARD_FOV_RAD  = DEG2RAD(fd->fov_x * 0.25f); // extra halving is due to stereo
+			const float INWARD_FOV_RAD   = OUTWARD_FOV_RAD;
+#endif
+
+			fov[LEFT].angleUp = fov[RIGHT].angleUp = UPWARD_FOV_RAD;
+			fov[LEFT].angleDown = fov[RIGHT].angleDown = DOWNWARD_FOV_RAD;
 
 			fov[LEFT].angleLeft = -OUTWARD_FOV_RAD;
 			fov[LEFT].angleRight = INWARD_FOV_RAD;
