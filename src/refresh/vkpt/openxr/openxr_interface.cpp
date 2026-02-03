@@ -3117,7 +3117,7 @@ extern "C"
 		return ipd;
 	}
 
-	bool GetHandPosition(const int hand_id, float* hand_pos_vec3, float* tracking_to_world_matrix)
+	bool GetHandPosition(const int hand_id, float* hand_pos_vec3)
 	{
 		if(!openxr_.is_session_running())
 		{
@@ -3131,25 +3131,31 @@ extern "C"
 			return false;
 		}
 
-		if(tracking_to_world_matrix)
-		{
-
-		}
-		else
-		{
-			memcpy(&hand_pos_vec3, &xr_view.pose.position, sizeof(float) * 3);
-		}
+		memcpy(&hand_pos_vec3, &xr_view.pose.position, sizeof(float) * 3);
 
 		return true;
 	}
 
-	bool GetHandMatrix(const int hand_id, const bool append, float* matrix_ptr)
+	bool GetHandMatrix(const int hand_id, float* matrix_ptr)
 	{
 		if(!openxr_.is_session_running() || !matrix_ptr || !openxr_.aim_pose_valid_[hand_id])
 		{
 			return false;
 		}
 
+		glm::mat4 game_hand_matrix(1);
+		memcpy(&game_hand_matrix, matrix_ptr, sizeof(float) * 16);
+
+		const BVR::GLMPose aim_pose_LS = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id]);
+		const glm::fquat aim_rotation = aim_pose_LS.rotation_;
+		const glm::mat4 aim_rotation_matrix = glm::mat4_cast(aim_rotation);
+
+		//glm::mat4 aim_local_matrix = aim_pose_LS.to_matrix();
+
+		glm::mat4 final_hand_matrix = game_hand_matrix * aim_rotation_matrix;
+		memcpy(matrix_ptr, &final_hand_matrix, sizeof(float) * 16);
+
+#if 0
 		if(append)
 		{
 			XrMatrix4x4f local_matrix = {};
@@ -3197,6 +3203,7 @@ extern "C"
 		{
 			XrMatrix4x4f_CreateFromRigidTransform((XrMatrix4x4f*)matrix_ptr, &openxr_.aim_pose_LS_[hand_id]);
 		}
+#endif
 
 		return true;
 	}

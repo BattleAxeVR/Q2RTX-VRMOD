@@ -51,8 +51,8 @@ bool GetViewMatrix(const int view_id, float game_x, float game_y, float game_z, 
 bool GetFov(const int view_id, XrFovf* fov_ptr);
 float GetIPD();
 
-bool GetHandPosition(const int hand_id, float* hand_pos_vec3, float* tracking_to_world_matrix);
-bool GetHandMatrix(const int hand_id, const bool append, float* matrix_ptr);
+bool GetHandPosition(const int hand_id, float* world_pos);
+bool GetHandMatrix(const int hand_id, float* matrix_ptr);
 
 bool GetVRControllerState(const int hand_id, const bool update, VRControllerState* vr_controller_state_ptr);
 

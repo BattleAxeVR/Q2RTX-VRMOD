@@ -2094,7 +2094,7 @@ static void process_regular_entity(
 		create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
 #endif
 		
-		const bool hand_ok = false;// GetHandMatrix(hand_id, true, transform);
+		const bool hand_ok = GetHandMatrix(hand_id, transform);
 
 		if(hand_ok)
 		{
