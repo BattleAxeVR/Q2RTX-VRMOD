@@ -132,9 +132,8 @@ void main()
         else
         {
              // Right eye    
-             //uv.x *= push.uv_mult.x;
-             //uv.x += push.uv_mult.y;
-             uv.x += 1.5f;
+             uv.x *= push.uv_scale_bias.x;
+             uv.x += push.uv_scale_bias.y;
         }
         
         uv *= uv_mult;
