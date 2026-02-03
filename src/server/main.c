@@ -1933,11 +1933,14 @@ unsigned SV_Frame(unsigned msec)
 
     // move autonomous things around if enough time has passed
     sv.frameresidual += msec;
-    if (sv.frameresidual < SV_FRAMETIME) {
+
+    if (sv.frameresidual < SV_FRAMETIME) 
+    {
         return SV_FRAMETIME - sv.frameresidual;
     }
 
-    if (svs.initialized && !check_paused()) {
+    if (svs.initialized && !check_paused()) 
+    {
         // check timeouts
         SV_CheckTimeouts();
 
@@ -1963,19 +1966,23 @@ unsigned SV_Frame(unsigned msec)
         sv.framenum++;
     }
 
-    if (COM_DEDICATED) {
+    if (COM_DEDICATED) 
+    {
         // run cmd buffer in dedicated mode
         Cbuf_Frame(&cmd_buffer);
     }
 
     // decide how long to sleep next frame
     sv.frameresidual -= SV_FRAMETIME;
-    if (sv.frameresidual < SV_FRAMETIME) {
+
+    if (sv.frameresidual < SV_FRAMETIME) 
+    {
         return SV_FRAMETIME - sv.frameresidual;
     }
 
     // don't accumulate bogus residual
-    if (sv.frameresidual > 250) {
+    if (sv.frameresidual > 250) 
+    {
         Com_DDDPrintf("Reset residual %u\n", sv.frameresidual);
         sv.frameresidual = 100;
     }
@@ -2006,52 +2013,67 @@ void SV_UserinfoChanged(client_t *cl)
     // name for C code
     val = Info_ValueForKey(cl->userinfo, "name");
     len = Q_strlcpy(name, val, sizeof(name));
-    if (len >= sizeof(name)) {
+
+    if (len >= sizeof(name)) 
+    {
         len = sizeof(name) - 1;
     }
+
     // mask off high bit
-    for (i = 0; i < len; i++)
+    for(i = 0; i < len; i++)
+    {
         name[i] &= 127;
-    if (cl->name[0] && strcmp(cl->name, name)) {
-        if (COM_DEDICATED) {
-            Com_Printf("%s[%s] changed name to %s\n", cl->name,
-                       NET_AdrToString(&cl->netchan.remote_address), name);
+    }
+
+    if (cl->name[0] && strcmp(cl->name, name)) 
+    {
+        if (COM_DEDICATED) 
+        {
+            Com_Printf("%s[%s] changed name to %s\n", cl->name, NET_AdrToString(&cl->netchan.remote_address), name);
         }
 #if USE_MVD_CLIENT
-        if (sv.state == ss_broadcast) {
+        if (sv.state == ss_broadcast) 
+        {
             MVD_GameClientNameChanged(cl->edict, name);
-        } else
+        } 
+        else
 #endif
-        if (sv_show_name_changes->integer > 1 ||
-            (sv_show_name_changes->integer == 1 && cl->state == cs_spawned)) {
-            SV_BroadcastPrintf(PRINT_HIGH, "%s changed name to %s\n",
-                               cl->name, name);
+        if (sv_show_name_changes->integer > 1 || (sv_show_name_changes->integer == 1 && cl->state == cs_spawned)) 
+        {
+            SV_BroadcastPrintf(PRINT_HIGH, "%s changed name to %s\n",cl->name, name);
         }
     }
     memcpy(cl->name, name, len + 1);
 
     // rate command
     val = Info_ValueForKey(cl->userinfo, "rate");
-    if (*val) {
+
+    if (*val) 
+    {
         cl->rate = Q_clip(Q_atoi(val), sv_min_rate->integer, sv_max_rate->integer);
-    } else {
+    } 
+    else 
+    {
         cl->rate = 5000;
     }
 
     // never drop over the loopback
-    if (NET_IsLocalAddress(&cl->netchan.remote_address)) {
+    if (NET_IsLocalAddress(&cl->netchan.remote_address)) 
+    {
         cl->rate = 0;
     }
 
     // don't drop over LAN connections
-    if (sv_lan_force_rate->integer &&
-        NET_IsLanAddress(&cl->netchan.remote_address)) {
+    if (sv_lan_force_rate->integer && NET_IsLanAddress(&cl->netchan.remote_address)) 
+    {
         cl->rate = 0;
     }
 
     // msg command
     val = Info_ValueForKey(cl->userinfo, "msg");
-    if (*val) {
+
+    if (*val) 
+    {
         cl->messagelevel = Q_clip(Q_atoi(val), PRINT_LOW, PRINT_CHAT + 1);
     }
 }
@@ -2061,16 +2083,16 @@ void SV_UserinfoChanged(client_t *cl)
 
 void SV_RestartFilesystem(void)
 {
-    if (gex && gex->RestartFilesystem)
+    if(gex && gex->RestartFilesystem)
+    {
         gex->RestartFilesystem();
+    }
 }
 
 #if USE_SYSCON
 void SV_SetConsoleTitle(void)
 {
-    Sys_SetConsoleTitle(va("%s (port %d%s)",
-        sv_hostname->string, net_port->integer,
-        sv_running->integer ? "" : ", down"));
+    Sys_SetConsoleTitle(va("%s (port %d%s)", sv_hostname->string, net_port->integer, sv_running->integer ? "" : ", down"));
 }
 #endif
 
