@@ -22,7 +22,7 @@
 #define NUM_CONTROLLERS 2
 
 #ifdef SUPPORT_OPENXR
-//#undef SUPPORT_OPENXR // uncomment this to test 2D builds, it's faster/more reliable than CMAKE
+#undef SUPPORT_OPENXR // uncomment this to test 2D builds, it's faster/more reliable than CMAKE
 #endif
 
 #ifndef SUPPORT_OPENXR
