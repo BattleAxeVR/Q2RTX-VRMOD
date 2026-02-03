@@ -2047,7 +2047,7 @@ static void process_regular_entity(
 
 	float transform[16] = { 0 };
 
-	const int stereo = false;// (cl_stereo->value == 1.0f) ? 1 : 0;
+	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 	const int view_id = BOTH;
 
 	if(is_viewer_weapon)
@@ -2360,7 +2360,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 
 			if (model->num_light_polys > 0)
 			{
-				const int stereo = false;// (cl_stereo->value == 1.0f) ? 1 : 0;
+				const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 				const int view_id = BOTH;
 
 				float transform[16] = { 0 };
@@ -2860,7 +2860,7 @@ static void prepare_camera(const vec3_t position, const vec3_t direction, mat4_t
 
 static void prepare_viewmatrix(refdef_t *fd)
 {
-	const int stereo = false;// (cl_stereo->value == 1.0f) ? 1 : 0;
+	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 
 #if SUPPORT_OPENXR
 	const float ipd = GetIPD();
@@ -2914,8 +2914,8 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	ubo->prev_taa_output_width = ubo->taa_output_width;
 	ubo->prev_taa_output_height = ubo->taa_output_height;
 
-	const int stereo = false;// (cl_stereo->value == 1.0f) ? 1 : 0;
-	const int apply_xr_proj = false;// (cl_xr_proj->value == 1.0f) ? 1 : 0;
+	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+	const int apply_xr_proj = (cl_xr_proj->value == 1.0f) ? 1 : 0;
 
 	if(stereo && apply_xr_proj)
 	{
@@ -3036,15 +3036,12 @@ static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t*
 	memcpy(ubo->V[LEFT], vkpt_refdef.view_matrix[LEFT], sizeof(float) * 16);
 	memcpy(ubo->P[LEFT], P[LEFT], sizeof(float) * 16);
 	memcpy(ubo->invV[LEFT], vkpt_refdef.view_matrix_inv[LEFT], sizeof(float) * 16);
-	//inverse(P[LEFT], *ubo->invP[LEFT]);
+	inverse(P[LEFT], *ubo->invP[LEFT]);
 
-	if(stereo)
-	{
-		memcpy(ubo->V[RIGHT], vkpt_refdef.view_matrix[RIGHT], sizeof(float) * 16);
-		memcpy(ubo->P[RIGHT], P[RIGHT], sizeof(float) * 16);
-		memcpy(ubo->invV[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT], sizeof(float) * 16);
-		//inverse(P[RIGHT], *ubo->invP[RIGHT]);
-	}
+	memcpy(ubo->V[RIGHT], vkpt_refdef.view_matrix[RIGHT], sizeof(float) * 16);
+	memcpy(ubo->P[RIGHT], P[RIGHT], sizeof(float) * 16);
+	memcpy(ubo->invV[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT], sizeof(float) * 16);
+	inverse(P[RIGHT], *ubo->invP[RIGHT]);
 
 	float vfov = fd->fov_y * (float)M_PI / 180.f;
 	float unscaled_aspect = (float)qvk.extent_unscaled.width / (float)qvk.extent_unscaled.height;
