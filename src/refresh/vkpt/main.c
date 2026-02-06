@@ -2837,22 +2837,16 @@ static void prepare_viewmatrix(refdef_t *fd)
 	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
 	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
 
+	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
+	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
+
 	const int apply_xr_view = (cl_xr_view->value == 1.0f) ? 1 : 0;
 
 	if(stereo && apply_xr_view)
 	{
-#if APPLY_STEREO_VIEW_YAW
-		const float yaw_deg = fd->viewangles[YAW];
-#else
-		const float yaw_deg = 0.0f;
-#endif
-
-		GetViewMatrix(LEFT, yaw_deg, vkpt_refdef.view_matrix[LEFT]);
-		GetViewMatrix(RIGHT, yaw_deg, vkpt_refdef.view_matrix[RIGHT]);
+		GetViewMatrix(LEFT, &fd->vieworg, &fd->viewangles, vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
+		GetViewMatrix(RIGHT, &fd->vieworg, &fd->viewangles, vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 	}
-
-	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
-	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 }
 
 static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, const vec3_t sky_matrix[3], bool render_world)
