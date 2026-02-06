@@ -3025,7 +3025,7 @@ extern "C"
 	}
 
 
-	bool GetViewMatrix(const int view_id, float game_x, float game_y, float game_z, float yaw_deg, float* view_matrix_ptr)
+	bool GetViewMatrix(const int view_id, float yaw_deg, float* view_matrix_ptr)
 	{
 		if(!openxr_.is_session_running() || !view_matrix_ptr)
 		{
@@ -3299,6 +3299,51 @@ extern "C"
 		}
 
 		*vr_controller_state_ptr = vr_controller_state;
+
+		return true;
+	}
+}
+
+#else
+
+extern "C"
+{
+	bool GetViewMatrix(const int view_id, float yaw_deg, float* view_matrix_ptr)
+	{
+		glm::mat4 game_matrix(1);
+		memcpy(&game_matrix, view_matrix_ptr, sizeof(float) * 16);
+
+		const glm::vec3 game_position = { game_matrix[3][0], game_matrix[3][1], game_matrix[3][2] };
+	
+		BVR::GLMPose glm_pose;
+		glm_pose.translation_.x = game_position.x;
+		glm_pose.translation_.y = game_position.y;
+		glm_pose.translation_.z = game_position.z;
+
+		glm::mat4 glm_matrix = glm_pose.to_matrix();
+		memcpy(view_matrix_ptr, &glm_matrix, sizeof(float) * 16);
+
+#if 0
+		const glm::mat4 game_translation_matrix = glm::translate(glm::mat4(1), game_position);
+		const glm::mat4 game_translation_matrix_inverse = glm::translate(glm::mat4(1), -game_position);
+
+		glm::mat4 xr_matrix = glm_pose.to_matrix();
+
+		static float degx_0 = 0.0f;// -90.0f;
+		static float degy_0 = 0.0f;// 180.0f;
+		static float degz_0 = 0.0f;
+
+		glm::vec3 extra_euler_rad = { deg2rad(degx_0), deg2rad(degy_0), deg2rad(degz_0) };
+
+		glm::fquat rot = glm::fquat(extra_euler_rad);
+		glm::mat4 rotation_matrix = glm::mat4_cast(rot);
+
+		//glm::mat4 glm_view_matrix = game_matrix * inverse(xr_matrix) * rotation_matrix;
+		//glm::mat4 glm_view_matrix = game_matrix;// *inverse(xr_matrix)* rotation_matrix;
+		glm::mat4 glm_view_matrix = game_translation_matrix * rotation_matrix;// *game_translation_matrix_inverse;
+
+		memcpy(view_matrix_ptr, &glm_view_matrix, sizeof(float) * 16);
+#endif
 
 		return true;
 	}

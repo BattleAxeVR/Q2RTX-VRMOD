@@ -47,7 +47,7 @@ typedef struct
 bool Is_OpenXR_Session_Running();
 
 bool GetEyePosition(const int view_id, float* eye_pos_vec3, float* tracking_to_world_matrix);
-bool GetViewMatrix(const int view_id, float game_x, float game_y, float game_z, float yaw_deg, float* view_matrix_ptr);
+bool GetViewMatrix(const int view_id, float yaw_deg, float* view_matrix_ptr);
 bool GetFov(const int view_id, XrFovf* fov_ptr);
 float GetIPD();
 

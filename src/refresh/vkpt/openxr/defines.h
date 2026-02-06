@@ -22,7 +22,7 @@
 #define NUM_CONTROLLERS 2
 
 #ifdef SUPPORT_OPENXR
-//#undef SUPPORT_OPENXR // uncomment this to test 2D builds, it's faster/more reliable than CMAKE
+#undef SUPPORT_OPENXR // uncomment this to test 2D builds, it's faster/more reliable than CMAKE
 #endif
 
 #ifndef SUPPORT_OPENXR
@@ -30,7 +30,7 @@
 #endif
 
 #define APPLY_STEREO_VIEW_PITCH 0
-#define APPLY_STEREO_VIEW_YAW 1
+#define APPLY_STEREO_VIEW_YAW 0
 #define APPLY_STEREO_VIEW_ROLL 0
 
 #define APPLY_VR_VIEW_PITCH (SUPPORT_OPENXR && 1)
@@ -42,6 +42,8 @@
 #define USE_HARDCODED_RES_FOR_OPENXR 1
 
 #define FLIP_FOV_FOR_OPENXR 1
+#define FLIP_PROJ_DIR_FOR_OPENXR 0
+
 #define USE_PSVR2_DEFAULT_FOV 0
 
 #define HARDCODED_OPENXR_PER_EYE_WIDTH 1920

@@ -6,6 +6,7 @@
 #define OPENXR_INTERFACE_H
 
 #include "defines.h"
+#include "GLMPose.h"
 
 #if SUPPORT_OPENXR
 
@@ -54,8 +55,6 @@ typedef uint64_t uint64;
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>
-
-#include "GLMPose.h"
 
 #include "openxr_swapchain.h"
 #include "openxr_command_buffer.h"
