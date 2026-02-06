@@ -3321,7 +3321,11 @@ extern "C"
 
 		const glm::vec3 view_angles_deg = *(glm::vec3*)view_angles_ptr;
 
-		const float pitch_deg = 0.0f;// view_angles_deg.x;
+#if APPLY_STEREO_VIEW_PITCH
+		const float pitch_deg = view_angles_deg.x;
+#else
+		const float pitch_deg = 0.0f;
+#endif
 
 #if APPLY_STEREO_VIEW_YAW
 		const float yaw_deg = view_angles_deg.y;
@@ -3329,7 +3333,11 @@ extern "C"
 		const float yaw_deg = 0.0f;
 #endif
 
-		const float roll_deg = 0.0f;// view_angles_deg.z;
+#if APPLY_STEREO_VIEW_ROLL
+		const float roll_deg = view_angles_deg.z;
+#else
+		const float roll_deg = 0.0f;
+#endif
 
 		const glm::vec3 view_angles_rad = { deg2rad(pitch_deg), -deg2rad(yaw_deg), deg2rad(roll_deg) };
 		glm::fquat rotation_from_euler = glm::fquat(view_angles_rad);
@@ -3347,50 +3355,16 @@ extern "C"
 		glm_pose.translation_.y = view_position_y;
 		glm_pose.translation_.z = view_position_z;
 
-		//glm_pose.rotation_ = rotation_from_euler;
-
 		glm::mat4 rotation_matrix = glm::mat4_cast(rotation_from_euler);
-		glm::mat4 inverse_view_matrix = transpose(Pinv * rotation_matrix);// *P;
+		glm::mat4 inverse_view_matrix = transpose(Pinv * rotation_matrix);
 
 		glm::mat4 glm_matrix = glm_pose.to_matrix();
 		glm_matrix = glm_matrix * inverse_view_matrix;
 
-		//glm_matrix = glm_matrix * game_translation_matrix;
-
-		//glm_matrix[0] = game_matrix[0];
-		//glm_matrix[1] = game_matrix[1];
-		//glm_matrix[2] = game_matrix[2];
-
-		//view_matrix[3][0] = view_position_y;
-		//view_matrix[3][1] = -view_position_z;
-		//view_matrix[3][2] = -view_position_x;
+		glm::mat4 view_matrix = inverse(inverse_view_matrix);
 
 		memcpy(view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
-
-		glm::mat4 view_matrix = inverse(inverse_view_matrix);
 		memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
-
-#if 0
-		const glm::mat4 game_translation_matrix = glm::translate(glm::mat4(1), game_position);
-		const glm::mat4 game_translation_matrix_inverse = glm::translate(glm::mat4(1), -game_position);
-
-		glm::mat4 xr_matrix = glm_pose.to_matrix();
-
-		static float degx_0 = 0.0f;// -90.0f;
-		static float degy_0 = 0.0f;// 180.0f;
-		static float degz_0 = 0.0f;
-
-		glm::vec3 extra_euler_rad = { deg2rad(degx_0), deg2rad(degy_0), deg2rad(degz_0) };
-
-		glm::fquat rot = glm::fquat(extra_euler_rad);
-		glm::mat4 rotation_matrix = glm::mat4_cast(rot);
-
-		//glm::mat4 glm_view_matrix = game_matrix * inverse(xr_matrix) * rotation_matrix;
-		//glm::mat4 glm_view_matrix = game_matrix;// *inverse(xr_matrix)* rotation_matrix;
-		glm::mat4 glm_view_matrix = game_translation_matrix * rotation_matrix;// *game_translation_matrix_inverse;
-
-		memcpy(view_matrix_ptr, &glm_view_matrix, sizeof(float) * 16);
-#endif
 
 		return true;
 	}
