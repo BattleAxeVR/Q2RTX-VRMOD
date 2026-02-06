@@ -178,8 +178,9 @@ void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t pro
 
 	const float tan_height = (tan_up - tan_down);
 	const float tan_up_down_sum = (tan_up + tan_down);
-
-	float depth = zfar - znear;
+	const float depth = zfar - znear;
+	const float direction = FLIP_PROJ_DIR_FOR_OPENXR ? -1.0f : 1.0f;
+	const float opposite = FLIP_PROJ_DIR_FOR_OPENXR ? 1.0f : -1.0f;
 
 	if(zfar <= znear)
 	{
@@ -196,7 +197,7 @@ void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t pro
 		projection_matrix[2] = 0.0f;
 		projection_matrix[6] = 0.0f;
 		projection_matrix[10] = 1.0f;
-		projection_matrix[14] = -2.0f * znear;
+		projection_matrix[14] = direction * 2.0f * znear;
 
 		projection_matrix[3] = 0.0f;
 		projection_matrix[7] = 0.0f;
@@ -211,18 +212,18 @@ void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t pro
 		projection_matrix[12] = 0.0f;
 
 		projection_matrix[1] = 0.0f;
-		projection_matrix[5] = -2.0f * znear / tan_height;
+		projection_matrix[5] = direction * 2.0f / tan_height;
 		projection_matrix[9] = tan_up_down_sum / tan_height;
 		projection_matrix[13] = 0.0f;
 
 		projection_matrix[2] = 0.0f;
 		projection_matrix[6] = 0.0f;
-		projection_matrix[10] = (zfar + znear) / depth;
-		projection_matrix[14] = 2.0f * zfar * znear / depth;
+		projection_matrix[10] = opposite * (zfar + znear) / depth;
+		projection_matrix[14] = opposite * 2.0f * zfar * znear / depth;
 
 		projection_matrix[3] = 0.0f;
 		projection_matrix[7] = 0.0f;
-		projection_matrix[11] = 1.0f;
+		projection_matrix[11] = opposite;
 		projection_matrix[15] = 0.0f;
 	}
 }
