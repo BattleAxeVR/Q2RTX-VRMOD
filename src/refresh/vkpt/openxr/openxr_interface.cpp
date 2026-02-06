@@ -3350,10 +3350,10 @@ extern "C"
 		//glm_pose.rotation_ = rotation_from_euler;
 
 		glm::mat4 rotation_matrix = glm::mat4_cast(rotation_from_euler);
-		glm::mat4 view_matrix = transpose(Pinv * rotation_matrix);// *P;
+		glm::mat4 inverse_view_matrix = transpose(Pinv * rotation_matrix);// *P;
 
 		glm::mat4 glm_matrix = glm_pose.to_matrix();
-		glm_matrix = glm_matrix * view_matrix;
+		glm_matrix = glm_matrix * inverse_view_matrix;
 
 		//glm_matrix = glm_matrix * game_translation_matrix;
 
@@ -3365,11 +3365,10 @@ extern "C"
 		//view_matrix[3][1] = -view_position_z;
 		//view_matrix[3][2] = -view_position_x;
 
+		memcpy(view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
+
+		glm::mat4 view_matrix = inverse(inverse_view_matrix);
 		memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
-
-		glm::mat4 inverse_view_matrix = inverse(view_matrix);
-
-		memcpy(inv_view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
 
 #if 0
 		const glm::mat4 game_translation_matrix = glm::translate(glm::mat4(1), game_position);
