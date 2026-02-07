@@ -3343,7 +3343,7 @@ extern "C"
 
 		static float yaw_offset_deg = -90.0f;
 
-		const glm::vec3 yaw_angles_rad = { 0.0f, -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
+		const glm::vec3 yaw_angles_rad = { 0.0f, deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
 		glm::fquat yaw_rotation = glm::fquat(yaw_angles_rad);
 		glm::mat4 yaw_rotation_matrix = glm::mat4_cast(yaw_rotation);
 
