@@ -3339,32 +3339,38 @@ extern "C"
 		const float roll_deg = 0.0f;
 #endif
 
-		const glm::vec3 view_angles_rad = { deg2rad(pitch_deg), -deg2rad(yaw_deg), deg2rad(roll_deg) };
-		glm::fquat rotation_from_euler = glm::fquat(view_angles_rad);
+		//const glm::vec3 view_angles_rad = { deg2rad(pitch_deg), -deg2rad(yaw_deg), deg2rad(roll_deg) };
 
-		glm::mat4 P(0);
-		P[0][2] = 1.0f;
-		P[1][0] = -1.0f;
-		P[2][1] = 1.0f;
-		P[3][3] = 1.0f;
+		static float yaw_offset_deg = -90.0f;
 
-		glm::mat4 Pinv = inverse(P);
-	
+		const glm::vec3 yaw_angles_rad = { 0.0f, -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
+		glm::fquat yaw_rotation = glm::fquat(yaw_angles_rad);
+		glm::mat4 yaw_rotation_matrix = glm::mat4_cast(yaw_rotation);
+
+		static float pitch_angle_deg = 90.0f;
+		const glm::vec3 pitch_angles_rad = { deg2rad(pitch_angle_deg), 0.0f, 0.0f };
+		glm::fquat pitch_rotation = glm::fquat(pitch_angles_rad);
+		glm::mat4 pitch_rotation_matrix = glm::mat4_cast(pitch_rotation);
+
 		BVR::GLMPose glm_pose;
 		glm_pose.translation_.x = view_position_x;
-		glm_pose.translation_.y = -view_position_y;
-		glm_pose.translation_.z = -view_position_z;
+		glm_pose.translation_.y = view_position_y;
+		glm_pose.translation_.z = view_position_z;
 
-		glm::mat4 rotation_matrix = glm::mat4_cast(rotation_from_euler);
-		glm::mat4 view_matrix = transpose(Pinv * rotation_matrix);
+		//rotation_matrix = rotation_matrix * glm::mat4_cast(BVR::CCW_90_rotation_about_x); // this makes left/right yaw control pitch
+		// 
+		//rotation_matrix *= glm::mat4_cast(BVR::CCW_90_rotation_about_y);
 
-		glm::mat4 glm_matrix = glm_pose.to_matrix();
-		view_matrix = view_matrix * glm_matrix;
+		glm::mat4 translation_matrix = glm_pose.to_matrix();
+
+		glm::mat4 view_matrix = translation_matrix * pitch_rotation_matrix * yaw_rotation_matrix;
 		
-		memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
+		//memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
+		memcpy(inv_view_matrix_ptr, &view_matrix, sizeof(float) * 16);
 
 		glm::mat4 inverse_view_matrix = inverse(view_matrix);
-		memcpy(inv_view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
+		//memcpy(inv_view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
+		memcpy(view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
 
 		return true;
 	}
