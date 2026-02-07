@@ -2935,9 +2935,9 @@ extern "C"
 		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
 		glm::fquat& rotation = glm_pose.rotation_;
 
-		double a = 2.0 * (rotation.w * rotation.y - rotation.z * rotation.x);
-
-		double yaw_rad = asin(a);
+		double a = (2.0 * rotation.y * rotation.w) - (2.0 * rotation.x * rotation.z);
+		double b = 1.0 - 2.0 * sqr(rotation.y) - 2.0 * sqr(rotation.z);
+		double yaw_rad = atan2(a, b);
 
 		if(in_radians)
 		{
@@ -3045,7 +3045,7 @@ extern "C"
 		glm::fquat adjusted_quat = glm_xr_pose.rotation_;
 
 		static bool z_into_x = false;
-		static bool z_into_y = false;
+		static bool z_into_y = true;
 
 		if(z_into_x)
 		{
@@ -3072,7 +3072,7 @@ extern "C"
 			adjusted_quat.y = glm_xr_pose.rotation_.z;
 
 			static bool y_into_x = false;
-			static bool y_into_z = false;
+			static bool y_into_z = true;
 
 			if(y_into_x)
 			{
@@ -3086,7 +3086,7 @@ extern "C"
 			}
 		}
 		
-		static bool x_neg = false;
+		static bool x_neg = true;
 
 		if(x_neg)
 		{
