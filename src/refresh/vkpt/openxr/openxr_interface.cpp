@@ -3041,7 +3041,9 @@ extern "C"
 
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose);
-		const glm::vec3 hmd_euler_angles_rad = glm::eulerAngles(glm_xr_pose.rotation_);
+
+		const glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
+		const glm::mat4 hmd_rotation_matrix_inverse = inverse(hmd_rotation_matrix);
 
 		const glm::mat4 oriv_view_matrix = *(glm::mat4*)view_matrix_ptr;
 		const glm::mat4 oriv_inverse_view_matrix = *(glm::mat4*)inv_view_matrix_ptr;
@@ -3053,6 +3055,14 @@ extern "C"
 		const float view_position_z = view_origin.z;
 
 		const glm::vec3 view_angles_deg = *(glm::vec3*)view_angles_ptr;
+
+		glm::mat4 P(0);
+		P[0][2] = 1.0f;
+		P[1][0] = -1.0f;
+		P[2][1] = 1.0f;
+		P[3][3] = 1.0f;
+
+		glm::mat4 Pinv = inverse(P);
 
 #if APPLY_STEREO_VIEW_PITCH
 		const float pitch_deg = view_angles_deg.x;
@@ -3073,7 +3083,7 @@ extern "C"
 #endif
 
 		static float yaw_offset_deg = -90.0f;
-		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg) - hmd_euler_angles_rad.y, 0.0f };
+		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
@@ -3095,6 +3105,16 @@ extern "C"
 		glm::mat4 translation_matrix = glm_pose.to_matrix();
 		glm::mat4 view_matrix = translation_matrix * roll_rotation_matrix * pitch_rotation_matrix * game_rotation_matrix;
 
+		static bool apply_hmd = true;
+			;
+
+		if(apply_hmd)
+		{
+			//glm::mat4 hmd_matrix = transpose(Pinv * hmd_rotation_matrix * P);
+			glm::mat4 hmd_matrix = translation_matrix * roll_rotation_matrix * pitch_rotation_matrix * hmd_rotation_matrix;
+			view_matrix = hmd_matrix;// (translation_matrix * hmd_matrix);
+		}
+		
 		memcpy(inv_view_matrix_ptr, &view_matrix, sizeof(float) * 16);
 
 		glm::mat4 inverse_view_matrix = inverse(view_matrix);
