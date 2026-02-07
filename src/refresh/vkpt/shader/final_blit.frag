@@ -137,7 +137,7 @@ void main()
              uv.x += push.uv_scale_bias.y;
         }
         
-        uv *= uv_mult;
+        //uv *= uv_mult;
 
         color = textureLod(final_blit_input_image, uv, 0).rgb;
         outColor = vec4(color, 1);
