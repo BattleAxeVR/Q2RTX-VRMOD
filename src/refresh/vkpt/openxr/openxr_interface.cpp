@@ -3339,10 +3339,8 @@ extern "C"
 		const float roll_deg = 0.0f;
 #endif
 
-		//const glm::vec3 view_angles_rad = { deg2rad(pitch_deg), -deg2rad(yaw_deg), deg2rad(roll_deg) };
-
 		static float yaw_offset_deg = -90.0f;
-		const glm::vec3 yaw_angles_rad = { 0.0f, -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
+		const glm::vec3 yaw_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
 		glm::fquat yaw_rotation = glm::fquat(yaw_angles_rad);
 		glm::mat4 yaw_rotation_matrix = glm::mat4_cast(yaw_rotation);
 
@@ -3361,19 +3359,12 @@ extern "C"
 		glm_pose.translation_.y = view_position_y;
 		glm_pose.translation_.z = view_position_z;
 
-		//rotation_matrix = rotation_matrix * glm::mat4_cast(BVR::CCW_90_rotation_about_x); // this makes left/right yaw control pitch
-		// 
-		//rotation_matrix *= glm::mat4_cast(BVR::CCW_90_rotation_about_y);
-
 		glm::mat4 translation_matrix = glm_pose.to_matrix();
-
 		glm::mat4 view_matrix = translation_matrix * roll_rotation_matrix * pitch_rotation_matrix * yaw_rotation_matrix;
 		
-		//memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
 		memcpy(inv_view_matrix_ptr, &view_matrix, sizeof(float) * 16);
 
 		glm::mat4 inverse_view_matrix = inverse(view_matrix);
-		//memcpy(inv_view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
 		memcpy(view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
 
 		return true;
