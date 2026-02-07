@@ -2844,8 +2844,8 @@ static void prepare_viewmatrix(refdef_t *fd)
 
 	if(stereo && apply_xr_view)
 	{
-		GetViewMatrix(LEFT, &fd->vieworg, &fd->viewangles, vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
-		GetViewMatrix(RIGHT, &fd->vieworg, &fd->viewangles, vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
+		GetViewMatrix(LEFT, (float*)&fd->vieworg, (float*)&fd->viewangles, vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
+		GetViewMatrix(RIGHT, (float*)&fd->vieworg, (float*)&fd->viewangles, vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 	}
 }
 
