@@ -3340,9 +3340,9 @@ extern "C"
 #endif
 
 		static float yaw_offset_deg = -90.0f;
-		const glm::vec3 yaw_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
-		glm::fquat yaw_rotation = glm::fquat(yaw_angles_rad);
-		glm::mat4 yaw_rotation_matrix = glm::mat4_cast(yaw_rotation);
+		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), -deg2rad(roll_deg) };
+		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
+		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
 		static float pitch_angle_deg = 90.0f;
 		const glm::vec3 pitch_angles_rad = { deg2rad(pitch_angle_deg), 0.0f, 0.0f };
@@ -3360,7 +3360,7 @@ extern "C"
 		glm_pose.translation_.z = view_position_z;
 
 		glm::mat4 translation_matrix = glm_pose.to_matrix();
-		glm::mat4 view_matrix = translation_matrix * roll_rotation_matrix * pitch_rotation_matrix * yaw_rotation_matrix;
+		glm::mat4 view_matrix = translation_matrix * roll_rotation_matrix * pitch_rotation_matrix * game_rotation_matrix;
 		
 		memcpy(inv_view_matrix_ptr, &view_matrix, sizeof(float) * 16);
 
