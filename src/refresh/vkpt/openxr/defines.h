@@ -22,14 +22,14 @@
 #define NUM_CONTROLLERS 2
 
 #ifdef SUPPORT_OPENXR
-#undef SUPPORT_OPENXR // uncomment this to test 2D builds, it's faster/more reliable than CMAKE
+//#undef SUPPORT_OPENXR // uncomment this to test 2D builds, it's faster/more reliable than CMAKE
 #endif
 
 #ifndef SUPPORT_OPENXR
 #define SUPPORT_OPENXR 0
 #endif
 
-#define APPLY_STEREO_VIEW_PITCH 1
+#define APPLY_STEREO_VIEW_PITCH 0
 #define APPLY_STEREO_VIEW_YAW 1
 #define APPLY_STEREO_VIEW_ROLL 0
 
