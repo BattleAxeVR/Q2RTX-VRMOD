@@ -231,9 +231,6 @@ void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t pro
 		projection_matrix[2] = 0.0f;
 		projection_matrix[6] = 0.0f;
 
-		//projection_matrix[10] = opposite * (zfar + znear) / depth;
-		//projection_matrix[14] = opposite * 2.0f * zfar * znear / depth;
-
 		projection_matrix[10] = opposite * (zfar + offsetZ) / depth;
 		projection_matrix[14] = opposite * zfar * (znear + offsetZ) / depth;
 
