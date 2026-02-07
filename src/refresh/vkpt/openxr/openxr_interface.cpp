@@ -3042,7 +3042,29 @@ extern "C"
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose);
 
-		const glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
+		glm::fquat adjusted_quat = BVR::default_rotation;
+
+		adjusted_quat.x = -glm_xr_pose.rotation_.z;
+		adjusted_quat.y = glm_xr_pose.rotation_.x;
+		adjusted_quat.z = glm_xr_pose.rotation_.y;
+		adjusted_quat.w = glm_xr_pose.rotation_.w;
+
+#if 1
+		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(adjusted_quat);
+#else
+		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
+
+		glm::mat4 P(0);
+		P[0][2] = 1.0f;
+		P[1][0] = -1.0f;
+		P[2][1] = 1.0f;
+		P[3][3] = 1.0f;
+
+		glm::mat4 Pinv = inverse(P);
+
+		hmd_rotation_matrix = hmd_rotation_matrix * Pinv;
+#endif
+
 		const glm::mat4 hmd_rotation_matrix_inverse = inverse(hmd_rotation_matrix);
 
 		const glm::mat4 oriv_view_matrix = *(glm::mat4*)view_matrix_ptr;
@@ -3055,14 +3077,6 @@ extern "C"
 		const float view_position_z = view_origin.z;
 
 		const glm::vec3 view_angles_deg = *(glm::vec3*)view_angles_ptr;
-
-		glm::mat4 P(0);
-		P[0][2] = 1.0f;
-		P[1][0] = -1.0f;
-		P[2][1] = 1.0f;
-		P[3][3] = 1.0f;
-
-		glm::mat4 Pinv = inverse(P);
 
 #if APPLY_STEREO_VIEW_PITCH
 		const float pitch_deg = view_angles_deg.x;
@@ -3083,14 +3097,14 @@ extern "C"
 #endif
 
 		static float A_deg_X = 0.0f;
-		static float A_deg_Y = 90.0f;
+		static float A_deg_Y = 0.0f;
 		static float A_deg_Z = 0.0f;
 
 		const glm::vec3 A_euler_angles_rad = { deg2rad(A_deg_X), deg2rad(A_deg_Y + -yaw_deg), deg2rad(A_deg_Z) };
 		glm::fquat A_rotation = glm::fquat(A_euler_angles_rad);
 		glm::mat4 A_rotation_matrix = glm::mat4_cast(A_rotation);
 
-		static float B_deg_X = 90.0f;
+		static float B_deg_X = 0.0f;
 		static float B_deg_Y = 0.0f;
 		static float B_deg_Z = 0.0f;
 
@@ -3098,7 +3112,7 @@ extern "C"
 		glm::fquat B_rotation = glm::fquat(B_euler_angles_rad);
 		glm::mat4 B_rotation_matrix = glm::mat4_cast(B_rotation);
 
-		static float C_deg_X = 180.0f;
+		static float C_deg_X = 0.0f;
 		static float C_deg_Y = 0.0f;
 		static float C_deg_Z = 0.0f;
 
@@ -3114,15 +3128,15 @@ extern "C"
 		glm::mat4 translation_matrix = glm_pose.to_matrix();
 		glm::mat4 view_matrix = translation_matrix * C_rotation_matrix * B_rotation_matrix * A_rotation_matrix;
 
-		static int apply_hmd = 0;
+		static int apply_hmd = 1;
 
 		if(apply_hmd == 1)
 		{
-			view_matrix = view_matrix * hmd_rotation_matrix_inverse;
+			view_matrix = translation_matrix *  C_rotation_matrix * B_rotation_matrix * A_rotation_matrix * hmd_rotation_matrix;
 		}
 		else if(apply_hmd == 2)
 		{
-			view_matrix = view_matrix * hmd_rotation_matrix;
+			view_matrix = translation_matrix *  C_rotation_matrix * B_rotation_matrix * A_rotation_matrix * hmd_rotation_matrix_inverse;
 		}
 		
 		memcpy(inv_view_matrix_ptr, &view_matrix, sizeof(float) * 16);
