@@ -3042,12 +3042,70 @@ extern "C"
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose);
 
-		glm::fquat adjusted_quat = BVR::default_rotation;
+		glm::fquat adjusted_quat = glm_xr_pose.rotation_;
 
-		adjusted_quat.x = -glm_xr_pose.rotation_.z;
-		adjusted_quat.y = glm_xr_pose.rotation_.x;
-		adjusted_quat.z = glm_xr_pose.rotation_.y;
-		adjusted_quat.w = glm_xr_pose.rotation_.w;
+		static bool z_into_x = false;
+		static bool z_into_y = false;
+
+		if(z_into_x)
+		{
+			adjusted_quat.x = glm_xr_pose.rotation_.z;
+
+			static bool x_into_y = false;
+			static bool x_into_z = false;
+
+			if(x_into_y)
+			{
+				adjusted_quat.y = glm_xr_pose.rotation_.x;
+				adjusted_quat.z = glm_xr_pose.rotation_.y;
+			}
+			else if (x_into_z)
+			{
+				adjusted_quat.z = glm_xr_pose.rotation_.x;
+				adjusted_quat.y = glm_xr_pose.rotation_.y;
+			}
+
+
+		}
+		else if(z_into_y)
+		{
+			adjusted_quat.y = glm_xr_pose.rotation_.z;
+
+			static bool y_into_x = false;
+			static bool y_into_z = false;
+
+			if(y_into_x)
+			{
+				adjusted_quat.x = glm_xr_pose.rotation_.y;
+				adjusted_quat.z = glm_xr_pose.rotation_.x;
+			}
+			else if (y_into_z)
+			{
+				adjusted_quat.z = glm_xr_pose.rotation_.y;
+				adjusted_quat.x = glm_xr_pose.rotation_.x;
+			}
+		}
+		
+		static bool x_neg = false;
+
+		if(x_neg)
+		{
+			adjusted_quat.x *= -1.0f;
+		}
+
+		static bool y_neg = false;
+
+		if(y_neg)
+		{
+			adjusted_quat.y *= -1.0f;
+		}
+
+		static bool z_neg = false;
+
+		if(z_neg)
+		{
+			adjusted_quat.z *= -1.0f;
+		}
 
 #if 1
 		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(adjusted_quat);
