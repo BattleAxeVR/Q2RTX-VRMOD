@@ -3083,14 +3083,14 @@ extern "C"
 #endif
 
 		static float A_deg_X = 0.0f;
-		static float A_deg_Y = 0.0f;
+		static float A_deg_Y = 90.0f;
 		static float A_deg_Z = 0.0f;
 
-		const glm::vec3 A_euler_angles_rad = { deg2rad(A_deg_X), deg2rad(A_deg_Y), deg2rad(A_deg_Z) };
+		const glm::vec3 A_euler_angles_rad = { deg2rad(A_deg_X), deg2rad(A_deg_Y + -yaw_deg), deg2rad(A_deg_Z) };
 		glm::fquat A_rotation = glm::fquat(A_euler_angles_rad);
 		glm::mat4 A_rotation_matrix = glm::mat4_cast(A_rotation);
 
-		static float B_deg_X = 0.0f;
+		static float B_deg_X = 90.0f;
 		static float B_deg_Y = 0.0f;
 		static float B_deg_Z = 0.0f;
 
@@ -3098,7 +3098,7 @@ extern "C"
 		glm::fquat B_rotation = glm::fquat(B_euler_angles_rad);
 		glm::mat4 B_rotation_matrix = glm::mat4_cast(B_rotation);
 
-		static float C_deg_X = 0.0f;
+		static float C_deg_X = 180.0f;
 		static float C_deg_Y = 0.0f;
 		static float C_deg_Z = 0.0f;
 
