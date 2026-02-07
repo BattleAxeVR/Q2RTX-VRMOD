@@ -3342,8 +3342,7 @@ extern "C"
 		//const glm::vec3 view_angles_rad = { deg2rad(pitch_deg), -deg2rad(yaw_deg), deg2rad(roll_deg) };
 
 		static float yaw_offset_deg = -90.0f;
-
-		const glm::vec3 yaw_angles_rad = { 0.0f, deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
+		const glm::vec3 yaw_angles_rad = { 0.0f, -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
 		glm::fquat yaw_rotation = glm::fquat(yaw_angles_rad);
 		glm::mat4 yaw_rotation_matrix = glm::mat4_cast(yaw_rotation);
 
@@ -3351,6 +3350,11 @@ extern "C"
 		const glm::vec3 pitch_angles_rad = { deg2rad(pitch_angle_deg), 0.0f, 0.0f };
 		glm::fquat pitch_rotation = glm::fquat(pitch_angles_rad);
 		glm::mat4 pitch_rotation_matrix = glm::mat4_cast(pitch_rotation);
+
+		static float roll_angle_deg = 180.0f;
+		const glm::vec3 roll_angles_rad = { deg2rad(roll_angle_deg), 0.0f, 0.0f };
+		glm::fquat roll_rotation = glm::fquat(roll_angles_rad);
+		glm::mat4 roll_rotation_matrix = glm::mat4_cast(roll_rotation);
 
 		BVR::GLMPose glm_pose;
 		glm_pose.translation_.x = view_position_x;
@@ -3363,7 +3367,7 @@ extern "C"
 
 		glm::mat4 translation_matrix = glm_pose.to_matrix();
 
-		glm::mat4 view_matrix = translation_matrix * pitch_rotation_matrix * yaw_rotation_matrix;
+		glm::mat4 view_matrix = translation_matrix * roll_rotation_matrix * pitch_rotation_matrix * yaw_rotation_matrix;
 		
 		//memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
 		memcpy(inv_view_matrix_ptr, &view_matrix, sizeof(float) * 16);

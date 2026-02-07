@@ -162,7 +162,7 @@ void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t pro
 {
 	float aspect_ratio = 1.0f;
 
-#if FLIP_FOV_FOR_OPENXR
+#if FLIP_FOV_LEFT_RIGHT_FOR_OPENXR
 	const float tan_left = tanf(-fabs(fov->angleRight)) * aspect_ratio;
 	const float tan_right = tanf(fabs(fov->angleLeft)) * aspect_ratio;
 #else
@@ -170,8 +170,13 @@ void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t pro
 	const float tan_right = tanf(fov->angleRight) * aspect_ratio;
 #endif
 
+#if FLIP_FOV_UP_DOWN_FOR_OPENXR
+	const float tan_up = tanf(-fov->angleDown);
+	const float tan_down = tanf(-fov->angleUp);
+#else
 	const float tan_up = tanf(fov->angleUp);
 	const float tan_down = tanf(fov->angleDown);
+#endif
 
 	const float tan_width = (tan_right - tan_left);
 	const float tan_right_left_sum = (tan_right + tan_left);
