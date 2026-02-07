@@ -2970,10 +2970,14 @@ extern "C"
 		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
 		glm::fquat& rotation = glm_pose.rotation_;
 
+#if 0
+		double a = 2.0 * ((rotation.x * rotation.y) + (rotation.z * rotation.w));
+		double roll_rad = asin(a);
+#else
 		double a = 2.0 * ( (rotation.w * rotation.x) + (rotation.y * rotation.z));
 		double b = ( sqr(rotation.w) - sqr(rotation.x) - sqr(rotation.y) + sqr(rotation.z));
-
 		double pitch_rad = -atan2(a, b);
+#endif
 
 		if(in_radians)
 		{
@@ -3006,10 +3010,14 @@ extern "C"
 		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
 		glm::fquat& rotation = glm_pose.rotation_;
 
+#if 0
+		double a = 2.0 * ((rotation.x * rotation.y) + (rotation.z * rotation.w));
+		double roll_rad = asin(a);
+#else
 		double a = 2.0 * ( (rotation.w * rotation.z) + (rotation.x * rotation.y));
 		double b = ( sqr(rotation.w) + sqr(rotation.x) - sqr(rotation.y) - sqr(rotation.z));
-
 		double roll_rad = -atan2(a, b);
+#endif
 
 		if(in_radians)
 		{
