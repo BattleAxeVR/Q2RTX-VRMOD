@@ -2851,8 +2851,8 @@ static void CL_InitLocal(void)
     cl_xr_view = Cvar_Get("xr_view", "1", 0);
     cl_xr_proj = Cvar_Get("xr_proj", "1", 0);
     cl_xr_ipd_mult = Cvar_Get("xr_ipd_mult", "1", 0);
-    cl_blit_scale = Cvar_Get("blit_scale", "2", 0);
-    cl_blit_bias = Cvar_Get("blit_bias", "1", 0);
+    cl_blit_scale = Cvar_Get("blit_scale", "1", 0);
+    cl_blit_bias = Cvar_Get("blit_bias", "1.5", 0);
 
     cl_timeout = Cvar_Get("cl_timeout", "120", 0);
     cl_timeout->changed = cl_timeout_changed;
