@@ -3352,19 +3352,19 @@ extern "C"
 	
 		BVR::GLMPose glm_pose;
 		glm_pose.translation_.x = view_position_x;
-		glm_pose.translation_.y = view_position_y;
-		glm_pose.translation_.z = view_position_z;
+		glm_pose.translation_.y = -view_position_y;
+		glm_pose.translation_.z = -view_position_z;
 
 		glm::mat4 rotation_matrix = glm::mat4_cast(rotation_from_euler);
-		glm::mat4 inverse_view_matrix = transpose(Pinv * rotation_matrix);
+		glm::mat4 view_matrix = transpose(Pinv * rotation_matrix);
 
 		glm::mat4 glm_matrix = glm_pose.to_matrix();
-		glm_matrix = glm_matrix * inverse_view_matrix;
-
-		glm::mat4 view_matrix = inverse(inverse_view_matrix);
-
-		memcpy(view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
+		view_matrix = view_matrix * glm_matrix;
+		
 		memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
+
+		glm::mat4 inverse_view_matrix = inverse(view_matrix);
+		memcpy(inv_view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
 
 		return true;
 	}
