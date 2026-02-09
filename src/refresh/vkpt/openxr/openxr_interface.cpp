@@ -3174,22 +3174,24 @@ extern "C"
 		glm::mat4 translation_matrix = glm_pose.to_matrix();
 
 #if 1
+		static float pitch_offset_deg = 90.0f;
 		static float yaw_offset_deg = 0.0f;
-		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
+		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg + pitch_offset_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
 
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
-		const glm::vec3 forward_direction_LS(0.0f, 0.0f, -1.0f);
-		const glm::vec3 forward_direction_WS = hmd_rotation_matrix_inverse * glm::vec4(forward_direction_LS, 0.0f);
-		const glm::vec3 forward_direction_final(-forward_direction_WS.x, forward_direction_WS.y, forward_direction_WS.z);
+		//const glm::vec3 forward_direction_LS(-1.0f, 0.0f, 0.0f);
+		//const glm::vec3 forward_direction_WS = hmd_rotation_matrix_inverse * glm::vec4(forward_direction_LS, 0.0f);
+		//const glm::vec3 forward_direction_final(-forward_direction_WS.x, forward_direction_WS.y, forward_direction_WS.z);
 
+		const glm::vec3 forward_direction_LS(1.0f, 0.0f, 0.0f);
 		const glm::vec3 up_direction(0.0f, 0.0f, -1.0f);
 
-		const glm::fquat view_rotation = glm::quatLookAtLH(forward_direction_final, up_direction);
+		const glm::fquat view_rotation = glm::quatLookAtLH(forward_direction_LS, up_direction);
 		const glm::mat4 view_rotation_matrix = glm::mat4_cast(view_rotation);
 
-		glm::mat4 view_matrix = translation_matrix * view_rotation_matrix * game_rotation_matrix;
+		glm::mat4 view_matrix = translation_matrix * hmd_rotation_matrix * view_rotation_matrix * game_rotation_matrix;
 #else
 		static float A_deg_X = 0.0f;
 		static float A_deg_Y = 0.0f;
