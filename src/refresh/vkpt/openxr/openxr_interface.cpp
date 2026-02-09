@@ -3506,8 +3506,6 @@ extern "C"
 
 		glm::mat4 view_matrix = translation_matrix * view_rotation_matrix * game_rotation_matrix;
 #else
-		
-
 		static float yaw_offset_deg = -90.0f;
 		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
 
