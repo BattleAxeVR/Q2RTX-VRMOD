@@ -3050,6 +3050,7 @@ extern "C"
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose);
 
+#if 0
 		glm::fquat adjusted_quat = glm_xr_pose.rotation_;
 
 		static bool z_into_x = false;
@@ -3115,8 +3116,11 @@ extern "C"
 			adjusted_quat.z *= -1.0f;
 		}
 
+#endif
+
 #if 1
-		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(adjusted_quat);
+		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
+		//glm::mat4 hmd_rotation_matrix = glm::mat4_cast(adjusted_quat);
 #else
 		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
 
@@ -3176,10 +3180,13 @@ extern "C"
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
-		const glm::vec3 forward_direction_LS(1.0f, 0.0f, 0.0f);
+		const glm::vec3 forward_direction_LS(0.0f, 0.0f, -1.0f);
+		const glm::vec3 forward_direction_WS = hmd_rotation_matrix_inverse * glm::vec4(forward_direction_LS, 0.0f);
+		const glm::vec3 forward_direction_final(-forward_direction_WS.x, forward_direction_WS.y, forward_direction_WS.z);
+
 		const glm::vec3 up_direction(0.0f, 0.0f, -1.0f);
 
-		const glm::fquat view_rotation = glm::quatLookAtLH(forward_direction_LS, up_direction);
+		const glm::fquat view_rotation = glm::quatLookAtLH(forward_direction_final, up_direction);
 		const glm::mat4 view_rotation_matrix = glm::mat4_cast(view_rotation);
 
 		glm::mat4 view_matrix = translation_matrix * view_rotation_matrix * game_rotation_matrix;
