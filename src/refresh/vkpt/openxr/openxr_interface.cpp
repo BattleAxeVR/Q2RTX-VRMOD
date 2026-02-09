@@ -3483,8 +3483,34 @@ extern "C"
 		const float roll_deg = 0.0f;
 #endif
 
+
+		BVR::GLMPose glm_pose;
+		glm_pose.translation_.x = view_position_x;
+		glm_pose.translation_.y = view_position_y;
+		glm_pose.translation_.z = view_position_z;
+
+		glm::mat4 translation_matrix = glm_pose.to_matrix();
+
+#if 1
+		static float yaw_offset_deg = 0.0f;
+		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
+
+		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
+		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
+
+		const glm::vec3 forward_direction_LS(1.0f, 0.0f, 0.0f);
+		const glm::vec3 up_direction(0.0f, 0.0f, -1.0f);
+
+		const glm::fquat view_rotation = glm::quatLookAtLH(forward_direction_LS, up_direction);
+		const glm::mat4 view_rotation_matrix = glm::mat4_cast(view_rotation);
+
+		glm::mat4 view_matrix = translation_matrix * view_rotation_matrix * game_rotation_matrix;
+#else
+		
+
 		static float yaw_offset_deg = -90.0f;
 		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
+
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
@@ -3498,14 +3524,8 @@ extern "C"
 		glm::fquat roll_rotation = glm::fquat(roll_angles_rad);
 		glm::mat4 roll_rotation_matrix = glm::mat4_cast(roll_rotation);
 
-		BVR::GLMPose glm_pose;
-		glm_pose.translation_.x = view_position_x;
-		glm_pose.translation_.y = view_position_y;
-		glm_pose.translation_.z = view_position_z;
-
-		glm::mat4 translation_matrix = glm_pose.to_matrix();
 		glm::mat4 view_matrix = translation_matrix * roll_rotation_matrix * pitch_rotation_matrix * game_rotation_matrix;
-		
+#endif
 		memcpy(inv_view_matrix_ptr, &view_matrix, sizeof(float) * 16);
 
 		glm::mat4 inverse_view_matrix = inverse(view_matrix);
