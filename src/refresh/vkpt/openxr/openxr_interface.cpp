@@ -3482,15 +3482,12 @@ extern "C"
 #else
 		const float roll_deg = 0.0f;
 #endif
-
-
 		BVR::GLMPose glm_pose;
 		glm_pose.translation_.x = view_position_x;
 		glm_pose.translation_.y = view_position_y;
 		glm_pose.translation_.z = view_position_z;
 
 		glm::mat4 translation_matrix = glm_pose.to_matrix();
-
 #if 1
 		static float yaw_offset_deg = 0.0f;
 		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
