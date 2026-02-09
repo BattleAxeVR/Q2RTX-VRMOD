@@ -3050,14 +3050,16 @@ extern "C"
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose);
 
-#if 1
+#if 0
 		glm::fquat adjusted_quat = { };// glm_xr_pose.rotation_;
 
 #if 1
-		adjusted_quat.x = glm_xr_pose.rotation_.z;
-		adjusted_quat.y = glm_xr_pose.rotation_.x;
-		adjusted_quat.z = glm_xr_pose.rotation_.y;
+		adjusted_quat.x = -glm_xr_pose.rotation_.y;
+		adjusted_quat.y = glm_xr_pose.rotation_.z;
+		adjusted_quat.z = glm_xr_pose.rotation_.x;
 		adjusted_quat.w = glm_xr_pose.rotation_.w;
+
+		adjusted_quat = normalize(adjusted_quat);
 #elif 0
 		adjusted_quat.x = glm_xr_pose.rotation_.x;
 		adjusted_quat.y = glm_xr_pose.rotation_.y;
@@ -3132,8 +3134,8 @@ extern "C"
 #endif
 
 #if 1
-		//glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
-		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(adjusted_quat);
+		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
+		//glm::mat4 hmd_rotation_matrix = glm::mat4_cast(adjusted_quat);
 #else
 		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
 
@@ -3188,19 +3190,21 @@ extern "C"
 
 #if 1
 		static float pitch_offset_deg = 0.0f;
-		static float yaw_offset_deg = 180.0f;
-		static float roll_offset_deg = 180.0f;
+		static float yaw_offset_deg = 0.0f;
+		static float roll_offset_deg = 0.0f;
 
 		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg + pitch_offset_deg), -deg2rad(yaw_deg + yaw_offset_deg), -deg2rad(roll_offset_deg) };
 
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
-		static glm::vec3 forward_direction_LS(0.0f, 1.0f, 0.0f);
-		const glm::vec3 forward_direction_WS = hmd_rotation_matrix_inverse * glm::vec4(forward_direction_LS, 0.0f);
+		hmd_rotation_matrix = glm::mat4(1);
+
+		static glm::vec3 forward_direction_LS(1.0f, 0.0f, 0.0f);
+		const glm::vec3 forward_direction_WS = hmd_rotation_matrix * glm::vec4(forward_direction_LS, 0.0f);
 		const glm::vec3 forward_direction_final(forward_direction_WS.x, forward_direction_WS.y, forward_direction_WS.z);
 
-		static glm::vec3 up_direction(0.0f, 0.0f, 1.0f);
+		static glm::vec3 up_direction(0.0f, 0.0f, -1.0f);
 
 		const glm::fquat view_rotation = glm::quatLookAtLH(forward_direction_final, up_direction);
 		const glm::mat4 view_rotation_matrix = glm::mat4_cast(view_rotation);
