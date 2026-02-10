@@ -3150,7 +3150,7 @@ extern "C"
 		const glm::fquat look_forward_bank_left(0.0f, 0.0f, -ROOT_TWO_OVER_TWO, -ROOT_TWO_OVER_TWO);
 		const glm::fquat look_forward_bank_right(0.0f, 0.0f, -ROOT_TWO_OVER_TWO, ROOT_TWO_OVER_TWO);
 
-		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(look_left * look_back * look_up);
+		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(look_left * look_back * look_up * inverse(glm_xr_pose.rotation_));
 
 		//glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
 		//glm::mat4 hmd_rotation_matrix = glm::mat4_cast(adjusted_quat);
