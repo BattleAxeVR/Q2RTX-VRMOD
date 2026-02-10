@@ -3152,10 +3152,16 @@ extern "C"
 			const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose);
 			const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose);
 
-			const glm::vec3 head_position_LS = (left_eye_pose.translation_ + right_eye_pose.translation_) * 0.5f;
-			const glm::vec4 head_position_WS = final_rotation_matrix * glm::vec4(head_position_LS, 0.0f);
+			glm::vec3 head_position_LS = (left_eye_pose.translation_ + right_eye_pose.translation_) * 0.5f;
 
-			glm_pose.translation_ += head_position_WS;
+			const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
+			const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
+			const glm::vec4 head_position_WS = game_rotation2 * glm::vec4(head_position_LS.x, 0.0f, head_position_LS.z, 0.0f);
+
+			static float world_mult = 1.0f;
+			glm_pose.translation_.x -= head_position_WS.z * world_mult;
+			glm_pose.translation_.y -= head_position_WS.x * world_mult;
+			glm_pose.translation_.z += head_position_LS.y * world_mult;
 		}
 #endif
 
