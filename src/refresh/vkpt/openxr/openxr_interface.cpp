@@ -3123,16 +3123,7 @@ extern "C"
 		glm::mat4 mirror_matrix(1);
 		mirror_matrix[0][0] = -1.0f;
 
-		static float ipd_mult = 1.0f;
-		const float ipd = GetIPD() * ipd_mult;
-		const float half_ipd = ipd * 0.5f;
-		const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
-		
 		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * view_rotation_matrix;
-		const glm::mat4 final_rotation_matrix_inv = inverse(final_rotation_matrix);
-
-		const glm::vec4 ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 0.0f };
-		const glm::vec4 ipd_offset_WS = final_rotation_matrix * ipd_offset_LS;
 
 		BVR::GLMPose glm_pose;
 
@@ -3140,7 +3131,33 @@ extern "C"
 		glm_pose.translation_.y = view_position_y;
 		glm_pose.translation_.z = view_position_z;
 
+#if APPLY_IPD_TRANSLATION_TO_VIEW
+		static float ipd_mult = 1.0f;
+		const float ipd = GetIPD() * ipd_mult;
+		const float half_ipd = ipd * 0.5f;
+		const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
+
+		const glm::vec4 ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 0.0f };
+		const glm::vec4 ipd_offset_WS = final_rotation_matrix * ipd_offset_LS;
+
 		glm_pose.translation_ += ipd_offset_WS;
+#endif
+
+#if APPLY_HMD_TRANSLATION_TO_VIEW
+		XrView left_view = {};
+		XrView right_view = {};
+
+		if(openxr_.get_view(LEFT, left_view) && openxr_.get_view(RIGHT, right_view))
+		{
+			const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose);
+			const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose);
+
+			const glm::vec3 head_position_LS = (left_eye_pose.translation_ + right_eye_pose.translation_) * 0.5f;
+			const glm::vec4 head_position_WS = final_rotation_matrix * glm::vec4(head_position_LS, 0.0f);
+
+			glm_pose.translation_ += head_position_WS;
+		}
+#endif
 
 		glm::mat4 translation_matrix = glm_pose.to_matrix();
 
