@@ -3134,7 +3134,25 @@ extern "C"
 #endif
 
 #if 1
-		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
+		const float ROOT_TWO_OVER_TWO = sqrtf(2.0f) / 2.0f;
+
+		const glm::fquat look_forward(0.0f, 0.0f, 0.0f, 1.0f);
+		const glm::fquat look_back(0.0f, 1.0f, 0.0f, 0.0f);
+		const glm::fquat look_forward_upside_down(0.0f, 0.0f, -1.0f, 0.0f);
+		const glm::fquat look_backward_upside_down(1.0f, 0.0f, 0.0f, 0.0f);
+
+		const glm::fquat look_left(0.0f, ROOT_TWO_OVER_TWO, 0.0f, ROOT_TWO_OVER_TWO);
+		const glm::fquat look_right(0.0f, ROOT_TWO_OVER_TWO, 0.0f, -ROOT_TWO_OVER_TWO);
+
+		const glm::fquat look_up(ROOT_TWO_OVER_TWO, 0.0f, 0.0f, ROOT_TWO_OVER_TWO);
+		const glm::fquat look_down(-ROOT_TWO_OVER_TWO, 0.0f, 0.0f, ROOT_TWO_OVER_TWO);
+
+		const glm::fquat look_forward_bank_left(0.0f, 0.0f, -ROOT_TWO_OVER_TWO, -ROOT_TWO_OVER_TWO);
+		const glm::fquat look_forward_bank_right(0.0f, 0.0f, -ROOT_TWO_OVER_TWO, ROOT_TWO_OVER_TWO);
+
+		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(look_left * look_back * look_up);
+
+		//glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
 		//glm::mat4 hmd_rotation_matrix = glm::mat4_cast(adjusted_quat);
 #else
 		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
@@ -3198,9 +3216,12 @@ extern "C"
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
-		hmd_rotation_matrix = glm::mat4(1);
+		//hmd_rotation_matrix = glm::mat4(1);
 
-		static glm::vec3 forward_direction_LS(1.0f, 0.0f, 0.0f);
+#if 1
+		const glm::mat4 view_rotation_matrix = hmd_rotation_matrix;
+#else
+		static glm::vec3 forward_direction_LS(0.0f, 0.0f, 1.0f);
 		const glm::vec3 forward_direction_WS = hmd_rotation_matrix * glm::vec4(forward_direction_LS, 0.0f);
 		const glm::vec3 forward_direction_final(forward_direction_WS.x, forward_direction_WS.y, forward_direction_WS.z);
 
@@ -3208,6 +3229,7 @@ extern "C"
 
 		const glm::fquat view_rotation = glm::quatLookAtLH(forward_direction_final, up_direction);
 		const glm::mat4 view_rotation_matrix = glm::mat4_cast(view_rotation);
+#endif
 
 		glm::mat4 view_matrix = translation_matrix * view_rotation_matrix * game_rotation_matrix;
 #else
