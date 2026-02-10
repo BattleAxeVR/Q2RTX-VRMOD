@@ -3050,24 +3050,7 @@ extern "C"
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose);
 
-		const float ROOT_TWO_OVER_TWO = sqrtf(2.0f) / 2.0f;
-
-		const glm::fquat look_forward(0.0f, 0.0f, 0.0f, 1.0f);
-		const glm::fquat look_back(0.0f, 1.0f, 0.0f, 0.0f);
-		const glm::fquat look_forward_upside_down(0.0f, 0.0f, -1.0f, 0.0f);
-		const glm::fquat look_backward_upside_down(1.0f, 0.0f, 0.0f, 0.0f);
-
-		const glm::fquat look_left(0.0f, ROOT_TWO_OVER_TWO, 0.0f, ROOT_TWO_OVER_TWO);
-		const glm::fquat look_right(0.0f, ROOT_TWO_OVER_TWO, 0.0f, -ROOT_TWO_OVER_TWO);
-
-		const glm::fquat look_up(ROOT_TWO_OVER_TWO, 0.0f, 0.0f, ROOT_TWO_OVER_TWO);
-		const glm::fquat look_down(-ROOT_TWO_OVER_TWO, 0.0f, 0.0f, ROOT_TWO_OVER_TWO);
-
-		const glm::fquat look_forward_bank_left(0.0f, 0.0f, -ROOT_TWO_OVER_TWO, -ROOT_TWO_OVER_TWO);
-		const glm::fquat look_forward_bank_right(0.0f, 0.0f, -ROOT_TWO_OVER_TWO, ROOT_TWO_OVER_TWO);
-
 		const glm::mat4 hmd_rotation_matrix_orig = glm::mat4_cast(glm_xr_pose.rotation_);
-		const glm::mat4 hmd_rotation_matrix_orig_inverse = inverse(hmd_rotation_matrix_orig);
 
 		glm::mat4 S(0);
 		S[0][2] = 1.0f;

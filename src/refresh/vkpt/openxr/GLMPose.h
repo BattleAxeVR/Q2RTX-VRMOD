@@ -111,6 +111,22 @@ const glm::vec3 one_vec3(1.0f, 1.0f, 1.0f);
 const glm::vec4 zero_vec4(0.0f, 0.0f, 0.0f, 1.0f);
 const glm::vec4 one_vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
+const float ROOT_TWO_OVER_TWO = sqrtf(2.0f) / 2.0f;
+
+const glm::fquat look_forward(0.0f, 0.0f, 0.0f, 1.0f);
+const glm::fquat look_back(0.0f, 1.0f, 0.0f, 0.0f);
+const glm::fquat look_forward_upside_down(0.0f, 0.0f, -1.0f, 0.0f);
+const glm::fquat look_backward_upside_down(1.0f, 0.0f, 0.0f, 0.0f);
+
+const glm::fquat look_left(0.0f, ROOT_TWO_OVER_TWO, 0.0f, ROOT_TWO_OVER_TWO);
+const glm::fquat look_right(0.0f, ROOT_TWO_OVER_TWO, 0.0f, -ROOT_TWO_OVER_TWO);
+
+const glm::fquat look_up(ROOT_TWO_OVER_TWO, 0.0f, 0.0f, ROOT_TWO_OVER_TWO);
+const glm::fquat look_down(-ROOT_TWO_OVER_TWO, 0.0f, 0.0f, ROOT_TWO_OVER_TWO);
+
+const glm::fquat look_forward_bank_left(0.0f, 0.0f, -ROOT_TWO_OVER_TWO, -ROOT_TWO_OVER_TWO);
+const glm::fquat look_forward_bank_right(0.0f, 0.0f, -ROOT_TWO_OVER_TWO, ROOT_TWO_OVER_TWO);
+
 struct GLMPose
 {
     GLMPose()
