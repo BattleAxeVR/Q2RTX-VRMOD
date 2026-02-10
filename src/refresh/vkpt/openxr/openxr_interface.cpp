@@ -3229,7 +3229,7 @@ extern "C"
 		static float roll_offset_deg = 0.0f;
 
 		//const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg + pitch_offset_deg), -deg2rad(yaw_deg + yaw_offset_deg), -deg2rad(roll_offset_deg) };
-		const glm::vec3 euler_angles_rad = { 0.0f, 0.0f, deg2rad(yaw_deg + yaw_offset_deg) };
+		const glm::vec3 euler_angles_rad = { -deg2rad(roll_offset_deg),  -deg2rad(pitch_deg + pitch_offset_deg), deg2rad(yaw_deg + yaw_offset_deg) };
 		
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
