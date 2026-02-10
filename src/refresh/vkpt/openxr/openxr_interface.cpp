@@ -3113,24 +3113,12 @@ extern "C"
 		static float yaw_offset_deg = 0.0f;
 		static float roll_offset_deg = 0.0f;
 
-		//const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg + pitch_offset_deg), -deg2rad(yaw_deg + yaw_offset_deg), -deg2rad(roll_offset_deg) };
-		const glm::vec3 euler_angles_rad = { -deg2rad(roll_offset_deg),  -deg2rad(pitch_deg + pitch_offset_deg), deg2rad(yaw_deg + yaw_offset_deg) };
+		const glm::vec3 euler_angles_rad = { -deg2rad(roll_offset_deg),  deg2rad(pitch_deg + pitch_offset_deg), deg2rad(yaw_deg + yaw_offset_deg) };
 
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
-#if 1
 		const glm::mat4 view_rotation_matrix = hmd_rotation_matrix;
-#else
-		static glm::vec3 forward_direction_LS(0.0f, 0.0f, 1.0f);
-		const glm::vec3 forward_direction_WS = hmd_rotation_matrix * glm::vec4(forward_direction_LS, 0.0f);
-		const glm::vec3 forward_direction_final(forward_direction_WS.x, forward_direction_WS.y, forward_direction_WS.z);
-
-		static glm::vec3 up_direction(0.0f, 0.0f, -1.0f);
-
-		const glm::fquat view_rotation = glm::quatLookAtLH(forward_direction_final, up_direction);
-		const glm::mat4 view_rotation_matrix = glm::mat4_cast(view_rotation);
-#endif
 
 		glm::mat4 mirror_matrix(1);
 		mirror_matrix[0][0] = -1.0f;
