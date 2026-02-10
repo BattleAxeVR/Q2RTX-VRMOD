@@ -3050,90 +3050,6 @@ extern "C"
 		const XrPosef& xr_pose = xr_view.pose;
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose);
 
-#if 0
-		glm::fquat adjusted_quat = { };// glm_xr_pose.rotation_;
-
-#if 1
-		adjusted_quat.x = -glm_xr_pose.rotation_.y;
-		adjusted_quat.y = glm_xr_pose.rotation_.z;
-		adjusted_quat.z = glm_xr_pose.rotation_.x;
-		adjusted_quat.w = glm_xr_pose.rotation_.w;
-
-		adjusted_quat = normalize(adjusted_quat);
-#elif 0
-		adjusted_quat.x = glm_xr_pose.rotation_.x;
-		adjusted_quat.y = glm_xr_pose.rotation_.y;
-		adjusted_quat.z = glm_xr_pose.rotation_.z;
-		adjusted_quat.w = glm_xr_pose.rotation_.w;
-#endif
-
-		static bool z_into_x = false;
-		static bool z_into_y = false;
-
-		if(z_into_x)
-		{
-			std::swap(adjusted_quat.x, adjusted_quat.w);
-			std::swap(adjusted_quat.y, adjusted_quat.z);
-
-			static bool x_into_y = false;
-			static bool x_into_z = false;
-
-			if(x_into_y)
-			{
-				adjusted_quat.y = glm_xr_pose.rotation_.x;
-				adjusted_quat.z = glm_xr_pose.rotation_.y;
-			}
-			else if (x_into_z)
-			{
-				adjusted_quat.z = glm_xr_pose.rotation_.x;
-				adjusted_quat.y = glm_xr_pose.rotation_.y;
-			}
-
-
-		}
-		else if(z_into_y)
-		{
-			adjusted_quat.y = glm_xr_pose.rotation_.z;
-
-			static bool y_into_x = false;
-			static bool y_into_z = false;
-
-			if(y_into_x)
-			{
-				adjusted_quat.x = glm_xr_pose.rotation_.y;
-				adjusted_quat.z = glm_xr_pose.rotation_.x;
-			}
-			else if (y_into_z)
-			{
-				adjusted_quat.z = glm_xr_pose.rotation_.y;
-				adjusted_quat.x = glm_xr_pose.rotation_.x;
-			}
-		}
-		
-		static bool x_neg = false;
-
-		if(x_neg)
-		{
-			adjusted_quat.x *= -1.0f;
-		}
-
-		static bool y_neg = false;
-
-		if(y_neg)
-		{
-			adjusted_quat.y *= -1.0f;
-		}
-
-		static bool z_neg = false;
-
-		if(z_neg)
-		{
-			adjusted_quat.z *= -1.0f;
-		}
-
-#endif
-
-#if 1
 		const float ROOT_TWO_OVER_TWO = sqrtf(2.0f) / 2.0f;
 
 		const glm::fquat look_forward(0.0f, 0.0f, 0.0f, 1.0f);
@@ -3160,30 +3076,7 @@ extern "C"
 		S[3][3] = 1.0f;
 
 		glm::mat4 Sinv = inverse(S);
-
-		//glm::mat4 S = glm::mat4_cast(look_left * look_back * look_up);
-		//glm::mat4 S = glm::mat4_cast(look_back);
-		//glm::mat4 S = glm::mat4_cast(look_forward_bank_left * look_right);
-		//glm::mat4 S_inverse = inverse(S);
-
-		//glm::mat4 hmd_rotation_matrix = S_inverse * hmd_rotation_matrix_orig * S;
 		glm::mat4 hmd_rotation_matrix = Sinv * hmd_rotation_matrix_orig;
-
-		//glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
-		//glm::mat4 hmd_rotation_matrix = glm::mat4_cast(adjusted_quat);
-#else
-		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
-
-		glm::mat4 S(0);
-		S[0][2] = 1.0f;
-		S[1][0] = -1.0f;
-		S[2][1] = 1.0f;
-		S[3][3] = 1.0f;
-
-		glm::mat4 Sinv = inverse(S);
-
-		hmd_rotation_matrix = hmd_rotation_matrix * Pinv;
-#endif
 
 		const glm::mat4 hmd_rotation_matrix_inverse = inverse(hmd_rotation_matrix);
 
@@ -3216,13 +3109,6 @@ extern "C"
 		const float roll_deg = 0.0f;
 #endif
 
-		BVR::GLMPose glm_pose;
-		glm_pose.translation_.x = view_position_x;
-		glm_pose.translation_.y = view_position_y;
-		glm_pose.translation_.z = view_position_z;
-
-		glm::mat4 translation_matrix = glm_pose.to_matrix();
-
 		static float pitch_offset_deg = 0.0f;
 		static float yaw_offset_deg = 0.0f;
 		static float roll_offset_deg = 0.0f;
@@ -3248,8 +3134,29 @@ extern "C"
 
 		glm::mat4 mirror_matrix(1);
 		mirror_matrix[0][0] = -1.0f;
+
+		static float ipd_mult = 1.0f;
+		const float ipd = GetIPD() * ipd_mult;
+		const float half_ipd = ipd * 0.5f;
+		const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
 		
-		glm::mat4 view_matrix = translation_matrix * game_rotation_matrix * mirror_matrix * view_rotation_matrix;
+		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * view_rotation_matrix;
+		const glm::mat4 final_rotation_matrix_inv = inverse(final_rotation_matrix);
+
+		const glm::vec4 ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 0.0f };
+		const glm::vec4 ipd_offset_WS = final_rotation_matrix * ipd_offset_LS;
+
+		BVR::GLMPose glm_pose;
+
+		glm_pose.translation_.x = view_position_x;
+		glm_pose.translation_.y = view_position_y;
+		glm_pose.translation_.z = view_position_z;
+
+		glm_pose.translation_ += ipd_offset_WS;
+
+		glm::mat4 translation_matrix = glm_pose.to_matrix();
+
+		glm::mat4 view_matrix = translation_matrix * final_rotation_matrix;
 
 		memcpy(inv_view_matrix_ptr, &view_matrix, sizeof(float) * 16);
 
