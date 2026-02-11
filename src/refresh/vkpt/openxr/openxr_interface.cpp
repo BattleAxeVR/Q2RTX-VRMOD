@@ -690,15 +690,32 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	rendering_info.renderArea.extent = extent;
 	rendering_info.renderArea.offset = offset;
 
+	if(view_id == RIGHT)
+	{
+		///rendering_info.renderArea.offset.y += 200.0f;
+	}
+
 	vkCmdBeginRendering(command_buffer, &rendering_info);
 
-	//VkViewport viewport{ 0, 0, (float)projection_layer_view.subImage.imageRect.extent.width, (float)projection_layer_view.subImage.imageRect.extent.height, 0, 10000 };
-	//vkCmdSetViewport(command_buffer, 0, 1, &viewport);
-	
-	//const VkRect2D rect = { offset, extent };
-	//vkCmdSetScissor(command_buffer, 0, 1, &rect);
+#if 0
+	static bool apply_viewport = false;
 
-	int image = 24; // VKPT_IMG_TAA_OUTPUT
+	if (apply_viewport)
+	{
+		//VkViewport viewport{ 0, 0, (float)extent.width, (float)extent.height, 0, 1 };
+		VkViewport viewport{ 0, 0, (float)projection_layer_view.subImage.imageRect.extent.width, (float)projection_layer_view.subImage.imageRect.extent.height, 0, 10000 };
+		viewport.y = (view_id == LEFT) ? 500.0f : 0.0f;
+
+		vkCmdSetViewport(command_buffer, 0, 1, &viewport);
+
+		VkOffset2D offset{ 0, 0 };
+
+		const VkRect2D rect = { offset, extent };
+		vkCmdSetScissor(command_buffer, 0, 1, &rect);
+	}
+#endif
+
+	static int image = 24; // VKPT_IMG_TAA_OUTPUT
 
 	//VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, input_extent, false, false, view_id);
 	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, extent, false, false, view_id);
@@ -3229,73 +3246,89 @@ extern "C"
 		return true;
 	}
 
-	bool GetHandMatrix(const int hand_id, float* matrix_ptr)
+	bool GetHandMatrix(const int hand_id, float* view_origin_ptr, float* view_angles_ptr, float* matrix_ptr)
 	{
-		if(!openxr_.is_session_running() || !matrix_ptr || !openxr_.aim_pose_valid_[hand_id])
+		if(!openxr_.is_session_running() || !view_origin_ptr || !view_angles_ptr || !matrix_ptr || !openxr_.aim_pose_valid_[hand_id])
 		{
 			return false;
 		}
 
-		glm::mat4 game_hand_matrix(1);
-		memcpy(&game_hand_matrix, matrix_ptr, sizeof(float) * 16);
-
 		const BVR::GLMPose aim_pose_LS = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id]);
 		const glm::fquat aim_rotation = aim_pose_LS.rotation_;
-		const glm::mat4 aim_rotation_matrix = glm::mat4_cast(aim_rotation);
+		const glm::mat4 aim_rotation_matrix_orig = glm::mat4_cast(aim_rotation);
 
-		//glm::mat4 aim_local_matrix = aim_pose_LS.to_matrix();
+		glm::mat4 S(0);
+		S[0][2] = 1.0f;
+		S[1][0] = -1.0f;
+		S[2][1] = 1.0f;
+		S[3][3] = 1.0f;
 
-		glm::mat4 final_hand_matrix = game_hand_matrix * inverse(aim_rotation_matrix);
+		glm::mat4 Sinv = inverse(S);
+		glm::mat4 aim_rotation_matrix = Sinv * aim_rotation_matrix_orig;
+
+		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
+		const glm::vec3 view_angles_deg = *(glm::vec3*)view_angles_ptr;
+
+		glm::mat4 Sinv = inverse(S);
+		
+		const float view_position_x = view_origin.x;
+		const float view_position_y = view_origin.y;
+		const float view_position_z = view_origin.z;
+
+		const float pitch_deg         = 0.0f;
+		const float yaw_deg           = view_angles_deg.y;
+		const float roll_deg          = 0.0f;
+
+		static float pitch_offset_deg = 0.0f;
+		static float yaw_offset_deg   = 0.0f;
+		static float roll_offset_deg  = 0.0f;
+
+		const glm::vec3 euler_angles_rad = { -deg2rad(roll_offset_deg),  deg2rad(pitch_deg + pitch_offset_deg), deg2rad(yaw_deg + yaw_offset_deg) };
+
+		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
+		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
+
+		glm::mat4 mirror_matrix(1);
+
+		const bool mirrored = (hand_id == LEFT) ? true : false;
+
+		if(mirrored)
+		{
+			mirror_matrix[0][0] = -1.0f;
+		}
+
+		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * aim_rotation_matrix;
+
+		BVR::GLMPose glm_pose;
+
+		glm_pose.translation_.x = view_position_x;
+		glm_pose.translation_.y = view_position_y;
+
+		static bool apply_offset = true;
+
+		if (apply_offset)
+		{
+			glm::vec3 hand_position_LS = aim_pose_LS.translation_;
+
+			const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
+			const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
+			const glm::vec4 hand_position_WS = game_rotation2 * glm::vec4(hand_position_LS.x, 0.0f, hand_position_LS.z, 0.0f);
+
+			static float world_mult = 1.0f;
+			glm_pose.translation_.x -= hand_position_WS.z * world_mult;
+			glm_pose.translation_.y -= hand_position_WS.x * world_mult;
+			glm_pose.translation_.z += hand_position_LS.y * world_mult;
+		}
+
+		glm::mat4 translation_matrix = glm_pose.to_matrix();
+
+		glm::mat4 final_hand_matrix = translation_matrix * final_rotation_matrix;
+
+#if 1
 		memcpy(matrix_ptr, &final_hand_matrix, sizeof(float) * 16);
-
-#if 0
-		if(append)
-		{
-			XrMatrix4x4f local_matrix = {};
-			XrMatrix4x4f_CreateIdentity(&local_matrix);
-
-			//local_matrix.m[12] = 50.0f; // + X is forward
-			//local_matrix.m[13] = 50.0f; // +Y is to the right
-			//local_matrix.m[14] = 50.0f; // +Z = UP, 10cm
-
-			const float tracking_scale_forward = 10.0f;
-			const float tracking_scale = 50.0f;
-
-			local_matrix.m[12] = -openxr_.aim_pose_LS_[hand_id].position.z * tracking_scale_forward; // + X is forward
-			local_matrix.m[13] = (hand_id == LEFT) ? openxr_.aim_pose_LS_[hand_id].position.x * tracking_scale : -openxr_.aim_pose_LS_[hand_id].position.x * tracking_scale; // +Y is to the right
-			local_matrix.m[14] = openxr_.aim_pose_LS_[hand_id].position.y * tracking_scale; // +Z = UP, 10cm
-
-			//openxr_.aim_pose_LS_[hand_id].orientation.x = 0.0f;
-			//openxr_.aim_pose_LS_[hand_id].orientation.y = 0.0f;
-			//openxr_.aim_pose_LS_[hand_id].orientation.z = 0.0f;
-			//openxr_.aim_pose_LS_[hand_id].orientation.w = 0.0f;
-
-			//openxr_.aim_pose_LS_[hand_id].position.x = 0.0f;
-			//openxr_.aim_pose_LS_[hand_id].position.y = 0.0f;
-			//openxr_.aim_pose_LS_[hand_id].position.z = 0.0f;
-
-			//XrMatrix4x4f_CreateFromRigidTransform(&local_matrix, &openxr_.aim_pose_LS_[hand_id]);
-
-			//XrMatrix4x4f local_matrixT = {};
-			//XrMatrix4x4f_Transpose(&local_matrixT, &local_matrix);
-
-			XrMatrix4x4f local_rotation_matrix = {};
-			XrMatrix4x4f_CreateFromQuaternion(&local_rotation_matrix, &openxr_.aim_pose_LS_[hand_id].orientation);
-
-			XrMatrix4x4f local_rotation_matrixT = {};
-			XrMatrix4x4f_Transpose(&local_rotation_matrixT, &local_rotation_matrix);
-
-			XrMatrix4x4f composed_local_matrix = {};
-			XrMatrix4x4f_Multiply(&composed_local_matrix, &local_matrix, &local_rotation_matrixT);
-
-			XrMatrix4x4f orig_hand_matrix = {};
-			memcpy(&orig_hand_matrix, matrix_ptr, sizeof(float) * 16);
-			XrMatrix4x4f_Multiply((XrMatrix4x4f*)matrix_ptr,  &orig_hand_matrix, &composed_local_matrix);
-		}
-		else
-		{
-			XrMatrix4x4f_CreateFromRigidTransform((XrMatrix4x4f*)matrix_ptr, &openxr_.aim_pose_LS_[hand_id]);
-		}
+#else
+		glm::mat4 inverse_final_hand_matrix = inverse(final_hand_matrix);
+		memcpy(matrix_ptr, &inverse_final_hand_matrix, sizeof(float) * 16);
 #endif
 
 		return true;
