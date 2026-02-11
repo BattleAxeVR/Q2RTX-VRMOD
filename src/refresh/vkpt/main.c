@@ -513,7 +513,7 @@ static const char *optional_device_extension_name[NUM_OPTIONAL_DEVICE_EXTENSIONS
 static const VkApplicationInfo vk_app_info = 
 {
 	.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-	.pApplicationName   = "quake 2 pathtracing",
+	.pApplicationName   = "Quake II RTX - VR MOD",
 	.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
 	.pEngineName        = "vkpt",
 	.engineVersion      = VK_MAKE_VERSION(1, 0, 0),
