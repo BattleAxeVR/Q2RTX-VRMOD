@@ -9,6 +9,7 @@ game*.so
 *.swp
 build*/
 shader_vkpt
+shader_vkpt_vr
 *.exe
 *.ilk
 *.pdb

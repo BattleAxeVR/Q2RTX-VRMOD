@@ -1653,20 +1653,35 @@ static VkShaderModule create_shader_module_from_file(const char *name, const cha
 	const char* suffix = "";
 	if (is_rt_shader)
 	{
-		if (qvk.use_ray_query)
+		if(qvk.use_ray_query)
+		{
 			suffix = ".query";
+		}
 		else
+		{
 			suffix = ".pipeline";
+		}
 	}
 
-	char path[1024];
+	char path[1024] = { 0 };
+
+#if SUPPORT_OPENXR
+	snprintf(path, sizeof path, "shader_vkpt_vr/%s%s.spv", name ? name : (enum_name + 8), suffix);
+#else
 	snprintf(path, sizeof path, "shader_vkpt/%s%s.spv", name ? name : (enum_name + 8), suffix);
-	if(!name) {
+#endif
+
+	if(!name) 
+	{
 		int len = 0;
 		for(len = 0; path[len]; len++)
+		{
 			path[len] = tolower(path[len]);
-		while(--len >= 0) {
-			if(path[len] == '_') {
+		}
+		while(--len >= 0) 
+		{
+			if(path[len] == '_') 
+			{
 				path[len] = '.';
 				break;
 			}
@@ -1677,14 +1692,17 @@ static VkShaderModule create_shader_module_from_file(const char *name, const cha
 	size_t size;
 
 	size = FS_LoadFile(path, (void**)&data);
-	if(!data) {
+
+	if(!data) 
+	{
 		Com_EPrintf("Couldn't find shader module %s!\n", path);
 		return VK_NULL_HANDLE;
 	}
 
 	VkShaderModule module;
 
-	VkShaderModuleCreateInfo create_info = {
+	VkShaderModuleCreateInfo create_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
 		.codeSize = size,
 		.pCode = (uint32_t *) data,
@@ -1736,7 +1754,8 @@ VkResult vkpt_destroy_shader_modules()
 
 VkResult destroy_swapchain(void)
 {
-	for(int i = 0; i < qvk.num_swap_chain_images; i++) {
+	for(int i = 0; i < qvk.num_swap_chain_images; i++) 
+	{
 		vkDestroyImageView  (qvk.device, qvk.swap_chain_image_views[i], NULL);
 		qvk.swap_chain_image_views[i] = VK_NULL_HANDLE;
 	}
