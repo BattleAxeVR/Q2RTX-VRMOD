@@ -4017,15 +4017,21 @@ void R_EndFrame_RTX(void)
 	}
 
 	if(cvar_profiler->integer)
+	{
 		draw_profiler(cvar_flt_enable->integer != 0);
+	}
+
 	if(cvar_tm_debug->integer)
+	{
 		vkpt_tone_mapping_draw_debug();
+	}
 
 	VkCommandBuffer cmd_buf = vkpt_begin_command_buffer(&qvk.cmd_buffers_graphics);
 
 	if (frame_ready)
 	{
 		bool waterwarp = (vkpt_refdef.fd->rdflags & RDF_UNDERWATER) && cvar_pt_waterwarp->integer;
+
 		if (vkpt_fsr_is_enabled() && !qvk.frame_menu_mode)
 		{
 			vkpt_fsr_final_blit(cmd_buf, waterwarp);
@@ -4040,11 +4046,15 @@ void R_EndFrame_RTX(void)
 			extent_unscaled_half.width = qvk.extent_unscaled.width / 2;
 			extent_unscaled_half.height = qvk.extent_unscaled.height / 2;
 
-			if (extents_equal(qvk.extent_render, qvk.extent_unscaled) ||
-				(extents_equal(qvk.extent_render, extent_unscaled_half) && drs_effective_scale == 0)) // don't do nearest filter 2x upscale with DRS enabled
+			if(extents_equal(qvk.extent_render, qvk.extent_unscaled) || (extents_equal(qvk.extent_render, extent_unscaled_half) && drs_effective_scale == 0))
+			{
+				// don't do nearest filter 2x upscale with DRS enabled
 				vkpt_final_blit(cmd_buf, VKPT_IMG_TAA_OUTPUT, qvk.extent_taa_output, false, waterwarp);
+			}
 			else
+			{
 				vkpt_final_blit(cmd_buf, VKPT_IMG_TAA_OUTPUT, qvk.extent_taa_output, true, waterwarp);
+			}
 		}
 
 #if SUPPORT_OPENXR

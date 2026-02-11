@@ -248,7 +248,8 @@ void vkpt_fsr_update_ubo(QVKUniformBuffer_t *ubo)
 
 static void vkpt_fsr_easu(VkCommandBuffer cmd_buf)
 {
-	VkDescriptorSet desc_sets[] = {
+	VkDescriptorSet desc_sets[] = 
+	{
 		qvk.desc_set_ubo,
 		qvk_get_current_desc_set_textures()
 	};
@@ -275,7 +276,8 @@ static void vkpt_fsr_easu(VkCommandBuffer cmd_buf)
 
 static void vkpt_fsr_rcas(VkCommandBuffer cmd_buf)
 {
-	VkDescriptorSet desc_sets[] = {
+	VkDescriptorSet desc_sets[] = 
+	{
 		qvk.desc_set_ubo,
 		qvk_get_current_desc_set_textures()
 	};
@@ -305,9 +307,14 @@ VkResult vkpt_fsr_do(VkCommandBuffer cmd_buf)
 	BEGIN_PERF_MARKER(cmd_buf, PROFILER_FSR);
 
 	if(cvar_flt_fsr_easu->integer != 0)
+	{
 		vkpt_fsr_easu(cmd_buf);
+	}
+
 	if(cvar_flt_fsr_rcas->integer != 0)
+	{
 		vkpt_fsr_rcas(cmd_buf);
+	}
 
 	END_PERF_MARKER(cmd_buf, PROFILER_FSR);
 
