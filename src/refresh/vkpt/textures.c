@@ -2282,7 +2282,8 @@ LIST_IMAGES_A_B
 	};
 #undef IMG_DO
 
-	for(int i = VKPT_IMG_BLOOM_HBLUR; i <= VKPT_IMG_BLOOM_VBLUR; i++) {
+	for(int i = VKPT_IMG_BLOOM_HBLUR; i <= VKPT_IMG_BLOOM_VBLUR; i++) 
+	{
 		img_info[i].sampler = qvk.tex_sampler_linear_clamp;
 	}
 	img_info[VKPT_IMG_ASVGF_TAA_A].sampler = qvk.tex_sampler;

@@ -914,8 +914,10 @@ VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, 
 
 	VkImageView debug_lines_view = vpkt_debugdraw_imageview();
 
-	if (!debug_lines_view)
+	if(!debug_lines_view)
+	{
 		debug_lines_view = qvk.images_views[VKPT_IMG_CLEAR];
+	}
 
 	VkDescriptorImageInfo img_info_debug_lines = 
 	{

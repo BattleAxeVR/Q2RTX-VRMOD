@@ -503,13 +503,15 @@ enum optional_device_extension_id
 	NUM_OPTIONAL_DEVICE_EXTENSIONS
 };
 
-static const char *optional_device_extension_name[NUM_OPTIONAL_DEVICE_EXTENSIONS] = {
+static const char *optional_device_extension_name[NUM_OPTIONAL_DEVICE_EXTENSIONS] = 
+{
 #define VK_OPT_EXT_DO(ext)	ext ## _EXTENSION_NAME,
 	OPTIONAL_DEVICE_EXTENSIONS
 #undef VK_OPT_EXT_DO
 };
 
-static const VkApplicationInfo vk_app_info = {
+static const VkApplicationInfo vk_app_info = 
+{
 	.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
 	.pApplicationName   = "quake 2 pathtracing",
 	.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
@@ -521,10 +523,7 @@ static const VkApplicationInfo vk_app_info = {
 /* use this to override file names */
 static const char *shader_module_file_names[NUM_QVK_SHADER_MODULES];
 
-void get_vk_extension_list(
-		const char *layer,
-		uint32_t *num_extensions,
-		VkExtensionProperties **ext)
+void get_vk_extension_list(const char *layer, uint32_t *num_extensions,	VkExtensionProperties **ext)
 {
 	_VK(vkEnumerateInstanceExtensionProperties(layer, num_extensions, NULL));
 	*ext = malloc(sizeof(**ext) * *num_extensions);
@@ -587,14 +586,13 @@ VkResult qvkCreateDebugUtilsMessengerEXT(
 	return VK_ERROR_EXTENSION_NOT_PRESENT;
 }
 
-VkResult qvkDestroyDebugUtilsMessengerEXT(
-		VkInstance instance,
-		VkDebugUtilsMessengerEXT callback,
-		const VkAllocationCallbacks* pAllocator)
+VkResult qvkDestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT callback, const VkAllocationCallbacks* pAllocator)
 {
 	PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT)
 		vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-	if(func) {
+
+	if(func) 
+	{
 		func(instance, callback, pAllocator);
 		return VK_SUCCESS;
 	}
@@ -603,14 +601,17 @@ VkResult qvkDestroyDebugUtilsMessengerEXT(
 
 static bool pick_surface_format_hdr(picked_surface_format_t* picked_fmt, const VkSurfaceFormatKHR avail_surface_formats[], size_t num_avail_surface_formats)
 {
-	VkSurfaceFormatKHR acceptable_formats[] = {
+	VkSurfaceFormatKHR acceptable_formats[] = 
+	{
 		{ VK_FORMAT_R16G16B16A16_SFLOAT, VK_COLOR_SPACE_EXTENDED_SRGB_LINEAR_EXT }
 	};
 
-	for(int i = 0; i < LENGTH(acceptable_formats); i++) {
-		for(int j = 0; j < num_avail_surface_formats; j++) {
-			if((acceptable_formats[i].format == avail_surface_formats[j].format)
-				&& (acceptable_formats[i].colorSpace == avail_surface_formats[j].colorSpace)){
+	for(int i = 0; i < LENGTH(acceptable_formats); i++) 
+	{
+		for(int j = 0; j < num_avail_surface_formats; j++) 
+		{
+			if((acceptable_formats[i].format == avail_surface_formats[j].format) && (acceptable_formats[i].colorSpace == avail_surface_formats[j].colorSpace))
+			{
 				picked_fmt->surface_fmt = avail_surface_formats[j];
 				picked_fmt->swapchain_view_fmt = avail_surface_formats[j].format;
 				return true;
@@ -622,19 +623,24 @@ static bool pick_surface_format_hdr(picked_surface_format_t* picked_fmt, const V
 
 static bool pick_surface_format_sdr(picked_surface_format_t* picked_fmt, const VkSurfaceFormatKHR avail_surface_formats[], size_t num_avail_surface_formats)
 {
-	struct {
+	struct 
+	{
 		VkFormat format;
 		VkFormat swapchain_view_fmt;
-	} acceptable_formats[] = {
+	} acceptable_formats[] = 
+	{
 		{VK_FORMAT_R8G8B8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB},
 		{VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_SRGB},
 		{VK_FORMAT_R8G8B8A8_UNORM, VK_FORMAT_R8G8B8A8_SRGB},
 		{VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_SRGB},
 	};
 
-	for(int i = 0; i < LENGTH(acceptable_formats); i++) {
-		for(int j = 0; j < num_avail_surface_formats; j++) {
-			if(acceptable_formats[i].format == avail_surface_formats[j].format) {
+	for(int i = 0; i < LENGTH(acceptable_formats); i++) 
+	{
+		for(int j = 0; j < num_avail_surface_formats; j++) 
+		{
+			if(acceptable_formats[i].format == avail_surface_formats[j].format) 
+			{
 				picked_fmt->surface_fmt = avail_surface_formats[j];
 				picked_fmt->swapchain_view_fmt = acceptable_formats[i].swapchain_view_fmt;
 				return true;
@@ -652,11 +658,14 @@ VkResult create_swapchain(void)
 	VkSurfaceCapabilitiesKHR surf_capabilities;
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(qvk.physical_device, qvk.surface, &surf_capabilities);
 
-	if (surf_capabilities.currentExtent.width == 0 || surf_capabilities.currentExtent.height == 0)
+	if(surf_capabilities.currentExtent.width == 0 || surf_capabilities.currentExtent.height == 0)
+	{
 		return VK_SUCCESS;
+	}
 
 	uint32_t num_formats = 0;
 	vkGetPhysicalDeviceSurfaceFormatsKHR(qvk.physical_device, qvk.surface, &num_formats, NULL);
+
 	VkSurfaceFormatKHR *avail_surface_formats = alloca(sizeof(VkSurfaceFormatKHR) * num_formats);
 	vkGetPhysicalDeviceSurfaceFormatsKHR(qvk.physical_device, qvk.surface, &num_formats, avail_surface_formats);
 	/* Com_Printf("num surface formats: %d\n", num_formats);
@@ -668,21 +677,29 @@ VkResult create_swapchain(void)
 
 	picked_surface_format_t picked_format;
 	bool surface_format_found = false;
-	if(cvar_hdr->integer != 0) {
+
+	if(cvar_hdr->integer != 0) 
+	{
 		surface_format_found = qvk.supports_colorspace && pick_surface_format_hdr(&picked_format, avail_surface_formats, num_formats);
 		qvk.surf_is_hdr = surface_format_found;
-		if(!surface_format_found) {
+
+		if(!surface_format_found) 
+		{
 			Com_WPrintf("HDR was requested but no supported surface format was found.\n");
 			Cvar_SetByVar(cvar_hdr, "0", FROM_CODE);
-			}
-	} else {
+		}
+	} 
+	else 
+	{
 		qvk.surf_is_hdr = false;
 	}
-	if(!surface_format_found) {
+	if(!surface_format_found) 
+	{
 		// HDR disabled, or fallback to SDR
 		surface_format_found = pick_surface_format_sdr(&picked_format, avail_surface_formats, num_formats);
 	}
-	if(!surface_format_found) {
+	if(!surface_format_found) 
+	{
 		Com_EPrintf("no acceptable surface format available!\n");
 		return 1;
 	}
@@ -694,8 +711,10 @@ VkResult create_swapchain(void)
 	vkGetPhysicalDeviceSurfacePresentModesKHR(qvk.physical_device, qvk.surface, &num_present_modes, avail_present_modes);
 	bool immediate_mode_available = false;
 
-	for (int i = 0; i < num_present_modes; i++) {
-		if (avail_present_modes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+	for (int i = 0; i < num_present_modes; i++) 
+	{
+		if (avail_present_modes[i] == VK_PRESENT_MODE_IMMEDIATE_KHR) 
+		{
 			immediate_mode_available = true;
 			break;
 		}
@@ -703,11 +722,16 @@ VkResult create_swapchain(void)
 
 	qvk.surf_vsync = (cvar_vsync->integer != 0);
 
-	if (qvk.surf_vsync) {
+	if (qvk.surf_vsync) 
+	{
 		qvk.present_mode = VK_PRESENT_MODE_FIFO_KHR;
-	} else if (immediate_mode_available) {
+	} 
+	else if (immediate_mode_available) 
+	{
 		qvk.present_mode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-	} else {
+	} 
+	else 
+	{
 		qvk.present_mode = VK_PRESENT_MODE_MAILBOX_KHR;
 	}
 
@@ -723,10 +747,14 @@ VkResult create_swapchain(void)
 	}
 
 	uint32_t num_images = max(surf_capabilities.minImageCount, 2);
-	if(surf_capabilities.maxImageCount > 0)
-		num_images = min(num_images, surf_capabilities.maxImageCount);
 
-	VkSwapchainCreateInfoKHR swpch_create_info = {
+	if(surf_capabilities.maxImageCount > 0)
+	{
+		num_images = min(num_images, surf_capabilities.maxImageCount);
+	}
+
+	VkSwapchainCreateInfoKHR swpch_create_info = 
+	{
 		.sType                 = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
 		.surface               = qvk.surface,
 		.minImageCount         = num_images,
@@ -759,8 +787,11 @@ VkResult create_swapchain(void)
 	vkGetSwapchainImagesKHR(qvk.device, qvk.swap_chain, &qvk.num_swap_chain_images, qvk.swap_chain_images);
 
 	qvk.swap_chain_image_views = malloc(qvk.num_swap_chain_images * sizeof(*qvk.swap_chain_image_views));
-	for(int i = 0; i < qvk.num_swap_chain_images; i++) {
-		VkImageViewCreateInfo img_create_info = {
+
+	for(int i = 0; i < qvk.num_swap_chain_images; i++) 
+	{
+		VkImageViewCreateInfo img_create_info = 
+		{
 			.sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 			.image      = qvk.swap_chain_images[i],
 			.viewType   = VK_IMAGE_VIEW_TYPE_2D,
@@ -824,7 +855,8 @@ VkResult create_swapchain(void)
 
 VkResult create_command_pool_and_fences(void)
 {
-	VkCommandPoolCreateInfo cmd_pool_create_info = {
+	VkCommandPoolCreateInfo cmd_pool_create_info = 
+	{
 		.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
 		.queueFamilyIndex = qvk.queue_idx_graphics,
 		.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
@@ -859,12 +891,15 @@ VkResult create_command_pool_and_fences(void)
 		}
 	}
 
-	VkFenceCreateInfo fence_info = {
+	VkFenceCreateInfo fence_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
 		.flags = VK_FENCE_CREATE_SIGNALED_BIT, /* fence's initial state set to be signaled
 												  to make program not hang */
 	};
-	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+
+	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) 
+	{
 		_VK(vkCreateFence(qvk.device, &fence_info, NULL, qvk.fences_frame_sync + i));
 		ATTACH_LABEL_VARIABLE(qvk.fences_frame_sync[i], FENCE);
 	}
@@ -887,33 +922,42 @@ bool init_vulkan(void)
 	/* layers */
 	get_vk_layer_list(&qvk.num_layers, &qvk.layers);
 	Com_Printf("Available Vulkan layers: \n");
-	for(int i = 0; i < qvk.num_layers; i++) {
+
+	for(int i = 0; i < qvk.num_layers; i++) 
+	{
 		Com_Printf("  %s\n", qvk.layers[i].layerName);
 	}
 	
-	/* instance extensions */
+	// instance extensions
 
-	if (!SDL_Vulkan_GetInstanceExtensions(qvk.window, &qvk.num_sdl2_extensions, NULL)) {
+	if (!SDL_Vulkan_GetInstanceExtensions(qvk.window, &qvk.num_sdl2_extensions, NULL)) 
+	{
 		Com_EPrintf("Couldn't get SDL2 Vulkan extension count\n");
 		return false;
 	}
 
 	qvk.sdl2_extensions = malloc(sizeof(char*) * qvk.num_sdl2_extensions);
-	if (!SDL_Vulkan_GetInstanceExtensions(qvk.window, &qvk.num_sdl2_extensions, qvk.sdl2_extensions)) {
+
+	if (!SDL_Vulkan_GetInstanceExtensions(qvk.window, &qvk.num_sdl2_extensions, qvk.sdl2_extensions)) 
+	{
 		Com_EPrintf("Couldn't get SDL2 Vulkan extensions\n");
 		return false;
 	}
 
 	Com_Printf("Vulkan instance extensions required by SDL2: \n");
-	for (int i = 0; i < qvk.num_sdl2_extensions; i++) {
+
+	for (int i = 0; i < qvk.num_sdl2_extensions; i++) 
+	{
 		Com_Printf("  %s\n", qvk.sdl2_extensions[i]);
 	}
 
 	int num_inst_ext_max = qvk.num_sdl2_extensions + LENGTH(vk_requested_instance_extensions) + NUM_OPTIONAL_INSTANCE_EXTENSIONS;
 	const char **ext = alloca(sizeof(const char *) * num_inst_ext_max);
+
 	int num_inst_ext_combined = 0;
 	memcpy(ext + num_inst_ext_combined, qvk.sdl2_extensions, qvk.num_sdl2_extensions * sizeof(*qvk.sdl2_extensions));
 	num_inst_ext_combined += qvk.num_sdl2_extensions;
+
 	memcpy(ext + num_inst_ext_combined, vk_requested_instance_extensions, sizeof(vk_requested_instance_extensions));
 	num_inst_ext_combined += LENGTH(vk_requested_instance_extensions);
 
@@ -922,17 +966,25 @@ bool init_vulkan(void)
 	get_vk_extension_list(NULL, &qvk.num_extensions, &qvk.extensions); /* valid here? */
 	int num_inst_ext_required = num_inst_ext_combined;
 	Com_Printf("Supported Vulkan instance extensions: \n");
-	for(int i = 0; i < qvk.num_extensions; i++) {
+
+	for(int i = 0; i < qvk.num_extensions; i++) 
+	{
 		int requested = 0;
-		for(int j = 0; j < num_inst_ext_required; j++) {
-			if(!strcmp(qvk.extensions[i].extensionName, ext[j])) {
+
+		for(int j = 0; j < num_inst_ext_required; j++) 
+		{
+			if(!strcmp(qvk.extensions[i].extensionName, ext[j])) 
+			{
 				requested = 1;
 				break;
 			}
 		}
-		for(int j = 0; j < NUM_OPTIONAL_INSTANCE_EXTENSIONS; j++) {
+		for(int j = 0; j < NUM_OPTIONAL_INSTANCE_EXTENSIONS; j++) 
+		{
 			const char *ext_name = optional_instance_extension_name[j];
-			if(!strcmp(qvk.extensions[i].extensionName, ext_name)) {
+
+			if(!strcmp(qvk.extensions[i].extensionName, ext_name)) 
+			{
 				requested = 1;
 				ext[num_inst_ext_combined++] = ext_name;
 				available_optional_instance_extensions[j] = true;
@@ -943,7 +995,8 @@ bool init_vulkan(void)
 	}
 
 	/* create instance */
-	VkInstanceCreateInfo inst_create_info = {
+	VkInstanceCreateInfo inst_create_info = 
+	{
 		.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
 		.pApplicationInfo        = &vk_app_info,
 		.enabledExtensionCount   = num_inst_ext_combined,
@@ -998,7 +1051,8 @@ bool init_vulkan(void)
 #undef VK_EXTENSION_DO
 
 	/* setup debug callback */
-	VkDebugUtilsMessengerCreateInfoEXT dbg_create_info = {
+	VkDebugUtilsMessengerCreateInfoEXT dbg_create_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
 		.messageSeverity =
 			VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
@@ -1013,7 +1067,8 @@ bool init_vulkan(void)
 	_VK(qvkCreateDebugUtilsMessengerEXT(qvk.instance, &dbg_create_info, NULL, &qvk.dbg_messenger));
 
 	/* create surface */
-	if(!SDL_Vulkan_CreateSurface(qvk.window, qvk.instance, &qvk.surface)) {
+	if(!SDL_Vulkan_CreateSurface(qvk.window, qvk.instance, &qvk.surface)) 
+	{
 		Com_EPrintf("SDL2 could not create a surface!\n");
 		return false;
 	}
@@ -1021,23 +1076,30 @@ bool init_vulkan(void)
 	/* pick physical device (iterate over all but pick device 0 anyways) */
 	uint32_t num_devices = 0;
 	_VK(vkEnumeratePhysicalDevices(qvk.instance, &num_devices, NULL));
+
 	if(num_devices == 0)
+	{
 		return false;
+	}
+
 	VkPhysicalDevice *devices = alloca(sizeof(VkPhysicalDevice) *num_devices);
 	_VK(vkEnumeratePhysicalDevices(qvk.instance, &num_devices, devices));
 
 #ifdef VKPT_DEVICE_GROUPS
 	uint32_t num_device_groups = 0;
 
-	if (cvar_sli->integer)
+	if(cvar_sli->integer)
+	{
 		_VK(vkEnumeratePhysicalDeviceGroups(qvk.instance, &num_device_groups, NULL));
+	}
 
 	VkDeviceGroupDeviceCreateInfo device_group_create_info;
 	VkPhysicalDeviceGroupProperties device_group_info;
 	device_group_info.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_GROUP_PROPERTIES;
 	device_group_info.pNext = NULL;
 
-	if(num_device_groups > 0) {
+	if(num_device_groups > 0) 
+	{
 		// we always use the first group
 		num_device_groups = 1;
 		_VK(vkEnumeratePhysicalDeviceGroups(qvk.instance, &num_device_groups, &device_group_info));
@@ -1046,6 +1108,7 @@ bool init_vulkan(void)
 		{
 			Com_EPrintf("SLI: device group 0 has %d devices, which is more than maximum supported count (%d).\n",
 				device_group_info.physicalDeviceCount, VKPT_MAX_GPUS);
+
 			return false;
 		}
 
@@ -1055,7 +1118,9 @@ bool init_vulkan(void)
 		device_group_create_info.pPhysicalDevices = device_group_info.physicalDevices;
 
 		qvk.device_count = device_group_create_info.physicalDeviceCount;
-		for(int i = 0; i < qvk.device_count; i++) {
+
+		for(int i = 0; i < qvk.device_count; i++) 
+		{
 			qvk.device_group_physical_devices[i] = device_group_create_info.pPhysicalDevices[i];
 		}
 		Com_Printf("SLI: using device group 0 with %d device(s).\n", qvk.device_count);
@@ -1063,10 +1128,14 @@ bool init_vulkan(void)
 	else
 	{
 		qvk.device_count = 1;
-		if (!cvar_sli->integer)
+		if(!cvar_sli->integer)
+		{
 			Com_Printf("SLI: multi-GPU support disabled through the 'sli' console variable.\n");
+		}
 		else
+		{
 			Com_Printf("SLI: no device groups found, using a single device.\n");
+		}
 	}
 #else
 	qvk.device_count = 1;
@@ -1079,12 +1148,14 @@ bool init_vulkan(void)
 
 	for(int i = 0; i < num_devices; i++) 
 	{
-		VkPhysicalDeviceDriverProperties driver_properties = {
+		VkPhysicalDeviceDriverProperties driver_properties = 
+		{
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES,
 			.pNext = NULL
 		};
 
-		VkPhysicalDeviceProperties2 dev_properties2 = {
+		VkPhysicalDeviceProperties2 dev_properties2 = 
+		{
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
 			.pNext = &driver_properties
 		};
@@ -1172,12 +1243,14 @@ bool init_vulkan(void)
 	qvk.physical_device = devices[picked_device];
 
 	{
-		VkPhysicalDeviceDriverProperties driver_properties = {
+		VkPhysicalDeviceDriverProperties driver_properties = 
+		{
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES,
 			.pNext = NULL
 		};
 
-		VkPhysicalDeviceProperties2 dev_properties2 = {
+		VkPhysicalDeviceProperties2 dev_properties2 = 
+		{
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
 			.pNext = &driver_properties
 		};
@@ -1201,6 +1274,7 @@ bool init_vulkan(void)
 			uint32_t required_major = 0;
 			uint32_t required_minor = 0;
 			int nfields = sscanf(cvar_min_driver_version_nvidia->string, "%u.%u", &required_major, &required_minor);
+
 			if (nfields == 2)
 			{
 				if (driver_major < required_major || driver_major == required_major && driver_minor < required_minor)
@@ -1246,9 +1320,12 @@ bool init_vulkan(void)
 		VkExtensionProperties *ext_properties = alloca(sizeof(VkExtensionProperties) * num_ext);
 		vkEnumerateDeviceExtensionProperties(qvk.physical_device, NULL, &num_ext, ext_properties);
 
-		for (int test_ext = 0; test_ext < NUM_OPTIONAL_DEVICE_EXTENSIONS; test_ext++) {
-			for (uint32_t dev_ext = 0; dev_ext < num_ext; dev_ext++) {
-				if(strcmp(ext_properties[dev_ext].extensionName, optional_device_extension_name[test_ext]) == 0) {
+		for (int test_ext = 0; test_ext < NUM_OPTIONAL_DEVICE_EXTENSIONS; test_ext++) 
+		{
+			for (uint32_t dev_ext = 0; dev_ext < num_ext; dev_ext++) 
+			{
+				if(strcmp(ext_properties[dev_ext].extensionName, optional_device_extension_name[test_ext]) == 0) 
+				{
 					available_optional_device_extensions[test_ext] = true;
 					break;
 				}
@@ -1257,22 +1334,31 @@ bool init_vulkan(void)
 	}
 
 	// Query device 16-bit float capabilities
-	VkPhysicalDevice16BitStorageFeatures features_16bit_storage = {
+	VkPhysicalDevice16BitStorageFeatures features_16bit_storage = 
+	{
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES,
 	};
+
 	{
-		VkPhysicalDeviceVulkan12Features device_features_1_2 = {
+		VkPhysicalDeviceVulkan12Features device_features_1_2 = 
+		{
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
 			.pNext = &features_16bit_storage
 		};
-		VkPhysicalDeviceFeatures2 device_features = {
+
+		VkPhysicalDeviceFeatures2 device_features = 
+		{
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR,
 			.pNext = &device_features_1_2
 		};
-		VkPhysicalDeviceLineRasterizationFeaturesKHR device_features_lines = {
+
+		VkPhysicalDeviceLineRasterizationFeaturesKHR device_features_lines = 
+		{
 			.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR,
 		};
-		if (available_optional_device_extensions[OPT_EXT_VK_KHR_LINE_RASTERIZATION]) {
+
+		if (available_optional_device_extensions[OPT_EXT_VK_KHR_LINE_RASTERIZATION]) 
+		{
 			device_features_lines.pNext = device_features.pNext;
 			device_features.pNext = &device_features_lines;
 		}
@@ -1297,9 +1383,13 @@ bool init_vulkan(void)
 	qvk.queue_idx_graphics = -1;
 	qvk.queue_idx_transfer = -1;
 
-	for(int i = 0; i < num_queue_families; i++) {
+	for(int i = 0; i < num_queue_families; i++) 
+	{
 		if(!queue_families[i].queueCount)
+		{
 			continue;
+		}
+
 		VkBool32 present_support = 0;
 		vkGetPhysicalDeviceSurfaceSupportKHR(qvk.physical_device, i, qvk.surface, &present_support);
 
@@ -1307,17 +1397,22 @@ bool init_vulkan(void)
 		const int supports_compute = queue_families[i].queueFlags & VK_QUEUE_COMPUTE_BIT;
 		const int supports_transfer = queue_families[i].queueFlags & VK_QUEUE_TRANSFER_BIT;
 
-		if(supports_graphics && supports_compute && qvk.queue_idx_graphics < 0) {
+		if(supports_graphics && supports_compute && qvk.queue_idx_graphics < 0) 
+		{
 			if(!present_support)
+			{
 				continue;
+			}
 			qvk.queue_idx_graphics = i;
 		}
-		if(supports_transfer && (qvk.queue_idx_transfer < 0 || qvk.queue_idx_graphics == qvk.queue_idx_transfer)) {
+		if(supports_transfer && (qvk.queue_idx_transfer < 0 || qvk.queue_idx_graphics == qvk.queue_idx_transfer)) 
+		{
 			qvk.queue_idx_transfer = i;
 		}
 	}
 
-	if(qvk.queue_idx_graphics < 0 || qvk.queue_idx_transfer < 0) {
+	if(qvk.queue_idx_graphics < 0 || qvk.queue_idx_transfer < 0) 
+	{
 		Com_Error(ERR_FATAL, "Could not find a suitable Vulkan queue family!\n");
 		return false;
 	}
@@ -1327,7 +1422,8 @@ bool init_vulkan(void)
 	VkDeviceQueueCreateInfo queue_create_info[3];
 
 	{
-		VkDeviceQueueCreateInfo q = {
+		VkDeviceQueueCreateInfo q = 
+		{
 			.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
 			.queueCount       = 1,
 			.pQueuePriorities = &queue_priorities,
@@ -1336,7 +1432,9 @@ bool init_vulkan(void)
 
 		queue_create_info[num_create_queues++] = q;
 	};
-	if(qvk.queue_idx_transfer != qvk.queue_idx_graphics) {
+
+	if(qvk.queue_idx_transfer != qvk.queue_idx_graphics) 
+	{
 		VkDeviceQueueCreateInfo q = {
 			.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
 			.queueCount       = 1,
@@ -1347,30 +1445,35 @@ bool init_vulkan(void)
 	};
 
 #ifdef VKPT_DEVICE_GROUPS
-	if (qvk.device_count > 1) {
+	if (qvk.device_count > 1) 
+	{
 		features_16bit_storage.pNext = &device_group_create_info;
 	}
 #endif
 
-	VkPhysicalDeviceAccelerationStructureFeaturesKHR physical_device_as_features = {
+	VkPhysicalDeviceAccelerationStructureFeaturesKHR physical_device_as_features = 
+	{
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
 		.pNext = &features_16bit_storage,
 		.accelerationStructure = VK_TRUE,
 	};
 
-	VkPhysicalDeviceRayTracingPipelineFeaturesKHR physical_device_rt_pipeline_features = {
+	VkPhysicalDeviceRayTracingPipelineFeaturesKHR physical_device_rt_pipeline_features = 
+	{
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
 		.pNext = &physical_device_as_features,
 		.rayTracingPipeline = VK_TRUE
 	};
 
-	VkPhysicalDeviceRayQueryFeaturesKHR physical_device_ray_query_features = {
+	VkPhysicalDeviceRayQueryFeaturesKHR physical_device_ray_query_features = 
+	{
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR,
 		.pNext = &physical_device_as_features,
 		.rayQuery = VK_TRUE
 	};
 
-	VkPhysicalDeviceVulkan12Features device_features_vk12 = {
+	VkPhysicalDeviceVulkan12Features device_features_vk12 = 
+	{
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
 		.descriptorIndexing = VK_TRUE,
 		.shaderFloat16 = qvk.supports_fp16,
@@ -1381,7 +1484,9 @@ bool init_vulkan(void)
 		.bufferDeviceAddress = VK_TRUE,
 		.bufferDeviceAddressMultiDevice = qvk.device_count > 1 ? VK_TRUE : VK_FALSE,
 	};
-	VkPhysicalDeviceFeatures2 device_features = {
+
+	VkPhysicalDeviceFeatures2 device_features = 
+	{
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR,
 		.pNext = &device_features_vk12,
 		.features = {
@@ -1475,25 +1580,30 @@ bool init_vulkan(void)
 	}
 	
 	// Add detected optional device extensions
-	for (int i = 0; i < NUM_OPTIONAL_DEVICE_EXTENSIONS; i++) {
-		if (available_optional_device_extensions[i])
-			append_string_list(device_extensions, &device_extension_count, max_extension_count,
-							   optional_device_extension_name + i, 1);
+	for (int i = 0; i < NUM_OPTIONAL_DEVICE_EXTENSIONS; i++) 
+	{
+		if(available_optional_device_extensions[i])
+		{
+			append_string_list(device_extensions, &device_extension_count, max_extension_count, optional_device_extension_name + i, 1);
+		}
 	}
 
 	dev_create_info.enabledExtensionCount = device_extension_count;
 	dev_create_info.ppEnabledExtensionNames = device_extensions;
 
-	VkPhysicalDeviceLineRasterizationFeaturesKHR line_rast_feat = {
+	VkPhysicalDeviceLineRasterizationFeaturesKHR line_rast_feat = 
+	{
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_LINE_RASTERIZATION_FEATURES_KHR,
 		.smoothLines = VK_TRUE,
 	};
-	if (qvk.supports_smooth_lines) {
+
+	if (qvk.supports_smooth_lines) 
+	{
 		line_rast_feat.pNext = device_features.pNext;
 		device_features.pNext = &line_rast_feat;
 	}
 
-	/* create device and queue */
+	// create device and queue
 
 #if SUPPORT_OPENXR
 	result = CreateVulkanOpenXRDevice(&dev_create_info, &qvk.physical_device, &qvk.device);
