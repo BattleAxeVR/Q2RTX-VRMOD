@@ -3312,7 +3312,15 @@ extern "C"
 		const glm::mat4 view_rotation_matrix = hmd_rotation_matrix;
 
 		glm::mat4 mirror_matrix(1);
-		mirror_matrix[0][0] = -1.0f;
+
+		const bool mirrored = true;// (hand_id == LEFT) ? false : true;
+
+		if(mirrored)
+		{
+			mirror_matrix[0][0] = -1.0f;
+			//mirror_matrix[1][1] = -1.0f;
+			//mirror_matrix[2][2] = -1.0f;
+		}
 
 		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * view_rotation_matrix;
 
