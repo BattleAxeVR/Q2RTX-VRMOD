@@ -2162,6 +2162,7 @@ static void process_bsp_entity(const entity_t* entity, int* instance_count)
 static void process_regular_entity(
 	const entity_t* entity, 
 	const model_t* model, 
+	const refdef_t* fd,
 	bool is_viewer_weapon, 
 	bool is_double_sided, 
 	int* instance_count, 
@@ -2183,7 +2184,7 @@ static void process_regular_entity(
 	if(is_viewer_weapon)
 	{
 		create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
-
+		
 #if APPLY_CONTROLLER_TRACKING_TO_GUN
 
 		//vec3_t axis[3] = { 0 };
@@ -2196,7 +2197,7 @@ static void process_regular_entity(
 
 		const int hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
 		
-		GetHandMatrix(hand_id, (float*)&fd->vieworg, transform);
+		GetHandMatrix(hand_id, (float*)&fd->vieworg, (float*)&fd->viewangles, transform);
 #endif
 	}
 	else
@@ -2439,7 +2440,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 				bool contains_transparent = false;
 				bool contains_masked = false;
 
-				process_regular_entity(entity, model, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
+				process_regular_entity(entity, model, vkpt_refdef.fd, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 					MESH_FILTER_OPAQUE, &contains_transparent, &contains_masked, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 
 				if(contains_transparent)
@@ -2483,7 +2484,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 		const entity_t* entity = vkpt_refdef.fd->entities + transparent_model_indices[i];
 
 		const model_t* model = MOD_ForHandle(entity->model);
-		process_regular_entity(entity, model, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
+		process_regular_entity(entity, model, vkpt_refdef.fd, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 			MESH_FILTER_TRANSPARENT, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 	}
 
@@ -2495,7 +2496,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 		const entity_t* entity = vkpt_refdef.fd->entities + masked_model_indices[i];
 		
 		const model_t* model = MOD_ForHandle(entity->model);
-		process_regular_entity(entity, model, false, true, &model_instance_idx, &instance_idx, &num_instanced_prim,
+		process_regular_entity(entity, model, vkpt_refdef.fd, false, true, &model_instance_idx, &instance_idx, &num_instanced_prim,
 			MESH_FILTER_MASKED, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 	}
 
@@ -2508,7 +2509,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 		{
 			const entity_t* entity = vkpt_refdef.fd->entities + viewer_model_indices[i];
 			const model_t* model = MOD_ForHandle(entity->model);
-			process_regular_entity(entity, model, false, true, &model_instance_idx, &instance_idx, &num_instanced_prim,
+			process_regular_entity(entity, model, vkpt_refdef.fd, false, true, &model_instance_idx, &instance_idx, &num_instanced_prim,
 				MESH_FILTER_ALL, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 		}
 	}
@@ -2523,7 +2524,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 		const entity_t* entity = vkpt_refdef.fd->entities + viewer_weapon_indices[i];
 		const model_t* model = MOD_ForHandle(entity->model);
 
-		process_regular_entity(entity, model, true, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
+		process_regular_entity(entity, model, vkpt_refdef.fd, true, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 			MESH_FILTER_ALL, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 
 		if(info_hand->integer == 1)
@@ -2539,7 +2540,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 	{
 		const entity_t* entity = vkpt_refdef.fd->entities + explosion_indices[i];
 		const model_t* model = MOD_ForHandle(entity->model);
-		process_regular_entity(entity, model, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
+		process_regular_entity(entity, model, vkpt_refdef.fd, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 			MESH_FILTER_ALL, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 	}
 

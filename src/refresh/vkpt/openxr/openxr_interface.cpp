@@ -3246,9 +3246,9 @@ extern "C"
 		return true;
 	}
 
-	bool GetHandMatrix(const int hand_id, float* view_origin_ptr, float* view_angles_ptr, float* matrix_ptr)
+	bool GetHandMatrix(const int hand_id, float* view_origin_ptr, float* view_angles_ptr, float* hand_matrix_ptr)
 	{
-		if(!openxr_.is_session_running() || !view_origin_ptr || !view_angles_ptr || !matrix_ptr || !openxr_.aim_pose_valid_[hand_id])
+		if(!openxr_.is_session_running() || !view_origin_ptr || !view_angles_ptr || !hand_matrix_ptr || !openxr_.aim_pose_valid_[hand_id])
 		{
 			return false;
 		}
@@ -3269,8 +3269,6 @@ extern "C"
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
 		const glm::vec3 view_angles_deg = *(glm::vec3*)view_angles_ptr;
 
-		glm::mat4 Sinv = inverse(S);
-		
 		const float view_position_x = view_origin.x;
 		const float view_position_y = view_origin.y;
 		const float view_position_z = view_origin.z;
@@ -3290,7 +3288,7 @@ extern "C"
 
 		glm::mat4 mirror_matrix(1);
 
-		const bool mirrored = (hand_id == LEFT) ? true : false;
+		const bool mirrored = false;// (hand_id == LEFT) ? true : false;
 
 		if(mirrored)
 		{
@@ -3324,11 +3322,11 @@ extern "C"
 
 		glm::mat4 final_hand_matrix = translation_matrix * final_rotation_matrix;
 
-#if 1
-		memcpy(matrix_ptr, &final_hand_matrix, sizeof(float) * 16);
+#if 0
+		memcpy(hand_matrix_ptr, &final_hand_matrix, sizeof(float) * 16);
 #else
 		glm::mat4 inverse_final_hand_matrix = inverse(final_hand_matrix);
-		memcpy(matrix_ptr, &inverse_final_hand_matrix, sizeof(float) * 16);
+		memcpy(hand_matrix_ptr, &inverse_final_hand_matrix, sizeof(float) * 16);
 #endif
 
 		return true;
