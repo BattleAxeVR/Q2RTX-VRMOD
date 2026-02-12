@@ -3262,7 +3262,7 @@ extern "C"
 
 		const BVR::GLMPose aim_pose_LS = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id]);
 		const glm::fquat aim_rotation = aim_pose_LS.rotation_;
-		const glm::mat4 aim_rotation_matrix_orig(1);// = glm::mat4_cast(BVR::default_rotation);// aim_rotation);
+		const glm::mat4 aim_rotation_matrix_orig = glm::mat4_cast(BVR::default_rotation);// aim_rotation);
 
 		glm::mat4 S(0);
 		S[0][2] = 1.0f;
@@ -3300,7 +3300,7 @@ extern "C"
 
 		if(mirrored)
 		{
-			mirror_matrix[0][0] = -1.0f;
+			mirror_matrix[2][2] = -1.0f;
 		}
 
 		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix* aim_rotation_matrix;
