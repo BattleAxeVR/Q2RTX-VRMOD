@@ -3261,7 +3261,7 @@ extern "C"
 		memcpy(&game_matrix_orig, hand_matrix_ptr, sizeof(float) * 16);
 
 		const BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id]);
-		const glm::mat4 hmd_rotation_matrix_orig = glm::mat4_cast(glm_xr_pose.rotation_);
+		const glm::mat4 hmd_rotation_matrix_orig(1);// = glm::mat4_cast(glm_xr_pose.rotation_);
 
 		glm::mat4 S(0);
 		S[0][2] = 1.0f;
@@ -3270,7 +3270,7 @@ extern "C"
 		S[3][3] = 1.0f;
 
 		glm::mat4 Sinv = inverse(S);
-		glm::mat4 hmd_rotation_matrix = Sinv * hmd_rotation_matrix_orig;
+		glm::mat4 hmd_rotation_matrix = hmd_rotation_matrix_orig;// Sinv* hmd_rotation_matrix_orig;
 
 		const glm::mat4 hmd_rotation_matrix_inverse = inverse(hmd_rotation_matrix);
 
@@ -3301,7 +3301,7 @@ extern "C"
 #endif
 
 		static float pitch_offset_deg = 0.0f;
-		static float yaw_offset_deg = 0.0f;
+		static float yaw_offset_deg = 180.0f;
 		static float roll_offset_deg = 0.0f;
 
 		const glm::vec3 euler_angles_rad = { -deg2rad(roll_offset_deg),  deg2rad(pitch_deg + pitch_offset_deg), deg2rad(yaw_deg + yaw_offset_deg) };
