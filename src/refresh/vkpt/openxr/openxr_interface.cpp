@@ -3095,8 +3095,8 @@ extern "C"
 
 		if(override_scale)
 		{
-			static float scale_override = 0.05f;
-			scale = scale_override;
+			static float scale_mult = 0.1f;
+			scale *= scale_mult;
 		}
 
 		glm::vec3 scale_vec = glm::vec3(scale, scale, scale);
