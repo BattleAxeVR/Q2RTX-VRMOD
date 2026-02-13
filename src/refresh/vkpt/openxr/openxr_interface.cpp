@@ -3149,39 +3149,27 @@ extern "C"
 		glm_pose.translation_.y = view_position_y;
 		glm_pose.translation_.z = view_position_z;
 
-#if 0//APPLY_IPD_TRANSLATION_TO_VIEW
-		static float ipd_mult = 1.0f;
-		const float ipd = GetIPD() * ipd_mult;
-		const float half_ipd = ipd * 0.5f;
-		const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
+		//const glm::vec4 hand_offset_WS = game_rotation_matrix * glm::vec4(glm_aim_pose.translation_, 1.0f);
+		//glm_pose.translation_ += hand_offset_WS;
 
-		const glm::vec4 ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 0.0f };
-		const glm::vec4 ipd_offset_WS = final_rotation_matrix * ipd_offset_LS;
-
-		glm_pose.translation_ += ipd_offset_WS;
-#endif
-
-#if 0//APPLY_HMD_TRANSLATION_TO_VIEW
-		XrView left_view = {};
-		XrView right_view = {};
-
-		if(openxr_.get_view(LEFT, left_view) && openxr_.get_view(RIGHT, right_view))
 		{
-			const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose);
-			const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose);
-
-			glm::vec3 head_position_LS = (left_eye_pose.translation_ + right_eye_pose.translation_) * 0.5f;
+			static float offset_x = 0.0f;
+			static float offset_y = 0.0f;
 
 			const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
 			const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
-			const glm::vec4 head_position_WS = game_rotation2 * glm::vec4(head_position_LS.x, 0.0f, head_position_LS.z, 0.0f);
 
-			static float world_mult = 1.0f;
-			glm_pose.translation_.x -= head_position_WS.z * world_mult;
-			glm_pose.translation_.y -= head_position_WS.x * world_mult;
-			glm_pose.translation_.z += head_position_LS.y * world_mult;
+			//const glm::vec4 hand_position_LS = glm::vec4(glm_aim_pose.translation_.x + offset_x, 0.0f, glm_aim_pose.translation_.z + offset_y, 0.0f);
+			const glm::vec4 hand_position_LS = glm::vec4(offset_x, 0.0f, offset_y, 1.0f);
+			const glm::vec4 hand_position_WS = game_rotation2 * hand_position_LS;
+
+			static float world_mult = 10.0f;
+			static float offset_z = 4.0f;
+
+			glm_pose.translation_.x += hand_position_WS.z * world_mult;
+			glm_pose.translation_.y += hand_position_WS.x * world_mult;
+			glm_pose.translation_.z += glm_aim_pose.translation_.y * world_mult + offset_z;
 		}
-#endif
 
 		glm::mat4 translation_matrix = glm_pose.to_matrix();
 
