@@ -3160,9 +3160,9 @@ extern "C"
 		const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
 
-		static float offset_x = -0.8f; // -X = closer to camera, +X farther away
-		static float offset_y = 0.25f; // + Y = move to right
-		static float offset_z = 0.5f; // + Z = move up
+		static float offset_x = -0.5f; // -X = closer to camera, +X farther away
+		static float offset_y = 0.4f; // + Y = move to right
+		static float offset_z = 0.6f; // + Z = move up
 
 		const glm::vec3 pivot_position_LS = glm::vec3(offset_x, offset_y, offset_z);
 		const glm::mat4 pre_translation_matrix = glm::translate(glm::mat4(1), pivot_position_LS);
