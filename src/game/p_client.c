@@ -409,14 +409,16 @@ void TossClientWeapon(edict_t *self)
     else
         spread = 0.0f;
 
-    if (item) {
+    if (item) 
+    {
         self->client->v_angle[YAW] -= spread;
         drop = Drop_Item(self, item);
         self->client->v_angle[YAW] += spread;
         drop->spawnflags = DROPPED_PLAYER_ITEM;
     }
 
-    if (quad) {
+    if (quad) 
+    {
         self->client->v_angle[YAW] += spread;
         drop = Drop_Item(self, FindItemByClassname("item_quad"));
         self->client->v_angle[YAW] -= spread;
@@ -437,11 +439,16 @@ void LookAtKiller(edict_t *self, edict_t *inflictor, edict_t *attacker)
 {
     vec3_t      dir;
 
-    if (attacker && attacker != world && attacker != self) {
+    if (attacker && attacker != world && attacker != self) 
+    {
         VectorSubtract(attacker->s.origin, self->s.origin, dir);
-    } else if (inflictor && inflictor != world && inflictor != self) {
+    } 
+    else if (inflictor && inflictor != world && inflictor != self) 
+    {
         VectorSubtract(inflictor->s.origin, self->s.origin, dir);
-    } else {
+    } 
+    else 
+    {
         self->client->killer_yaw = self->s.angles[YAW];
         return;
     }
