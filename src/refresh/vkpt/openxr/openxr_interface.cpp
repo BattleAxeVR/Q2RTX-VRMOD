@@ -3088,7 +3088,7 @@ extern "C"
 
 		if(scale == 0.0f)
 		{
-			scale = 1.0f;
+			return false;
 		}
 
 		glm::vec3 scale_vec = glm::vec3(scale, scale, scale);
