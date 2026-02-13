@@ -2597,7 +2597,8 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 			entity_hash_t hash;
 			memcpy(&hash, &model_entity_ids[entity_frame_num][i], sizeof(entity_hash_t));
 
-			if(model_entity_ids[entity_frame_num][i] == model_entity_ids[!entity_frame_num][j] && hash.entity != 0u) {
+			if(model_entity_ids[entity_frame_num][i] == model_entity_ids[!entity_frame_num][j] && hash.entity != 0u) 
+			{
 				instance_buffer->model_current_to_prev[i] = j;
 				instance_buffer->model_prev_to_current[j] = i;
 
