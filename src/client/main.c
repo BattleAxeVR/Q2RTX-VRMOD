@@ -2858,11 +2858,11 @@ static void CL_InitLocal(void)
     cl_xr_view = Cvar_Get("xr_view", "1", 0);
     cl_xr_proj = Cvar_Get("xr_proj", "1", 0);
     cl_xr_gun = Cvar_Get("xr_gun", "1", 0);
-    cl_xr_gun_scale = Cvar_Get("xr_gun_scale", "1", 0);
+    cl_xr_gun_scale = Cvar_Get("xr_gun_scale", "0.1", 0);
 
-    cl_xr_gun_offset_x = Cvar_Get("xr_gun_offset_x", "0", 0);
-    cl_xr_gun_offset_y = Cvar_Get("xr_gun_offset_y", "0", 0);
-    cl_xr_gun_offset_z = Cvar_Get("xr_gun_offset_z", "0", 0);
+    cl_xr_gun_offset_x = Cvar_Get("xr_gun_offset_x", "-0.45", 0);
+    cl_xr_gun_offset_y = Cvar_Get("xr_gun_offset_y", "0.15", 0);
+    cl_xr_gun_offset_z = Cvar_Get("xr_gun_offset_z", "0.25", 0);
 
     cl_xr_ipd_mult = Cvar_Get("xr_ipd_mult", "1", 0);
 
