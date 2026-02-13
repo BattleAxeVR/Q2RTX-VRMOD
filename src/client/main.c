@@ -46,6 +46,7 @@ cvar_t  *cl_fov_down;
 cvar_t  *cl_xr_view;
 cvar_t  *cl_xr_proj;
 cvar_t  *cl_xr_gun;
+cvar_t  *cl_xr_gun_scale;
 cvar_t  *cl_xr_gun_offset_x;
 cvar_t  *cl_xr_gun_offset_y;
 cvar_t  *cl_xr_gun_offset_z;
@@ -2857,6 +2858,7 @@ static void CL_InitLocal(void)
     cl_xr_view = Cvar_Get("xr_view", "1", 0);
     cl_xr_proj = Cvar_Get("xr_proj", "1", 0);
     cl_xr_gun = Cvar_Get("xr_gun", "1", 0);
+    cl_xr_gun_scale = Cvar_Get("xr_gun_scale", "1", 0);
 
     cl_xr_gun_offset_x = Cvar_Get("xr_gun_offset_x", "0", 0);
     cl_xr_gun_offset_y = Cvar_Get("xr_gun_offset_y", "0", 0);

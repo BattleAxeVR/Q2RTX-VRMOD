@@ -3091,14 +3091,6 @@ extern "C"
 			scale = 1.0f;
 		}
 
-		static bool override_scale = true;
-
-		if(override_scale)
-		{
-			static float scale_mult = 0.1f;
-			scale *= scale_mult;
-		}
-
 		glm::vec3 scale_vec = glm::vec3(scale, scale, scale);
 		glm::mat4 scale_matrix = glm::scale(glm::mat4(1.0f), scale_vec);
 
