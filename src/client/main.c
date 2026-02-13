@@ -2916,13 +2916,7 @@ static void CL_InitLocal(void)
     info_skin = Cvar_Get("skin", "male/grunt", CVAR_USERINFO | CVAR_ARCHIVE);
     info_rate = Cvar_Get("rate", "15000", CVAR_USERINFO | CVAR_ARCHIVE);
     info_msg = Cvar_Get("msg", "1", CVAR_USERINFO | CVAR_ARCHIVE);
-
-#if 0//SUPPORT_OPENXR
-    info_hand = Cvar_Get("hand", "2", CVAR_USERINFO | CVAR_ARCHIVE);
-#else
     info_hand = Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
-#endif
-    
     info_hand->changed = info_hand_changed;
     info_fov = Cvar_Get("fov", "75", CVAR_USERINFO | CVAR_ARCHIVE);
     info_gender = Cvar_Get("gender", "male", CVAR_USERINFO | CVAR_ARCHIVE);

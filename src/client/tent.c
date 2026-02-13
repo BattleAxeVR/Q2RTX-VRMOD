@@ -21,6 +21,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "client.h"
 #include "common/mdfour.h"
 #include "refresh/models.h"
+#include "../refresh/vkpt/openxr/defines.h"
 
 qhandle_t   cl_sfx_ric1;
 qhandle_t   cl_sfx_ric2;
@@ -871,7 +872,7 @@ CL_AddPlayerBeams
 Draw player locked beams.
 =================
 */
-static void CL_AddPlayerBeams(void)
+static void CL_AddPlayerBeams(int hand_id)
 {
     int         i, j, steps;
     beam_t      *b;
@@ -889,14 +890,12 @@ static void CL_AddPlayerBeams(void)
     {
         hand_multiplier = 0;
     }
-    else if(info_hand->integer == 1)
+    else if(hand_id == LEFT)
     {
-        // Left handed
         hand_multiplier = -1;
     }
     else
     {
-        // Right handed
         hand_multiplier = 1;
     }
 
@@ -1817,7 +1816,10 @@ CL_AddTEnts
 void CL_AddTEnts(void)
 {
     CL_AddBeams();
-    CL_AddPlayerBeams();
+
+    CL_AddPlayerBeams(LEFT);
+    CL_AddPlayerBeams(LEFT);
+
     CL_AddExplosions();
     CL_ProcessSustain();
     CL_AddLasers();

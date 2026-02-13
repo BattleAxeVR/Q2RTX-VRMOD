@@ -2166,6 +2166,7 @@ static void process_regular_entity(
 	const entity_t* entity, 
 	const model_t* model, 
 	const refdef_t* fd,
+	int hand_id,
 	bool is_viewer_weapon, 
 	bool is_double_sided, 
 	int* instance_count, 
@@ -2186,34 +2187,16 @@ static void process_regular_entity(
 
 	if(is_viewer_weapon)
 	{
-		create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
-		
 #if APPLY_CONTROLLER_TRACKING_TO_GUN
-		if (cl_xr_gun->value == 1.0f)
+		if (stereo && cl_xr_gun->value >= 1.0f)
 		{
-			const int hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
-#if 1
-			vec3_t origin = { 0 };
-			origin[0] = entity->origin[0];// (1.0f - entity->backlerp)* entity->origin[0] + entity->backlerp * entity->oldorigin[0];
-			origin[1] = entity->origin[1];// (1.0f - entity->backlerp)* entity->origin[1] + entity->backlerp * entity->oldorigin[1];
-			origin[2] = entity->origin[2];// (1.0f - entity->backlerp)* entity->origin[2] + entity->backlerp * entity->oldorigin[2];
-
-
 			GetHandMatrix(hand_id, (float*)&fd->vieworg, (float*)&fd->viewangles, &((entity_t*)entity)->scale, transform);
-#else
-			vec3_t axis[3] = { 0 };
-			AnglesToAxis(entity->angles, axis);
-
-			vec3_t origin = { 0 };
-			origin[0] = (1.0f - entity->backlerp) * entity->origin[0] + entity->backlerp * entity->oldorigin[0];
-			origin[1] = (1.0f - entity->backlerp) * entity->origin[1] + entity->backlerp * entity->oldorigin[1];
-			origin[2] = (1.0f - entity->backlerp) * entity->origin[2] + entity->backlerp * entity->oldorigin[2];
-
-			//GetHandMatrix(hand_id, (float*)&origin, (float*)&axis, &((entity_t*)entity)->scale, transform);
-			//GetHandMatrix(hand_id, (float*)&origin, (float*)&fd->viewangles, &((entity_t*)entity)->scale, transform);
-#endif
 		}
+		else
 #endif
+		{
+			create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
+		}
 	}
 	else
 	{
@@ -2419,6 +2402,8 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 	int instance_idx = 0;
 	int iqm_matrix_offset = 0;
 
+	int hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
+
 	const bool first_person_model = (cl_player_model->integer == CL_PLAYER_MODEL_FIRST_PERSON) && cl.baseclientinfo.model;
 
 	for (int i = 0; i < vkpt_refdef.fd->num_entities; i++)
@@ -2455,7 +2440,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 				bool contains_transparent = false;
 				bool contains_masked = false;
 
-				process_regular_entity(entity, model, vkpt_refdef.fd, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
+				process_regular_entity(entity, model, vkpt_refdef.fd, hand_id, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 					MESH_FILTER_OPAQUE, &contains_transparent, &contains_masked, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 
 				if(contains_transparent)
@@ -2499,7 +2484,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 		const entity_t* entity = vkpt_refdef.fd->entities + transparent_model_indices[i];
 
 		const model_t* model = MOD_ForHandle(entity->model);
-		process_regular_entity(entity, model, vkpt_refdef.fd, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
+		process_regular_entity(entity, model, vkpt_refdef.fd, hand_id, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 			MESH_FILTER_TRANSPARENT, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 	}
 
@@ -2511,7 +2496,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 		const entity_t* entity = vkpt_refdef.fd->entities + masked_model_indices[i];
 		
 		const model_t* model = MOD_ForHandle(entity->model);
-		process_regular_entity(entity, model, vkpt_refdef.fd, false, true, &model_instance_idx, &instance_idx, &num_instanced_prim,
+		process_regular_entity(entity, model, vkpt_refdef.fd, hand_id, false, true, &model_instance_idx, &instance_idx, &num_instanced_prim,
 			MESH_FILTER_MASKED, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 	}
 
@@ -2524,7 +2509,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 		{
 			const entity_t* entity = vkpt_refdef.fd->entities + viewer_model_indices[i];
 			const model_t* model = MOD_ForHandle(entity->model);
-			process_regular_entity(entity, model, vkpt_refdef.fd, false, true, &model_instance_idx, &instance_idx, &num_instanced_prim,
+			process_regular_entity(entity, model, vkpt_refdef.fd, hand_id, false, true, &model_instance_idx, &instance_idx, &num_instanced_prim,
 				MESH_FILTER_ALL, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 		}
 	}
@@ -2539,13 +2524,17 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 		const entity_t* entity = vkpt_refdef.fd->entities + viewer_weapon_indices[i];
 		const model_t* model = MOD_ForHandle(entity->model);
 
-		process_regular_entity(entity, model, vkpt_refdef.fd, true, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
+		int hand_to_use = hand_id;
+
+		if(viewer_weapon_num == 2)
+		{
+			hand_to_use = ((i % 2) == 0) ? LEFT : RIGHT;
+		}
+
+		process_regular_entity(entity, model, vkpt_refdef.fd, hand_to_use, true, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 			MESH_FILTER_ALL, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 
-		if(info_hand->integer == 1)
-		{
-			upload_info->weapon_left_handed = true;
-		}
+		upload_info->weapon_left_handed = (hand_to_use == LEFT);
 	}
 
 	upload_info->viewer_weapon_prim_count = num_instanced_prim - upload_info->viewer_weapon_prim_offset;
@@ -2555,7 +2544,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 	{
 		const entity_t* entity = vkpt_refdef.fd->entities + explosion_indices[i];
 		const model_t* model = MOD_ForHandle(entity->model);
-		process_regular_entity(entity, model, vkpt_refdef.fd, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
+		process_regular_entity(entity, model, vkpt_refdef.fd, hand_id, false, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 			MESH_FILTER_ALL, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
 	}
 
@@ -2609,7 +2598,9 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 			for (int i = 0; i < model_entity_id_count[entity_frame_num]; i++)
 			{
 				ModelInstance* instance = &instance_buffer->model_instances[i];
-				if (instance->iqm_matrix_offset_prev_frame >= 0) {
+
+				if (instance->iqm_matrix_offset_prev_frame >= 0) 
+				{
 					// Offset = current matrix count
 					instance->iqm_matrix_offset_prev_frame += iqm_matrix_count[entity_frame_num];
 				}
@@ -2736,6 +2727,7 @@ static void process_render_feedback(ref_feedback_t *feedback, mleaf_t* viewleaf,
 		char const * view_material_override = unknown;
 		ReadbackBuffer readback;
 		vkpt_readback(&readback);
+
 		if (readback.material != ~0u)
 		{
 			int material_id = readback.material & MATERIAL_INDEX_MASK;

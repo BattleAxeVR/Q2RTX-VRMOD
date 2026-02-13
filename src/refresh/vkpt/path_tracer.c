@@ -876,8 +876,7 @@ build_tlas(accel_build_batch_t *batch, accel_struct_t* as, VkDeviceAddress insta
 	batch->rangeInfoPtrs[buildIdx] = &batch->rangeInfos[buildIdx];
 }
 
-VkResult
-vkpt_pt_create_toplevel(VkCommandBuffer cmd_buf, int idx, const EntityUploadInfo* upload_info, bool weapon_left_handed)
+VkResult vkpt_pt_create_toplevel(VkCommandBuffer cmd_buf, int idx, const EntityUploadInfo* upload_info, bool weapon_left_handed)
 {
 	append_blas(g_instances, &g_num_instances, &blas_dynamic[idx], VERTEX_BUFFER_INSTANCED, 0,
 		AS_FLAG_OPAQUE, VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR, SBTO_OPAQUE);
@@ -901,25 +900,21 @@ vkpt_pt_create_toplevel(VkCommandBuffer cmd_buf, int idx, const EntityUploadInfo
 
 	// Note: explosions use a different primitive addressing scheme from the other geometry.
 	// See the comment in pt_logic_explosion(...) in path_tracer_hit_shaders.h for more info.
-	append_blas(g_instances, &g_num_instances, &blas_explosions[idx], (int)upload_info->explosions_prim_offset, 0,
-		AS_FLAG_EFFECTS, 0, SBTO_EXPLOSION);
+	append_blas(g_instances, &g_num_instances, &blas_explosions[idx], (int)upload_info->explosions_prim_offset, 0, AS_FLAG_EFFECTS, 0, SBTO_EXPLOSION);
 	
 	if (cvar_pt_enable_particles->integer != 0)
 	{
-		append_blas(g_instances, &g_num_instances, &blas_particles[idx], 0, 0,
-			AS_FLAG_EFFECTS, VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR, SBTO_PARTICLE);
+		append_blas(g_instances, &g_num_instances, &blas_particles[idx], 0, 0, AS_FLAG_EFFECTS, VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR, SBTO_PARTICLE);
 	}
 
 	if (cvar_pt_enable_beams->integer != 0)
 	{
-		append_blas(g_instances, &g_num_instances, &blas_beams[idx], 0, 0,
-			AS_FLAG_EFFECTS, VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR, SBTO_BEAM);
+		append_blas(g_instances, &g_num_instances, &blas_beams[idx], 0, 0, AS_FLAG_EFFECTS, VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR, SBTO_BEAM);
 	}
 
 	if (cvar_pt_enable_sprites->integer != 0)
 	{
-		append_blas(g_instances, &g_num_instances, &blas_sprites[idx], 0, 0,
-			AS_FLAG_EFFECTS, VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR, SBTO_SPRITE);
+		append_blas(g_instances, &g_num_instances, &blas_sprites[idx], 0, 0, AS_FLAG_EFFECTS, VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR, SBTO_SPRITE);
 	}
 
 	uint32_t num_instances_effects = g_num_instances - num_instances_geometry;
@@ -966,22 +961,17 @@ static void setup_rt_pipeline(VkCommandBuffer cmd_buf, VkPipelineBindPoint bind_
 {
 	vkCmdBindPipeline(cmd_buf, bind_point, rt_pipelines[index]);
 
-	vkCmdBindDescriptorSets(cmd_buf, bind_point,
-		rt_pipeline_layout, 0, 1, rt_descriptor_set + qvk.current_frame_index, 0, 0);
+	vkCmdBindDescriptorSets(cmd_buf, bind_point, rt_pipeline_layout, 0, 1, rt_descriptor_set + qvk.current_frame_index, 0, 0);
 
-	vkCmdBindDescriptorSets(cmd_buf, bind_point,
-		rt_pipeline_layout, 1, 1, &qvk.desc_set_ubo, 0, 0);
+	vkCmdBindDescriptorSets(cmd_buf, bind_point, rt_pipeline_layout, 1, 1, &qvk.desc_set_ubo, 0, 0);
 
 	VkDescriptorSet desc_set_textures = qvk_get_current_desc_set_textures();
-	vkCmdBindDescriptorSets(cmd_buf, bind_point,
-		rt_pipeline_layout, 2, 1, &desc_set_textures, 0, 0);
+	vkCmdBindDescriptorSets(cmd_buf, bind_point, rt_pipeline_layout, 2, 1, &desc_set_textures, 0, 0);
 
-	vkCmdBindDescriptorSets(cmd_buf, bind_point,
-		rt_pipeline_layout, 3, 1, &qvk.desc_set_vertex_buffer, 0, 0);
+	vkCmdBindDescriptorSets(cmd_buf, bind_point, rt_pipeline_layout, 3, 1, &qvk.desc_set_vertex_buffer, 0, 0);
 }
 
-static void
-dispatch_rays(VkCommandBuffer cmd_buf, pipeline_index_t pipeline_index, pt_push_constants_t push, uint32_t width, uint32_t height, uint32_t depth)
+static void dispatch_rays(VkCommandBuffer cmd_buf, pipeline_index_t pipeline_index, pt_push_constants_t push, uint32_t width, uint32_t height, uint32_t depth)
 {
 	if (qvk.use_ray_query)
 	{
@@ -1001,19 +991,22 @@ dispatch_rays(VkCommandBuffer cmd_buf, pipeline_index_t pipeline_index, pt_push_
 		
 		assert(buf_shader_binding_table.address);
 
-		VkStridedDeviceAddressRegionKHR raygen = {
+		VkStridedDeviceAddressRegionKHR raygen = 
+		{
 			.deviceAddress = buf_shader_binding_table.address + sbt_offset,
 			.stride = shaderGroupBaseAlignment,
 			.size = shaderGroupBaseAlignment
 		};
 
-		VkStridedDeviceAddressRegionKHR miss_and_hit = {
+		VkStridedDeviceAddressRegionKHR miss_and_hit = 
+		{
 			.deviceAddress = buf_shader_binding_table.address + sbt_offset,
 			.stride = shaderGroupBaseAlignment,
 			.size = (VkDeviceSize)shaderGroupBaseAlignment * SBT_ENTRIES_PER_PIPELINE
 		};
 
-		VkStridedDeviceAddressRegionKHR callable = {
+		VkStridedDeviceAddressRegionKHR callable = 
+		{
 			.deviceAddress = 0,
 			.stride = 0,
 			.size = 0
@@ -1028,8 +1021,7 @@ dispatch_rays(VkCommandBuffer cmd_buf, pipeline_index_t pipeline_index, pt_push_
 	}
 }
 
-VkResult
-vkpt_pt_trace_primary_rays(VkCommandBuffer cmd_buf)
+VkResult vkpt_pt_trace_primary_rays(VkCommandBuffer cmd_buf)
 {
 	int frame_idx = qvk.frame_counter & 1;
 	
@@ -1079,8 +1071,7 @@ vkpt_pt_trace_primary_rays(VkCommandBuffer cmd_buf)
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_pt_trace_reflections(VkCommandBuffer cmd_buf, int bounce)
+VkResult vkpt_pt_trace_reflections(VkCommandBuffer cmd_buf, int bounce)
 {
 	int frame_idx = qvk.frame_counter & 1;
 
@@ -1116,8 +1107,7 @@ vkpt_pt_trace_reflections(VkCommandBuffer cmd_buf, int bounce)
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
+VkResult vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 {
 	BEGIN_PERF_MARKER(cmd_buf, PROFILER_DIRECT_LIGHTING);
 
@@ -1199,8 +1189,7 @@ vkpt_pt_trace_lighting(VkCommandBuffer cmd_buf, float num_bounce_rays)
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_pt_destroy()
+VkResult vkpt_pt_destroy()
 {
 	for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
@@ -1218,10 +1207,10 @@ vkpt_pt_destroy()
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_pt_create_pipelines()
+VkResult vkpt_pt_create_pipelines()
 {
-	VkSpecializationMapEntry specEntry = {
+	VkSpecializationMapEntry specEntry = 
+	{
 		.constantID = 0,
 		.offset = 0,
 		.size = sizeof(uint32_t),
@@ -1229,7 +1218,8 @@ vkpt_pt_create_pipelines()
 
 	uint32_t numbers[2] = { 0, 1 };
 
-	VkSpecializationInfo specInfo[2] = {
+	VkSpecializationInfo specInfo[2] = 
+	{
 		{
 			.mapEntryCount = 1,
 			.pMapEntries = &specEntry,

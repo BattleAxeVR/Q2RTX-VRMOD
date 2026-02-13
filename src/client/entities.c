@@ -27,6 +27,7 @@ extern qhandle_t cl_mod_laser;
 extern qhandle_t cl_mod_dmspot;
 
 extern cvar_t *cl_stereo;
+extern cvar_t *cl_xr_gun;
 
 /*
 =========================================================================
@@ -1232,7 +1233,7 @@ static void CL_SetupFirstPersonView(void)
 
     if(stereo)
     {
-        const bool dual_wield = false;
+        const bool dual_wield = (cl_xr_gun->value == 2.0f);
 
         if(dual_wield)
         {
@@ -1247,9 +1248,9 @@ static void CL_SetupFirstPersonView(void)
     }
     else
     {
-        //const bool show_neither_weapon = (info_hand->integer == 2);
+        const bool show_neither_weapon = (info_hand->integer == 2);
 
-        //if(!show_neither_weapon)
+        if(!show_neither_weapon)
         {
             int main_hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
             CL_AddViewWeapon(main_hand_id);
