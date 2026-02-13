@@ -278,16 +278,17 @@ vkpt_pt_init()
 	return VK_SUCCESS;
 }
 
-VkResult
-vkpt_pt_update_descripter_set_bindings(int idx)
+VkResult vkpt_pt_update_descripter_set_bindings(int idx)
 {
-	/* update descriptor set bindings */
-	const VkAccelerationStructureKHR tlas[TLAS_COUNT] = {
+	// update descriptor set bindings
+	const VkAccelerationStructureKHR tlas[TLAS_COUNT] = 
+	{
 		[TLAS_INDEX_GEOMETRY] = tlas_geometry[idx].accel,
 		[TLAS_INDEX_EFFECTS] = tlas_effects[idx].accel
 	};
 	
-	VkWriteDescriptorSetAccelerationStructureKHR desc_accel_struct = {
+	VkWriteDescriptorSetAccelerationStructureKHR desc_accel_struct = 
+	{
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
 		.accelerationStructureCount = TLAS_COUNT,
 		.pAccelerationStructures = tlas
@@ -298,7 +299,8 @@ vkpt_pt_update_descripter_set_bindings(int idx)
 	VkBufferView sprite_info_buffer_view = get_transparency_sprite_info_buffer_view();
 	VkBufferView beam_intersect_buffer_view = get_transparency_beam_intersect_buffer_view();
 
-	VkWriteDescriptorSet writes[] = {
+	VkWriteDescriptorSet writes[] = 
+	{
 		{
 			.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 			.pNext           = (const void*)&desc_accel_struct,
@@ -376,36 +378,26 @@ static void vkpt_pt_destroy_dynamic(int idx)
 	destroy_accel_struct(&blas_sprites[idx]);
 }
 
-static inline int accel_matches(accel_match_info_t *match,
-								int fast_build,
-								uint32_t vertex_count,
-								uint32_t index_count) {
-	return match->fast_build == fast_build &&
-		   match->vertex_count >= vertex_count &&
-		   match->index_count >= index_count;
+static inline int accel_matches(accel_match_info_t *match, int fast_build, uint32_t vertex_count, uint32_t index_count) 
+{
+	return match->fast_build == fast_build && match->vertex_count >= vertex_count && match->index_count >= index_count;
 }
 
-static inline int accel_matches_aabb(accel_match_info_t *match,
-								int fast_build,
-								uint32_t aabb_count) {
-	return match->fast_build == fast_build &&
-		   match->aabb_count >= aabb_count;
+static inline int accel_matches_aabb(accel_match_info_t *match, int fast_build,	uint32_t aabb_count) 
+{
+	return match->fast_build == fast_build && match->aabb_count >= aabb_count;
 }
 
-static inline int accel_matches_top_level(accel_match_info_t *match,
-								int fast_build,
-								uint32_t instance_count) {
-	return match->fast_build == fast_build &&
-		   match->instance_count >= instance_count;
+static inline int accel_matches_top_level(accel_match_info_t *match, int fast_build, uint32_t instance_count) 
+{
+	return match->fast_build == fast_build && match->instance_count >= instance_count;
 }
 
 // How much to bloat the dynamic geometry allocations
 // to try to avoid later allocations.
 #define DYNAMIC_GEOMETRY_BLOAT_FACTOR 2
 
-
-static void
-vkpt_pt_create_accel_bottom(
+static void vkpt_pt_create_accel_bottom(
 	accel_build_batch_t* batch,
 	BufferResource_t* buffer_vertex,
 	VkDeviceAddress offset_vertex,
@@ -442,11 +434,13 @@ vkpt_pt_create_accel_bottom(
 		.indexType = buffer_index ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_NONE_KHR,
 	};
 
-	const VkAccelerationStructureGeometryDataKHR geometry_data = { 
+	const VkAccelerationStructureGeometryDataKHR geometry_data = 
+	{ 
 		.triangles = triangles
 	};
 
-	const VkAccelerationStructureGeometryKHR geometry = {
+	const VkAccelerationStructureGeometryKHR geometry = 
+	{
 		.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
 		.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR,
 		.geometry = geometry_data
@@ -543,10 +537,7 @@ vkpt_pt_create_accel_bottom(
 	blas->present = true;
 }
 
-static void
-vkpt_pt_create_accel_bottom_aabb(
-	accel_build_batch_t* batch,
-	BufferResource_t* buffer_aabb,
+static void vkpt_pt_create_accel_bottom_aabb(accel_build_batch_t* batch, BufferResource_t* buffer_aabb,
 	VkDeviceAddress offset_aabb,
 	int num_aabbs,
 	accel_struct_t* blas,
@@ -567,17 +558,20 @@ vkpt_pt_create_accel_bottom_aabb(
 
 	assert(buffer_aabb->address);
 
-	const VkAccelerationStructureGeometryAabbsDataKHR aabbs = {
+	const VkAccelerationStructureGeometryAabbsDataKHR aabbs = 
+	{
 		.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_AABBS_DATA_KHR,
 		.data = {.deviceAddress = buffer_aabb->address + offset_aabb },
 		.stride = sizeof(VkAabbPositionsKHR)
 	};
 
-	const VkAccelerationStructureGeometryDataKHR geometry_data = { 
+	const VkAccelerationStructureGeometryDataKHR geometry_data = 
+	{ 
 		.aabbs = aabbs
 	};
 
-	const VkAccelerationStructureGeometryKHR geometry = {
+	const VkAccelerationStructureGeometryKHR geometry = 
+	{
 		.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
 		.geometryType = VK_GEOMETRY_TYPE_AABBS_KHR,
 		.geometry = geometry_data
@@ -672,11 +666,7 @@ vkpt_pt_create_accel_bottom_aabb(
 	blas->present = true;
 }
 
-VkResult
-vkpt_pt_create_all_dynamic(
-	VkCommandBuffer cmd_buf,
-	int idx, 
-	const EntityUploadInfo* upload_info)
+VkResult vkpt_pt_create_all_dynamic(VkCommandBuffer cmd_buf, int idx, const EntityUploadInfo* upload_info)
 {
 	scratch_buf_ptr = 0;
 
@@ -685,6 +675,7 @@ vkpt_pt_create_all_dynamic(
 	uint64_t offset_vertex_base = 0;
 	uint64_t offset_vertex = offset_vertex_base;
 	uint64_t offset_index = 0;
+
 	vkpt_pt_create_accel_bottom(&batch, &qvk.buf_positions_instanced, offset_vertex, NULL, offset_index,
 		upload_info->opaque_prim_count * 3, 0, blas_dynamic + idx, true, true, "opaque");
 
@@ -732,14 +723,17 @@ vkpt_pt_create_all_dynamic(
 	return VK_SUCCESS;
 }
 
-static void
-append_blas(QvkGeometryInstance_t *instances, uint32_t *num_instances, accel_struct_t* blas, int vbo_index, uint prim_offset, int mask, int flags, int sbt_offset)
+static void append_blas(QvkGeometryInstance_t *instances, uint32_t *num_instances, accel_struct_t* blas, int vbo_index, uint prim_offset, int mask, int flags, int sbt_offset)
 {
-	if (!blas->present)
+	if(!blas->present)
+	{
 		return;
+	}
 
-	QvkGeometryInstance_t instance = {
-		.transform = {
+	QvkGeometryInstance_t instance = 
+	{
+		.transform = 
+		{
 			1.0f, 0.0f, 0.0f, 0.0f,
 			0.0f, 1.0f, 0.0f, 0.0f,
 			0.0f, 0.0f, 1.0f, 0.0f,
@@ -751,7 +745,8 @@ append_blas(QvkGeometryInstance_t *instances, uint32_t *num_instances, accel_str
 		.acceleration_structure = 0
 	};
 	
-	VkAccelerationStructureDeviceAddressInfoKHR  as_device_address_info = {
+	VkAccelerationStructureDeviceAddressInfoKHR  as_device_address_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DEVICE_ADDRESS_INFO_KHR,
 		.accelerationStructure = blas->accel,
 	};
@@ -772,10 +767,13 @@ void vkpt_pt_reset_instances()
 
 void vkpt_pt_instance_model_blas(const model_geometry_t* geom, const mat4 transform, uint32_t buffer_idx, int model_instance_index, uint32_t override_instance_mask)
 {
-	if (!geom->accel)
+	if(!geom->accel)
+	{
 		return;
+	}
 
-	QvkGeometryInstance_t gpu_instance = {
+	QvkGeometryInstance_t gpu_instance = 
+	{
 		.transform = { // transpose the matrix
 			transform[0][0], transform[1][0], transform[2][0], transform[3][0],
 			transform[0][1], transform[1][1], transform[2][1], transform[3][1],
@@ -795,15 +793,17 @@ void vkpt_pt_instance_model_blas(const model_geometry_t* geom, const mat4 transf
 	++g_num_instances;
 }
 
-static void
-build_tlas(accel_build_batch_t *batch, accel_struct_t* as, VkDeviceAddress instance_data, uint32_t num_instances)
+static void build_tlas(accel_build_batch_t *batch, accel_struct_t* as, VkDeviceAddress instance_data, uint32_t num_instances)
 {
 	assert(batch->numBuilds < MAX_BATCH_ACCEL_BUILDS);
 	uint32_t buildIdx = batch->numBuilds++;
 
 	// Build the TLAS
-	VkAccelerationStructureGeometryDataKHR geometry = {
-		.instances = {
+
+	VkAccelerationStructureGeometryDataKHR geometry = 
+	{
+		.instances = 
+		{
 			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
 			.data = {.deviceAddress = instance_data}
 		}
