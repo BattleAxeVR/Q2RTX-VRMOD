@@ -801,7 +801,8 @@ void Weapon_HyperBlaster_Fire(edict_t *ent)
 
     ent->client->weapon_sound = gi.soundindex("weapons/hyprbl1a.wav");
 
-    if (!(ent->client->buttons & BUTTON_ATTACK)) {
+    if (!(ent->client->buttons & BUTTON_ATTACK)) 
+    {
         ent->client->ps.gunframe++;
     } 
     else 
@@ -862,6 +863,7 @@ void Weapon_HyperBlaster_Fire(edict_t *ent)
         }
 
         ent->client->ps.gunframe++;
+
         if(ent->client->ps.gunframe == 12 && ent->client->pers.inventory[ent->client->ammo_index])
         {
             ent->client->ps.gunframe = 6;
