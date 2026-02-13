@@ -3260,6 +3260,8 @@ extern "C"
 			scale = 1.0f;
 		}
 
+		const bool mirrored = (hand_id == LEFT) ? true : false;
+
 		glm::vec3 scale_vec = glm::vec3(scale, scale, scale);
 		glm::mat4 scale_matrix = glm::scale(glm::mat4(1.0f), scale_vec);
 
@@ -3267,14 +3269,23 @@ extern "C"
 		memcpy(&game_matrix_orig, hand_matrix_ptr, sizeof(float) * 16);
 
 		const BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id]);
-		//const glm::mat4 hmd_rotation_matrix_orig(glm::mat4_cast(BVR::default_rotation));
 
 		glm::fquat rot = BVR::default_rotation;
 
-		rot.x = glm_xr_pose.rotation_.z;
-		rot.y = -glm_xr_pose.rotation_.x;
-		rot.z = -glm_xr_pose.rotation_.y;
-		rot.w = glm_xr_pose.rotation_.w;
+		if(mirrored)
+		{
+			rot.x = glm_xr_pose.rotation_.z;
+			rot.y = -glm_xr_pose.rotation_.x;
+			rot.z = -glm_xr_pose.rotation_.y;
+			rot.w = glm_xr_pose.rotation_.w;
+		}
+		else
+		{
+			rot.x = glm_xr_pose.rotation_.z;
+			rot.y = glm_xr_pose.rotation_.x;
+			rot.z = glm_xr_pose.rotation_.y;
+			rot.w = -glm_xr_pose.rotation_.w;
+		}
 
 		rot = normalize(rot);
 
@@ -3317,7 +3328,6 @@ extern "C"
 		const float roll_deg = 0.0f;
 #endif
 
-		const bool mirrored = (hand_id == LEFT) ? true : false;
 
 		glm::mat4 mirror_matrix(1);
 
