@@ -3077,9 +3077,9 @@ extern "C"
 		return true;
 	}
 
-	bool GetHandMatrix(const int hand_id, float* view_origin_ptr, float* view_angles_ptr, const float* scale_ptr, float* hand_matrix_ptr)
+	bool GetHandMatrix(const int hand_id, float* view_origin_ptr, float* view_angles_ptr, const float* scale_ptr, float* hand_matrix_ptr, float* gun_offsets_ptr)
 	{
-		if(!openxr_.is_session_running() || !view_origin_ptr || !view_angles_ptr || !hand_matrix_ptr || !scale_ptr || !openxr_.aim_pose_valid_[hand_id])
+		if(!openxr_.is_session_running() || !view_origin_ptr || !view_angles_ptr || !hand_matrix_ptr || !scale_ptr || !gun_offsets_ptr || !openxr_.aim_pose_valid_[hand_id])
 		{
 			return false;
 		}
@@ -3160,12 +3160,8 @@ extern "C"
 		const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
 
-		static float offset_x = -0.5f; // -X = closer to camera, +X farther away
-		static float offset_y = 0.4f; // + Y = move to right
-		static float offset_z = 0.6f; // + Z = move up
-
-		const glm::vec3 pivot_position_LS = glm::vec3(offset_x, offset_y, offset_z);
-		const glm::mat4 pre_translation_matrix = glm::translate(glm::mat4(1), pivot_position_LS);
+		const glm::vec3 hand_offsets = *(glm::vec3*)gun_offsets_ptr;
+		const glm::mat4 pre_translation_matrix = glm::translate(glm::mat4(1), hand_offsets);
 
 		{
 			const glm::vec4 hand_position_LS = glm::vec4(glm_aim_pose.translation_.x, 0.0f, glm_aim_pose.translation_.z, 1.0f);

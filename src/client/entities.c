@@ -29,6 +29,10 @@ extern qhandle_t cl_mod_dmspot;
 extern cvar_t *cl_stereo;
 extern cvar_t *cl_xr_gun;
 
+extern cvar_t *cl_xr_gun_offset_x;
+extern cvar_t *cl_xr_gun_offset_y;
+extern cvar_t *cl_xr_gun_offset_z;
+
 /*
 =========================================================================
 

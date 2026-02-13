@@ -102,6 +102,9 @@ extern cvar_t *cl_fov_down;
 extern cvar_t *cl_xr_view;
 extern cvar_t *cl_xr_proj;
 extern cvar_t *cl_xr_gun;
+extern cvar_t *cl_xr_gun_offset_x;
+extern cvar_t *cl_xr_gun_offset_y;
+extern cvar_t *cl_xr_gun_offset_z;
 extern cvar_t *cl_xr_ipd_mult;
 
 extern cvar_t *cvar_flt_fsr_rcas;
@@ -2190,7 +2193,16 @@ static void process_regular_entity(
 #if APPLY_CONTROLLER_TRACKING_TO_GUN
 		if (stereo && cl_xr_gun->value >= 1.0f)
 		{
-			GetHandMatrix(hand_id, (float*)&fd->vieworg, (float*)&fd->viewangles, &((entity_t*)entity)->scale, transform);
+			// -X = closer to camera, +X farther away
+			// + Y = move to right
+			// + Z = move up
+
+			vec3_t gun_offsets = { 0 };
+			gun_offsets[0] = cl_xr_gun_offset_x->value;
+			gun_offsets[1] = cl_xr_gun_offset_y->value;
+			gun_offsets[2] = cl_xr_gun_offset_z->value;
+
+			GetHandMatrix(hand_id, (float*)&fd->vieworg, (float*)&fd->viewangles, &((entity_t*)entity)->scale, transform, (float*)&gun_offsets);
 		}
 		else
 #endif
