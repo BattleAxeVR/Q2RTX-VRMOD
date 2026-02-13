@@ -3272,8 +3272,8 @@ extern "C"
 		glm::fquat rot = BVR::default_rotation;
 
 		rot.x = glm_xr_pose.rotation_.z;
-		rot.y = glm_xr_pose.rotation_.y;
-		rot.z = -glm_xr_pose.rotation_.x;
+		rot.y = glm_xr_pose.rotation_.x;
+		rot.z = -glm_xr_pose.rotation_.y;
 		rot.w = glm_xr_pose.rotation_.w;
 
 		rot = normalize(rot);
