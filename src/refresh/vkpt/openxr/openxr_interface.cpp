@@ -3149,31 +3149,30 @@ extern "C"
 		glm_pose.translation_.y = view_position_y;
 		glm_pose.translation_.z = view_position_z;
 
-		//const glm::vec4 hand_offset_WS = game_rotation_matrix * glm::vec4(glm_aim_pose.translation_, 1.0f);
-		//glm_pose.translation_ += hand_offset_WS;
+		const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
+		const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
+
+		static float offset_x = -20.0f; // -X = closer to camera, +X farther away
+		static float offset_y = 8.0f; // + Y = move to right
+		static float offset_z = 5.0f; // + Z = move up
+
+		const glm::vec3 pivot_position_LS = glm::vec3(offset_x, offset_y, offset_z);
+		const glm::mat4 pre_translation_matrix = glm::translate(glm::mat4(1), pivot_position_LS);
 
 		{
-			static float offset_x = 0.0f; // + X = move to right
-			static float offset_y = 1.0f; // + Y = closer to camera
-
-			const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
-			const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
-
-			const glm::vec4 hand_position_LS = glm::vec4(glm_aim_pose.translation_.x + offset_x, 0.0f, glm_aim_pose.translation_.z + offset_y, 1.0f);
-			//const glm::vec4 hand_position_LS = glm::vec4(offset_x, 0.0f, offset_y, 1.0f);
+			const glm::vec4 hand_position_LS = glm::vec4(glm_aim_pose.translation_.x, 0.0f, glm_aim_pose.translation_.z, 1.0f);
 			const glm::vec4 hand_position_WS = game_rotation2 * hand_position_LS;
 
-			static float world_mult = 10.0f;
-			static float offset_z = 4.0f;
+			static float world_mult = 20.0f;
 
 			glm_pose.translation_.x += hand_position_WS.z * world_mult;
 			glm_pose.translation_.y += hand_position_WS.x * world_mult;
-			glm_pose.translation_.z += glm_aim_pose.translation_.y * world_mult + offset_z;
+			glm_pose.translation_.z += glm_aim_pose.translation_.y * world_mult;
 		}
 
-		glm::mat4 translation_matrix = glm_pose.to_matrix();
+		const glm::mat4 post_translation_matrix = glm_pose.to_matrix();
 
-		glm::mat4 final_hand_matrix = translation_matrix * final_rotation_matrix;
+		glm::mat4 final_hand_matrix = post_translation_matrix * final_rotation_matrix * pre_translation_matrix;
 		memcpy(hand_matrix_ptr, &final_hand_matrix, sizeof(float) * 16);
 
 		return true;
