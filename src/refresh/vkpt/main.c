@@ -2558,12 +2558,15 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 		if(viewer_weapon_num == 2)
 		{
 			hand_to_use = ((i % 2) == 0) ? LEFT : RIGHT;
+			upload_info->weapon_left_handed = false; // Try to remove this hack completely by checking normal direction vs triangle windings in the shader
+		}
+		else
+		{
+			upload_info->weapon_left_handed = (hand_to_use == LEFT);
 		}
 
 		process_regular_entity(entity, model, vkpt_refdef.fd, hand_to_use, true, false, &model_instance_idx, &instance_idx, &num_instanced_prim,
 			MESH_FILTER_ALL, NULL, NULL, &iqm_matrix_offset, qvk.iqm_matrices_shadow);
-
-		upload_info->weapon_left_handed = (hand_to_use == LEFT);
 	}
 
 	upload_info->viewer_weapon_prim_count = num_instanced_prim - upload_info->viewer_weapon_prim_offset;
