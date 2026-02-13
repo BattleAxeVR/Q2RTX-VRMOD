@@ -3124,19 +3124,12 @@ extern "C"
 		const float roll_deg = 0.0f;
 #endif
 
-		glm::vec3 hand_offsets = *(glm::vec3*)gun_offsets_ptr;
-
 		glm::mat4 mirror_matrix(1);
 
 		if(mirror)
 		{
 			yaw_deg += 180.0f;
 			mirror_matrix[0][0] = -1.0f;
-		}
-		else
-		{
-			hand_offsets.x *= -1.0f;
-			hand_offsets.y *= -1.0f;
 		}
 
 		static float pitch_offset_deg = 0.0f;
@@ -3159,17 +3152,19 @@ extern "C"
 		const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
 
+		const glm::vec3 hand_offsets = *(glm::vec3*)gun_offsets_ptr;
 		const glm::mat4 pre_translation_matrix = glm::translate(glm::mat4(1), hand_offsets);
 
 		{
 			const glm::vec4 hand_position_LS = glm::vec4(glm_aim_pose.translation_.x, 0.0f, glm_aim_pose.translation_.z, 1.0f);
 			const glm::vec4 hand_position_WS = game_rotation2 * hand_position_LS;
 
-			static float world_mult = 1.0f;
+			const float world_mult = mirror ? 1.0f : -1.0f;
 
 			glm_pose.translation_.x += hand_position_WS.z * world_mult;
 			glm_pose.translation_.y += hand_position_WS.x * world_mult;
-			glm_pose.translation_.z += glm_aim_pose.translation_.y * world_mult;
+
+			glm_pose.translation_.z += glm_aim_pose.translation_.y;
 		}
 
 		const glm::mat4 post_translation_matrix = glm_pose.to_matrix();
