@@ -104,6 +104,8 @@ extern cvar_t *cl_xr_proj;
 extern cvar_t *cl_xr_gun;
 extern cvar_t *cl_xr_ipd_mult;
 
+extern cvar_t *cvar_flt_fsr_rcas;
+
 static int drs_current_scale = 0;
 static int drs_effective_scale = 0;
 static bool drs_last_frame_world = false;
@@ -4101,7 +4103,16 @@ void R_EndFrame_RTX(void)
 		}
 
 #if SUPPORT_OPENXR
-		OpenXR_Endframe(&cmd_buf, qvk.extent_taa_output);
+		VkExtent2D image_extent = qvk.extent_taa_output;
+		int image_index = VKPT_IMG_TAA_OUTPUT;
+		
+		if((vkpt_fsr_is_enabled() && !qvk.frame_menu_mode))
+		{
+			image_extent = qvk.extent_unscaled;
+			image_index = cvar_flt_fsr_rcas->integer != 0 ? VKPT_IMG_FSR_RCAS_OUTPUT : VKPT_IMG_FSR_EASU_OUTPUT;
+		}
+
+		OpenXR_Endframe(&cmd_buf, image_extent, image_index);
 #endif
 
 		frame_ready = false;

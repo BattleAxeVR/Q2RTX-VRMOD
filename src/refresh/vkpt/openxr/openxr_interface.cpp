@@ -499,7 +499,7 @@ bool OpenXR::begin_frame()
 	return true;
 }
 
-bool OpenXR::end_frame(VkCommandBuffer* external_command_buffer, VkExtent2D input_extent)
+bool OpenXR::end_frame(VkCommandBuffer* external_command_buffer, VkExtent2D input_extent, int input_image_index)
 {
 	if(!is_initialized() || !is_session_running())
 	{
@@ -516,7 +516,7 @@ bool OpenXR::end_frame(VkCommandBuffer* external_command_buffer, VkExtent2D inpu
 
 	std::vector<XrCompositionLayerProjectionView> projection_layer_views;
 	
-	if(render_composition_layer(projection_layer_views, composition_layer, external_command_buffer, input_extent))
+	if(render_composition_layer(projection_layer_views, composition_layer, external_command_buffer, input_extent, input_image_index))
 	{
 		XrCompositionLayerBaseHeader* header = reinterpret_cast<XrCompositionLayerBaseHeader*>(&composition_layer);
 		composition_layers.push_back(header);
@@ -533,7 +533,7 @@ bool OpenXR::end_frame(VkCommandBuffer* external_command_buffer, VkExtent2D inpu
 	return true;
 }
 
-bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionView>& projection_layer_views, XrCompositionLayerProjection& composition_layer, VkCommandBuffer* external_command_buffer, VkExtent2D input_extent)
+bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionView>& projection_layer_views, XrCompositionLayerProjection& composition_layer, VkCommandBuffer* external_command_buffer, VkExtent2D input_extent, int input_image_index)
 {
 	if(!is_initialized() || !is_session_running())
 	{
@@ -580,7 +580,7 @@ bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionVi
 #endif
 		}
 
-		render_projection_layer_view(projection_layer_views[view_id], swapchainImage, xr_colour_swapchain_format_, view_id, external_command_buffer, input_extent);
+		render_projection_layer_view(projection_layer_views[view_id], swapchainImage, xr_colour_swapchain_format_, view_id, input_image_index, external_command_buffer, input_extent);
 
 		XrSwapchainImageReleaseInfo releaseInfo{ XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
 		xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo);
@@ -600,7 +600,7 @@ bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionVi
 
 extern "C" VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped, int view_id);
 
-void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id, VkCommandBuffer* external_command_buffer, VkExtent2D input_extent)
+void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id, int input_image_index, VkCommandBuffer* external_command_buffer, VkExtent2D input_extent)
 {
 	if (!render_into_xr_swapchain_)
 	{
@@ -715,10 +715,8 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	}
 #endif
 
-	static int image = 24; // VKPT_IMG_TAA_OUTPUT
-
 	//VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, input_extent, false, false, view_id);
-	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, image, extent, false, false, view_id);
+	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, input_image_index, extent, false, false, view_id);
 
 	vkCmdEndRendering(command_buffer);
 
@@ -2885,9 +2883,9 @@ extern "C"
 		openxr_.shutdown();
 	}
 
-	void OpenXR_Endframe(VkCommandBuffer* external_command_buffer, VkExtent2D input_extent)
+	void OpenXR_Endframe(VkCommandBuffer* external_command_buffer, VkExtent2D input_extent, int input_image_index)
 	{
-		openxr_.end_frame(external_command_buffer, input_extent);
+		openxr_.end_frame(external_command_buffer, input_extent, input_image_index);
 	}
 
 	bool Is_OpenXR_Session_Running()
