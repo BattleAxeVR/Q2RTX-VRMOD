@@ -2830,6 +2830,11 @@ BVR::OpenXR openxr_;
 bool started_session_ = false;
 static float world_scale = 1.0f;
 
+float sqr(float x)
+{
+	return x * x;
+}
+
 // C Interface wrapper for simplicity
 extern "C"
 {
@@ -2893,9 +2898,54 @@ extern "C"
 		return openxr_.is_session_running();
 	}
 
-	float sqr(float x)
+	float GetIPD()
 	{
-		return x * x;
+		if(!openxr_.is_session_running())
+		{
+			return 0.0f;
+		}
+
+		XrView left_view = {};
+
+		if(!openxr_.get_view(LEFT, left_view))
+		{
+			return 0.0f;
+		}
+
+		XrView right_view = {};
+
+		if(!openxr_.get_view(RIGHT, right_view))
+		{
+			return 0.0f;
+		}
+
+		const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose, false, false);
+		const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose, false, false);
+
+		const glm::vec3 left_to_right_eye = right_eye_pose.translation_ - left_eye_pose.translation_;
+		const float ipd = length(left_to_right_eye);
+
+		return ipd;
+	}
+
+	bool GetFov(const int view_id, XrFovf* fov_ptr)
+	{
+		if(!openxr_.is_session_running() || !fov_ptr)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		XrFovf& fov = *fov_ptr;
+		fov = xr_view.fov;
+
+		return true;
 	}
 
 	bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr)
@@ -3025,56 +3075,6 @@ extern "C"
 		memcpy(view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
 
 		return true;
-	}
-
-	bool GetFov(const int view_id, XrFovf* fov_ptr)
-	{
-		if(!openxr_.is_session_running() || !fov_ptr)
-		{
-			return false;
-		}
-
-		XrView xr_view = {};
-
-		if(!openxr_.get_view(view_id, xr_view))
-		{
-			return false;
-		}
-
-		XrFovf& fov = *fov_ptr;
-		fov = xr_view.fov;
-
-		return true;
-	}
-
-	float GetIPD()
-	{
-		if(!openxr_.is_session_running())
-		{
-			return 0.0f;
-		}
-
-		XrView left_view = {};
-
-		if(!openxr_.get_view(LEFT, left_view))
-		{
-			return 0.0f;
-		}
-
-		XrView right_view = {};
-
-		if(!openxr_.get_view(RIGHT, right_view))
-		{
-			return 0.0f;
-		}
-
-		const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose, false, false);
-		const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose, false, false);
-
-		const glm::vec3 left_to_right_eye = right_eye_pose.translation_ - left_eye_pose.translation_;
-		const float ipd = length(left_to_right_eye);
-
-		return ipd;
 	}
 
 	bool GetHandMatrix(const int hand_id, float* view_origin_ptr, float* view_angles_ptr, const float* scale_ptr, float* hand_matrix_ptr)
