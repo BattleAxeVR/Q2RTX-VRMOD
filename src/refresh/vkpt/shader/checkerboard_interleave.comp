@@ -166,8 +166,11 @@ void main()
 
         // Make sure that transparent surfaces contain motion vectors for the brightest component
         // (reflection or refraction), not a mix of both. Helps with TAA quality.
+
         if(luminance(neighbors.rgb) > luminance(center.rgb))
+        {
             use_center_mv = false;
+        }
 
         // Blend the color, not the checkerboard flags.
         color.rgb = mix(center.rgb, neighbors.rgb, 0.5);
@@ -181,7 +184,11 @@ void main()
     imageStore(IMG_FLAT_COLOR, opos, color);
 
     if(use_center_mv)
+    {
         imageStore(IMG_FLAT_MOTION, opos, imageLoad(IMG_PT_MOTION, ipos));
+    }
     else
+    {
         imageStore(IMG_FLAT_MOTION, opos, imageLoad(IMG_PT_MOTION, ipos + ivec2(other_side_offset, 0)));
+    }
 }
