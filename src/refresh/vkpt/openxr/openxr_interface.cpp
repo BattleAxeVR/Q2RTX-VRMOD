@@ -2949,7 +2949,7 @@ extern "C"
 		}
 
 		const XrPosef& xr_pose = xr_view.pose;
-		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
 		glm::fquat& rotation = glm_pose.rotation_;
 
 		double a = (2.0 * rotation.y * rotation.w) - (2.0 * rotation.x * rotation.z);
@@ -2984,7 +2984,7 @@ extern "C"
 		}
 
 		const XrPosef& xr_pose = xr_view.pose;
-		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
 		glm::fquat& rotation = glm_pose.rotation_;
 
 #if 0
@@ -3024,7 +3024,7 @@ extern "C"
 		}
 
 		const XrPosef& xr_pose = xr_view.pose;
-		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose);
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
 		glm::fquat& rotation = glm_pose.rotation_;
 
 #if 0
@@ -3065,8 +3065,11 @@ extern "C"
 		}
 
 		const XrPosef& xr_pose = xr_view.pose;
-		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose);
-
+#if 0
+		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, true, false);
+		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
+#else
+		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
 		const glm::mat4 hmd_rotation_matrix_orig = glm::mat4_cast(glm_xr_pose.rotation_);
 
 		glm::mat4 S(0);
@@ -3077,12 +3080,7 @@ extern "C"
 
 		glm::mat4 Sinv = inverse(S);
 		glm::mat4 hmd_rotation_matrix = Sinv * hmd_rotation_matrix_orig;
-
-		const glm::mat4 hmd_rotation_matrix_inverse = inverse(hmd_rotation_matrix);
-
-		const glm::mat4 oriv_view_matrix = *(glm::mat4*)view_matrix_ptr;
-		const glm::mat4 oriv_inverse_view_matrix = *(glm::mat4*)inv_view_matrix_ptr;
-
+#endif
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
 
 		const float view_position_x = view_origin.x;
@@ -3149,8 +3147,8 @@ extern "C"
 
 		if(openxr_.get_view(LEFT, left_view) && openxr_.get_view(RIGHT, right_view))
 		{
-			const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose);
-			const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose);
+			const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose, false, false);
+			const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose, false, false);
 
 			glm::vec3 head_position_LS = (left_eye_pose.translation_ + right_eye_pose.translation_) * 0.5f;
 
@@ -3218,8 +3216,8 @@ extern "C"
 			return 0.0f;
 		}
 
-		const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose);
-		const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose);
+		const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose, false, false);
+		const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose, false, false);
 
 		const glm::vec3 left_to_right_eye = right_eye_pose.translation_ - left_eye_pose.translation_;
 		const float ipd = length(left_to_right_eye);
@@ -3260,31 +3258,13 @@ extern "C"
 			scale = 1.0f;
 		}
 
-		const bool mirrored = (hand_id == LEFT) ? true : false;
+		const bool mirror = (hand_id == LEFT) ? true : false;
 
 		glm::vec3 scale_vec = glm::vec3(scale, scale, scale);
 		glm::mat4 scale_matrix = glm::scale(glm::mat4(1.0f), scale_vec);
 
-		const BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id]);
-
-		glm::fquat rot = BVR::default_rotation;
-
-		if(mirrored)
-		{
-			rot.x = glm_xr_pose.rotation_.z;
-			rot.y = -glm_xr_pose.rotation_.x;
-			rot.z = -glm_xr_pose.rotation_.y;
-			rot.w = glm_xr_pose.rotation_.w;
-		}
-		else
-		{
-			rot.x = glm_xr_pose.rotation_.z;
-			rot.y = glm_xr_pose.rotation_.x;
-			rot.z = -glm_xr_pose.rotation_.y;
-			rot.w = -glm_xr_pose.rotation_.w;
-		}
-
-		const glm::mat4 hmd_rotation_matrix(glm::mat4_cast(rot));
+		const BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id], true, mirror);
+		const glm::mat4 hmd_rotation_matrix(glm::mat4_cast(glm_xr_pose.rotation_));
 
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
 
@@ -3314,7 +3294,7 @@ extern "C"
 
 		glm::mat4 mirror_matrix(1);
 
-		if(mirrored)
+		if(mirror)
 		{
 			yaw_deg += 180.0f;
 			mirror_matrix[0][0] = -1.0f;

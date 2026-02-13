@@ -168,10 +168,10 @@ glm::mat4 convert_to_rotation_matrix(const glm::fquat& rotation);
 XrVector3f convert_to_xr(const glm::vec3 &input);
 glm::vec3 convert_to_glm(const XrVector3f &input);
 XrQuaternionf convert_to_xr(const glm::fquat &input);
-glm::fquat convert_to_glm(const XrQuaternionf &input);
+glm::fquat convert_to_glm(const XrQuaternionf &input, const bool quake2, const bool mirror);
 glm::mat4 convert_to_rotation_matrix(const glm::fquat &rotation);
 GLMPose convert_to_glm_pose(const XrVector3f &position, const XrQuaternionf &rotation, const XrVector3f &scale);
-GLMPose convert_to_glm_pose(const XrPosef &xr_pose);
+GLMPose convert_to_glm_pose(const XrPosef &xr_pose, const bool quake2, const bool mirror);
 XrPosef convert_to_xr_pose(const GLMPose &glm_pose);
 
 glm::vec3 to_euler_rad(glm::fquat rotation);

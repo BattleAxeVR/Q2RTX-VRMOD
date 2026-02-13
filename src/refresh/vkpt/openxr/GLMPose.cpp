@@ -48,21 +48,43 @@ XrQuaternionf convert_to_xr(const glm::fquat &input)
     return output;
 }
 
-glm::fquat convert_to_glm(const XrQuaternionf &input)
+glm::fquat convert_to_glm(const XrQuaternionf &input, const bool quake2, const bool mirror)
 {
     glm::fquat output;
-    output.x = input.x;
-    output.y = input.y;
-    output.z = input.z;
-    output.w = input.w;
+
+    if(quake2)
+    {
+        if(mirror)
+        {
+            output.x = input.z;
+            output.y = -input.x;
+            output.z = -input.y;
+            output.w = input.w;
+        }
+        else
+        {
+            output.x = input.z;
+            output.y = input.x;
+            output.z = -input.y;
+            output.w = -input.w;
+        }
+    }
+    else
+    {
+        output.x = input.x;
+        output.y = input.y;
+        output.z = input.z;
+        output.w = input.w;
+    }
+
     return output;
 }
 
-GLMPose convert_to_glm(const XrVector3f& position, const XrQuaternionf& rotation, const XrVector3f& scale)
+GLMPose convert_to_glm(const XrVector3f& position, const XrQuaternionf& rotation, const XrVector3f& scale, const bool mirror)
 {
 	GLMPose glm_pose;
 	glm_pose.translation_ = convert_to_glm(position);
-	glm_pose.rotation_ = convert_to_glm(rotation);
+	glm_pose.rotation_ = convert_to_glm(rotation, true, mirror);
 	glm_pose.scale_ = convert_to_glm(scale);
 	return glm_pose;
 }
@@ -115,11 +137,11 @@ void GLMPose::project_to_horizontal_plane()
     rotation_ = rotation_world_2D;
 }
 
-GLMPose convert_to_glm_pose(const XrPosef &xr_pose)
+GLMPose convert_to_glm_pose(const XrPosef &xr_pose, const bool quake2, const bool mirror)
 {
     GLMPose glm_pose;
     glm_pose.translation_ = convert_to_glm(xr_pose.position);
-    glm_pose.rotation_ = convert_to_glm(xr_pose.orientation);
+    glm_pose.rotation_ = convert_to_glm(xr_pose.orientation, quake2, mirror);
     return glm_pose;
 }
 
