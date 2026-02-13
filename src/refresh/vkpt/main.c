@@ -2213,6 +2213,10 @@ static void process_regular_entity(
 			if(cl_xr_gun_scale->value > 0.0f)
 			{
 				gun_scale *= cl_xr_gun_scale->value;
+
+				gun_offsets[0] *= cl_xr_gun_scale->value;
+				gun_offsets[1] *= cl_xr_gun_scale->value;
+				gun_offsets[2] *= cl_xr_gun_scale->value;
 			}
 
 			GetHandMatrix(hand_id, (float*)&fd->vieworg, (float*)&fd->viewangles, &gun_scale, transform, (float*)&gun_offsets);
