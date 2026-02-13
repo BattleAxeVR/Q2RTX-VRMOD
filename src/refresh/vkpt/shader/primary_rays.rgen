@@ -168,9 +168,11 @@ main()
 		int cull_mask = PRIMARY_RAY_CULL_MASK;
 		
 		if(global_ubo.pt_show_sky != 0)
+		{
 			cull_mask |= AS_FLAG_CUSTOM_SKY;
+		}
 
-		trace_geometry_ray(ray, true, cull_mask);
+		trace_geometry_ray(ray, false, cull_mask);
 	}
 
 	Triangle triangle;
@@ -242,14 +244,26 @@ main()
 	vec2 tex_coord = triangle.tex_coords * bary;
 	vec3 geo_normal = normalize(triangle.normals * bary);
 
-	vec3 flat_normal = normalize(cross(
-		triangle.positions[1] - triangle.positions[0],
-		triangle.positions[2] - triangle.positions[1]));
+	vec3 flat_normal = normalize(cross(triangle.positions[1] - triangle.positions[0], triangle.positions[2] - triangle.positions[1]));
 
+#if 0
+	if (dot(flat_normal, direction) < 0.0f)
+	{
+		flat_normal = -flat_normal;
+	}
+
+	if (dot(geo_normal, direction) < 0.0f)
+	{
+		geo_normal = -geo_normal;
+	}
+#else
 	float flat_normal_sign = (global_ubo.weapon_left_handed != 0 && (triangle.material_id & MATERIAL_FLAG_WEAPON) != 0) ? -1.0 : 1.0;
 	
 	if (dot(flat_normal, direction) * flat_normal_sign > 0)
+	{
 		geo_normal = -geo_normal;
+	}
+#endif
 	
 	/* compute view-space derivatives of depth and motion vectors */
 	Ray ray_0 = get_primary_ray(view_id, inUV);
