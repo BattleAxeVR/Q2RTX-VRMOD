@@ -737,8 +737,10 @@ void Blaster_Fire(edict_t *ent, const vec3_t g_offset, int damage, bool hyper, i
     vec3_t  start;
     vec3_t  offset;
 
-    if (is_quad)
+    if(is_quad)
+    {
         damage *= 4;
+    }
     AngleVectors(ent->client->v_angle, forward, right, NULL);
     VectorSet(offset, 24, 8, ent->viewheight - 8);
     VectorAdd(offset, g_offset, offset);
@@ -752,10 +754,15 @@ void Blaster_Fire(edict_t *ent, const vec3_t g_offset, int damage, bool hyper, i
     // send muzzle flash
     gi.WriteByte(svc_muzzleflash);
     gi.WriteShort(ent - g_edicts);
-    if (hyper)
+
+    if(hyper)
+    {
         gi.WriteByte(MZ_HYPERBLASTER | is_silenced);
+    }
     else
+    {
         gi.WriteByte(MZ_BLASTER | is_silenced);
+    }
     gi.multicast(ent->s.origin, MULTICAST_PVS);
 
     PlayerNoise(ent, start, PNOISE_WEAPON);
