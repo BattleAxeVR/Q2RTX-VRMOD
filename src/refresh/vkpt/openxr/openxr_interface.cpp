@@ -3267,7 +3267,18 @@ extern "C"
 		memcpy(&game_matrix_orig, hand_matrix_ptr, sizeof(float) * 16);
 
 		const BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id]);
-		const glm::mat4 hmd_rotation_matrix_orig(1);// = glm::mat4_cast(glm_xr_pose.rotation_);
+		//const glm::mat4 hmd_rotation_matrix_orig(glm::mat4_cast(BVR::default_rotation));
+
+		glm::fquat rot = BVR::default_rotation;
+
+		rot.x = glm_xr_pose.rotation_.z;
+		rot.y = glm_xr_pose.rotation_.y;
+		rot.z = -glm_xr_pose.rotation_.x;
+		rot.w = glm_xr_pose.rotation_.w;
+
+		rot = normalize(rot);
+
+		const glm::mat4 hmd_rotation_matrix_orig(glm::mat4_cast(rot));
 
 		glm::mat4 S(0);
 		S[0][2] = 1.0f;
