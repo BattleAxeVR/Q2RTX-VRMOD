@@ -3265,9 +3265,6 @@ extern "C"
 		glm::vec3 scale_vec = glm::vec3(scale, scale, scale);
 		glm::mat4 scale_matrix = glm::scale(glm::mat4(1.0f), scale_vec);
 
-		glm::mat4 game_matrix_orig(0);
-		memcpy(&game_matrix_orig, hand_matrix_ptr, sizeof(float) * 16);
-
 		const BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id]);
 
 		glm::fquat rot = BVR::default_rotation;
