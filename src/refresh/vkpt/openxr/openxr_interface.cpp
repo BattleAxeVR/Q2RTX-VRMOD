@@ -3289,9 +3289,9 @@ extern "C"
 #endif
 
 #if APPLY_STEREO_VIEW_YAW
-		const float yaw_deg = view_angles_deg.y;
+		float yaw_deg = view_angles_deg.y;
 #else
-		const float yaw_deg = 0.0f;
+		float yaw_deg = 0.0f;
 #endif
 
 #if APPLY_STEREO_VIEW_ROLL
@@ -3300,8 +3300,21 @@ extern "C"
 		const float roll_deg = 0.0f;
 #endif
 
+		const bool mirrored = (hand_id == LEFT) ? true : false;
+
+		glm::mat4 mirror_matrix(1);
+
+		if(mirrored)
+		{
+			yaw_deg += 180.0f;
+
+			mirror_matrix[0][0] = -1.0f;
+			//mirror_matrix[1][1] = -1.0f;
+			//mirror_matrix[2][2] = -1.0f;
+		}
+
 		static float pitch_offset_deg = 0.0f;
-		static float yaw_offset_deg = 180.0f;
+		static float yaw_offset_deg = 0.0f;
 		static float roll_offset_deg = 0.0f;
 
 		const glm::vec3 euler_angles_rad = { -deg2rad(roll_offset_deg),  deg2rad(pitch_deg + pitch_offset_deg), deg2rad(yaw_deg + yaw_offset_deg) };
@@ -3310,17 +3323,6 @@ extern "C"
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
 		const glm::mat4 view_rotation_matrix = hmd_rotation_matrix;
-
-		glm::mat4 mirror_matrix(1);
-
-		const bool mirrored = true;// (hand_id == LEFT) ? false : true;
-
-		if(mirrored)
-		{
-			mirror_matrix[0][0] = -1.0f;
-			//mirror_matrix[1][1] = -1.0f;
-			//mirror_matrix[2][2] = -1.0f;
-		}
 
 		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * view_rotation_matrix;
 
