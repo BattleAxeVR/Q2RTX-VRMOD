@@ -289,8 +289,12 @@ vec3 correct_emissive(uint material_id, vec3 emissive)
 void trace_geometry_ray(Ray ray, bool cull_back_faces, int instance_mask)
 {
 	uint rayFlags = 0;
-	if (cull_back_faces)
+
+	if(cull_back_faces)
+	{
 		rayFlags |= gl_RayFlagsCullBackFacingTrianglesEXT;
+	}
+
 	rayFlags |= gl_RayFlagsSkipProceduralPrimitives;
 
 	ray_payload_geometry.barycentric = vec2(0);
