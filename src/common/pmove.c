@@ -839,7 +839,8 @@ static void PM_CheckDuck(void)
     pm->maxs[0] = 16;
     pm->maxs[1] = 16;
 
-    if (pm->s.pm_type == PM_GIB) {
+    if (pm->s.pm_type == PM_GIB) 
+    {
         pm->mins[2] = 0;
         pm->maxs[2] = 16;
         pm->viewheight = 8;
@@ -848,26 +849,38 @@ static void PM_CheckDuck(void)
 
     pm->mins[2] = -24;
 
-    if (pm->s.pm_type == PM_DEAD) {
+    if (pm->s.pm_type == PM_DEAD) 
+    {
         pm->s.pm_flags |= PMF_DUCKED;
-    } else if (pm->cmd.upmove < 0 && (pm->s.pm_flags & PMF_ON_GROUND)) {
+    } 
+    else if (pm->cmd.upmove < 0 && (pm->s.pm_flags & PMF_ON_GROUND)) 
+    {
         // duck
         pm->s.pm_flags |= PMF_DUCKED;
-    } else {
+    } 
+    else 
+    {
         // stand up if possible
-        if (pm->s.pm_flags & PMF_DUCKED) {
+        if (pm->s.pm_flags & PMF_DUCKED) 
+        {
             // try to stand up
             pm->maxs[2] = 32;
             trace = pm->trace(pml.origin, pm->mins, pm->maxs, pml.origin);
-            if (!trace.allsolid)
+
+            if(!trace.allsolid)
+            {
                 pm->s.pm_flags &= ~PMF_DUCKED;
+            }
         }
     }
 
-    if (pm->s.pm_flags & PMF_DUCKED) {
+    if (pm->s.pm_flags & PMF_DUCKED) 
+    {
         pm->maxs[2] = 4;
         pm->viewheight = -2;
-    } else {
+    } 
+    else 
+    {
         pm->maxs[2] = 32;
         pm->viewheight = 22;
     }
@@ -882,15 +895,21 @@ static void PM_DeadMove(void)
 {
     float   forward;
 
-    if (!pm->groundentity)
+    if(!pm->groundentity)
+    {
         return;
+    }
 
     // extra friction
     forward = VectorLength(pml.velocity);
     forward -= 20;
-    if (forward <= 0) {
+
+    if (forward <= 0) 
+    {
         VectorClear(pml.velocity);
-    } else {
+    } 
+    else 
+    {
         VectorNormalize(pml.velocity);
         VectorScale(pml.velocity, forward, pml.velocity);
     }
@@ -902,11 +921,15 @@ static bool PM_GoodPosition(void)
     vec3_t  origin, end;
     int     i;
 
-    if (pm->s.pm_type == PM_SPECTATOR)
+    if(pm->s.pm_type == PM_SPECTATOR)
+    {
         return true;
+    }
 
-    for (i = 0; i < 3; i++)
+    for(i = 0; i < 3; i++)
+    {
         origin[i] = end[i] = pm->s.origin[i] * 0.125f;
+    }
     trace = pm->trace(origin, pm->mins, pm->maxs, end);
 
     return !trace.allsolid;
@@ -925,34 +948,53 @@ static void PM_SnapPosition(void)
     int     sign[3];
     int     i, j, bits;
     short   base[3];
+
     // try all single bits first
     static const byte jitterbits[8] = {0, 4, 1, 2, 3, 5, 6, 7};
 
     // snap velocity to eigths
-    for (i = 0; i < 3; i++)
+    for(i = 0; i < 3; i++)
+    {
         pm->s.velocity[i] = (int)(pml.velocity[i] * 8);
+    }
 
-    for (i = 0; i < 3; i++) {
-        if (pml.origin[i] >= 0)
+    for (i = 0; i < 3; i++) 
+    {
+        if(pml.origin[i] >= 0)
+        {
             sign[i] = 1;
+        }
         else
+        {
             sign[i] = -1;
+        }
         pm->s.origin[i] = (int)(pml.origin[i] * 8);
-        if (pm->s.origin[i] * 0.125f == pml.origin[i])
+
+        if(pm->s.origin[i] * 0.125f == pml.origin[i])
+        {
             sign[i] = 0;
+        }
     }
     VectorCopy(pm->s.origin, base);
 
     // try all combinations
-    for (j = 0; j < 8; j++) {
+    for (j = 0; j < 8; j++) 
+    {
         bits = jitterbits[j];
         VectorCopy(base, pm->s.origin);
-        for (i = 0; i < 3; i++)
-            if (bits & (1 << i))
-                pm->s.origin[i] += sign[i];
 
-        if (PM_GoodPosition())
+        for(i = 0; i < 3; i++)
+        {
+            if(bits & (1 << i))
+            {
+                pm->s.origin[i] += sign[i];
+            }
+        }
+
+        if(PM_GoodPosition())
+        {
             return;
+        }
     }
 
     // go back to the last position
@@ -973,13 +1015,20 @@ static void PM_InitialSnapPosition(void)
 
     VectorCopy(pm->s.origin, base);
 
-    for (z = 0; z < 3; z++) {
+    for (z = 0; z < 3; z++) 
+    {
         pm->s.origin[2] = base[2] + offset[z];
-        for (y = 0; y < 3; y++) {
+
+        for (y = 0; y < 3; y++) 
+        {
             pm->s.origin[1] = base[1] + offset[y];
-            for (x = 0; x < 3; x++) {
+
+            for (x = 0; x < 3; x++) 
+            {
                 pm->s.origin[0] = base[0] + offset[x];
-                if (PM_GoodPosition()) {
+
+                if (PM_GoodPosition()) 
+                {
                     VectorScale(pm->s.origin, 0.125f, pml.origin);
                     VectorCopy(pm->s.origin, pml.previous_origin);
                     return;
@@ -1000,13 +1049,17 @@ static void PM_ClampAngles(void)
     short   temp;
     int     i;
 
-    if (pm->s.pm_flags & PMF_TIME_TELEPORT) {
+    if (pm->s.pm_flags & PMF_TIME_TELEPORT) 
+    {
         pm->viewangles[YAW] = SHORT2ANGLE(pm->cmd.angles[YAW] + pm->s.delta_angles[YAW]);
         pm->viewangles[PITCH] = 0;
         pm->viewangles[ROLL] = 0;
-    } else {
+    } 
+    else 
+    {
         // circularly clamp the angles with deltas
-        for (i = 0; i < 3; i++) {
+        for (i = 0; i < 3; i++) 
+        {
             temp = pm->cmd.angles[i] + pm->s.delta_angles[i];
             pm->viewangles[i] = SHORT2ANGLE(temp);
         }
@@ -1049,7 +1102,8 @@ void Pmove(pmove_t *pmove, pmoveParams_t *params)
 
     PM_ClampAngles();
 
-    if (pm->s.pm_type == PM_SPECTATOR) {
+    if (pm->s.pm_type == PM_SPECTATOR) 
+    {
         pml.frametime = pmp->speedmult * pm->cmd.msec * 0.001f;
         PM_FlyMove();
         PM_SnapPosition();
@@ -1070,56 +1124,82 @@ void Pmove(pmove_t *pmove, pmoveParams_t *params)
     // set mins, maxs, and viewheight
     PM_CheckDuck();
 
-    if (pm->snapinitial)
+    if(pm->snapinitial)
+    {
         PM_InitialSnapPosition();
+    }
 
     // set groundentity, watertype, and waterlevel
     PM_CategorizePosition();
 
-    if (pm->s.pm_type == PM_DEAD)
+    if(pm->s.pm_type == PM_DEAD)
+    {
         PM_DeadMove();
+    }
 
     PM_CheckSpecialMovement();
 
     // drop timing counter
-    if (pm->s.pm_time) {
+    if (pm->s.pm_time) 
+    {
         int     msec;
 
         msec = pm->cmd.msec >> 3;
-        if (!msec)
+
+        if(!msec)
+        {
             msec = 1;
-        if (msec >= pm->s.pm_time) {
+        }
+
+        if (msec >= pm->s.pm_time) 
+        {
             pm->s.pm_flags &= ~(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT);
             pm->s.pm_time = 0;
-        } else
+        } 
+        else
+        {
             pm->s.pm_time -= msec;
+        }
     }
 
-    if (pm->s.pm_flags & PMF_TIME_TELEPORT) {
+    if (pm->s.pm_flags & PMF_TIME_TELEPORT) 
+    {
         // teleport pause stays exactly in place
-    } else if (pm->s.pm_flags & PMF_TIME_WATERJUMP) {
+    } 
+    else if (pm->s.pm_flags & PMF_TIME_WATERJUMP) 
+    {
         // waterjump has no control, but falls
         pml.velocity[2] -= pm->s.gravity * pml.frametime;
-        if (pml.velocity[2] < 0) {
+
+        if (pml.velocity[2] < 0) 
+        {
             // cancel as soon as we are falling down again
             pm->s.pm_flags &= ~(PMF_TIME_WATERJUMP | PMF_TIME_LAND | PMF_TIME_TELEPORT);
             pm->s.pm_time = 0;
         }
 
         PM_StepSlideMove();
-    } else {
+    } 
+    else 
+    {
         PM_CheckJump();
 
         PM_Friction();
 
-        if (pm->waterlevel >= 2)
+        if(pm->waterlevel >= 2)
+        {
             PM_WaterMove();
-        else {
+        }
+        else 
+        {
             vec3_t  angles;
 
             VectorCopy(pm->viewangles, angles);
-            if (angles[PITCH] > 180)
+
+            if(angles[PITCH] > 180)
+            {
                 angles[PITCH] = angles[PITCH] - 360;
+            }
             angles[PITCH] /= 3;
 
             AngleVectors(angles, pml.forward, pml.right, pml.up);
