@@ -101,7 +101,7 @@ extern cvar_t *cl_fov_up;
 extern cvar_t *cl_fov_down;
 extern cvar_t *cl_xr_view;
 extern cvar_t *cl_xr_proj;
-extern cvar_t *cl_xr_gun;
+extern cvar_t *cl_xr_guns;
 extern cvar_t *cl_xr_gun_scale;
 extern cvar_t *cl_xr_gun_offset_x;
 extern cvar_t *cl_xr_gun_offset_y;
@@ -2192,7 +2192,7 @@ static void process_regular_entity(
 	if(is_viewer_weapon)
 	{
 #if APPLY_CONTROLLER_TRACKING_TO_GUN
-		if(stereo && cl_xr_gun->value >= 1.0f)
+		if(stereo && cl_xr_guns->value >= 1.0f)
 		{
 			// -X = closer to camera, +X farther away
 			// + Y = move to right

@@ -27,7 +27,7 @@ extern qhandle_t cl_mod_laser;
 extern qhandle_t cl_mod_dmspot;
 
 extern cvar_t *cl_stereo;
-extern cvar_t *cl_xr_gun;
+extern cvar_t *cl_xr_guns;
 extern cvar_t *cl_xr_gun_scale;
 
 extern cvar_t *cl_xr_gun_offset_x;
@@ -1238,7 +1238,7 @@ static void CL_SetupFirstPersonView(void)
 
     if(stereo)
     {
-        const bool dual_wield = (cl_xr_gun->value == 2.0f);
+        const bool dual_wield = (cl_xr_guns->value == 2.0f);
 
         if(dual_wield)
         {

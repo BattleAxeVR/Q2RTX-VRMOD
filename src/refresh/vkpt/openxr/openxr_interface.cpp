@@ -3124,12 +3124,19 @@ extern "C"
 		const float roll_deg = 0.0f;
 #endif
 
+		glm::vec3 hand_offsets = *(glm::vec3*)gun_offsets_ptr;
+
 		glm::mat4 mirror_matrix(1);
 
 		if(mirror)
 		{
 			yaw_deg += 180.0f;
 			mirror_matrix[0][0] = -1.0f;
+		}
+		else
+		{
+			hand_offsets.x *= -1.0f;
+			hand_offsets.y *= -1.0f;
 		}
 
 		static float pitch_offset_deg = 0.0f;
@@ -3152,7 +3159,6 @@ extern "C"
 		const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
 
-		const glm::vec3 hand_offsets = *(glm::vec3*)gun_offsets_ptr;
 		const glm::mat4 pre_translation_matrix = glm::translate(glm::mat4(1), hand_offsets);
 
 		{
