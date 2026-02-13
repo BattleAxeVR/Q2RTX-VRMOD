@@ -3287,20 +3287,7 @@ extern "C"
 			rot.w = -glm_xr_pose.rotation_.w;
 		}
 
-		rot = normalize(rot);
-
-		const glm::mat4 hmd_rotation_matrix_orig(glm::mat4_cast(rot));
-
-		glm::mat4 S(0);
-		S[0][2] = 1.0f;
-		S[1][0] = -1.0f;
-		S[2][1] = 1.0f;
-		S[3][3] = 1.0f;
-
-		glm::mat4 Sinv = inverse(S);
-		glm::mat4 hmd_rotation_matrix = hmd_rotation_matrix_orig;// Sinv* hmd_rotation_matrix_orig;
-
-		const glm::mat4 hmd_rotation_matrix_inverse = inverse(hmd_rotation_matrix);
+		const glm::mat4 hmd_rotation_matrix(glm::mat4_cast(rot));
 
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
 
@@ -3334,10 +3321,7 @@ extern "C"
 		if(mirrored)
 		{
 			yaw_deg += 180.0f;
-
 			mirror_matrix[0][0] = -1.0f;
-			//mirror_matrix[1][1] = -1.0f;
-			//mirror_matrix[2][2] = -1.0f;
 		}
 
 		static float pitch_offset_deg = 0.0f;
