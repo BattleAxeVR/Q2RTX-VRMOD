@@ -574,7 +574,8 @@ static void CL_MouseMove(void)
     if ((in_strafe.state & 1) || (lookstrafe->integer && !in_mlooking)) 
     {
         cl.mousemove[1] += m_side->value * mx;
-    } else 
+    } 
+    else 
     {
         cl.viewangles[YAW] -= m_yaw->value * mx;
     }
@@ -582,7 +583,8 @@ static void CL_MouseMove(void)
     if ((in_mlooking || freelook->integer) && !(in_strafe.state & 1)) 
     {
         cl.viewangles[PITCH] += m_pitch->value * my * (m_invert->integer ? -1.f : 1.f);
-    } else 
+    } 
+    else 
     {
         cl.mousemove[0] -= m_forward->value * my;
     }
