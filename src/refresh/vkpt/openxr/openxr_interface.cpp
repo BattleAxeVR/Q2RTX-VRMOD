@@ -2845,7 +2845,7 @@ extern "C"
 		}
 
 		*vk_instance = openxr_.vk_instance_;
-		 
+
 		return VK_SUCCESS;
 	}
 
@@ -2922,7 +2922,7 @@ extern "C"
 		}
 		else
 		{
-			
+
 			memcpy(&eye_pos_vec3, &translation, sizeof(float) * 3);
 		}
 
@@ -2991,8 +2991,8 @@ extern "C"
 		double a = 2.0 * ((rotation.x * rotation.y) + (rotation.z * rotation.w));
 		double roll_rad = asin(a);
 #else
-		double a = 2.0 * ( (rotation.w * rotation.x) + (rotation.y * rotation.z));
-		double b = ( sqr(rotation.w) - sqr(rotation.x) - sqr(rotation.y) + sqr(rotation.z));
+		double a = 2.0 * ((rotation.w * rotation.x) + (rotation.y * rotation.z));
+		double b = (sqr(rotation.w) - sqr(rotation.x) - sqr(rotation.y) + sqr(rotation.z));
 		double pitch_rad = -atan2(a, b);
 #endif
 
@@ -3005,7 +3005,7 @@ extern "C"
 			float pitch_deg = rad2deg(pitch_rad);
 			*pitch_ptr = pitch_deg;
 		}
-		
+
 		return true;
 	}
 
@@ -3031,8 +3031,8 @@ extern "C"
 		double a = 2.0 * ((rotation.x * rotation.y) + (rotation.z * rotation.w));
 		double roll_rad = asin(a);
 #else
-		double a = 2.0 * ( (rotation.w * rotation.z) + (rotation.x * rotation.y));
-		double b = ( sqr(rotation.w) + sqr(rotation.x) - sqr(rotation.y) - sqr(rotation.z));
+		double a = 2.0 * ((rotation.w * rotation.z) + (rotation.x * rotation.y));
+		double b = (sqr(rotation.w) + sqr(rotation.x) - sqr(rotation.y) - sqr(rotation.z));
 		double roll_rad = -atan2(a, b);
 #endif
 
@@ -3205,7 +3205,7 @@ extern "C"
 		}
 
 		XrView left_view = {};
-		
+
 		if(!openxr_.get_view(LEFT, left_view))
 		{
 			return 0.0f;
@@ -3254,6 +3254,12 @@ extern "C"
 		}
 
 		float scale = *scale_ptr;
+
+		if(scale == 0.0f)
+		{
+			scale = 1.0f;
+		}
+
 		glm::vec3 scale_vec = glm::vec3(scale, scale, scale);
 		glm::mat4 scale_matrix = glm::scale(glm::mat4(1.0f), scale_vec);
 

@@ -2189,6 +2189,16 @@ static void process_regular_entity(
 #if APPLY_CONTROLLER_TRACKING_TO_GUN
 		if (cl_xr_gun->value == 1.0f)
 		{
+			const int hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
+#if 1
+			vec3_t origin = { 0 };
+			origin[0] = entity->origin[0];// (1.0f - entity->backlerp)* entity->origin[0] + entity->backlerp * entity->oldorigin[0];
+			origin[1] = entity->origin[1];// (1.0f - entity->backlerp)* entity->origin[1] + entity->backlerp * entity->oldorigin[1];
+			origin[2] = entity->origin[2];// (1.0f - entity->backlerp)* entity->origin[2] + entity->backlerp * entity->oldorigin[2];
+
+
+			GetHandMatrix(hand_id, (float*)&fd->vieworg, (float*)&fd->viewangles, &((entity_t*)entity)->scale, transform);
+#else
 			vec3_t axis[3] = { 0 };
 			AnglesToAxis(entity->angles, axis);
 
@@ -2197,11 +2207,9 @@ static void process_regular_entity(
 			origin[1] = (1.0f - entity->backlerp) * entity->origin[1] + entity->backlerp * entity->oldorigin[1];
 			origin[2] = (1.0f - entity->backlerp) * entity->origin[2] + entity->backlerp * entity->oldorigin[2];
 
-			const int hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
-
-			//GetHandMatrix(hand_id, (float*)&fd->vieworg, (float*)&fd->viewangles, transform);
 			//GetHandMatrix(hand_id, (float*)&origin, (float*)&axis, &((entity_t*)entity)->scale, transform);
-			GetHandMatrix(hand_id, (float*)&origin, (float*)&fd->viewangles, &((entity_t*)entity)->scale, transform);
+			//GetHandMatrix(hand_id, (float*)&origin, (float*)&fd->viewangles, &((entity_t*)entity)->scale, transform);
+#endif
 		}
 #endif
 	}
