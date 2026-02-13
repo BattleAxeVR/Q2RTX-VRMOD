@@ -2860,7 +2860,7 @@ static void CL_InitLocal(void)
     cl_xr_gun = Cvar_Get("xr_gun", "1", 0);
     cl_xr_gun_scale = Cvar_Get("xr_gun_scale", "0.1", 0);
 
-    cl_xr_gun_offset_x = Cvar_Get("xr_gun_offset_x", "-0.45", 0);
+    cl_xr_gun_offset_x = Cvar_Get("xr_gun_offset_x", "-0.46", 0);
     cl_xr_gun_offset_y = Cvar_Get("xr_gun_offset_y", "0.15", 0);
     cl_xr_gun_offset_z = Cvar_Get("xr_gun_offset_z", "0.25", 0);
 
