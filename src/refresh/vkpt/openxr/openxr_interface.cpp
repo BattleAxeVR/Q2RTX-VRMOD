@@ -3091,6 +3091,14 @@ extern "C"
 			scale = 1.0f;
 		}
 
+		static bool override_scale = true;
+
+		if(override_scale)
+		{
+			static float scale_override = 0.05f;
+			scale = scale_override;
+		}
+
 		glm::vec3 scale_vec = glm::vec3(scale, scale, scale);
 		glm::mat4 scale_matrix = glm::scale(glm::mat4(1.0f), scale_vec);
 
@@ -3152,9 +3160,9 @@ extern "C"
 		const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
 
-		static float offset_x = -20.0f; // -X = closer to camera, +X farther away
-		static float offset_y = 8.0f; // + Y = move to right
-		static float offset_z = 5.0f; // + Z = move up
+		static float offset_x = -0.8f; // -X = closer to camera, +X farther away
+		static float offset_y = 0.25f; // + Y = move to right
+		static float offset_z = 0.5f; // + Z = move up
 
 		const glm::vec3 pivot_position_LS = glm::vec3(offset_x, offset_y, offset_z);
 		const glm::mat4 pre_translation_matrix = glm::translate(glm::mat4(1), pivot_position_LS);
@@ -3163,7 +3171,7 @@ extern "C"
 			const glm::vec4 hand_position_LS = glm::vec4(glm_aim_pose.translation_.x, 0.0f, glm_aim_pose.translation_.z, 1.0f);
 			const glm::vec4 hand_position_WS = game_rotation2 * hand_position_LS;
 
-			static float world_mult = 20.0f;
+			static float world_mult = 1.0f;
 
 			glm_pose.translation_.x += hand_position_WS.z * world_mult;
 			glm_pose.translation_.y += hand_position_WS.x * world_mult;
@@ -3172,7 +3180,7 @@ extern "C"
 
 		const glm::mat4 post_translation_matrix = glm_pose.to_matrix();
 
-		glm::mat4 final_hand_matrix = post_translation_matrix * final_rotation_matrix * pre_translation_matrix;
+		glm::mat4 final_hand_matrix = post_translation_matrix * final_rotation_matrix * pre_translation_matrix * scale_matrix;
 		memcpy(hand_matrix_ptr, &final_hand_matrix, sizeof(float) * 16);
 
 		return true;
