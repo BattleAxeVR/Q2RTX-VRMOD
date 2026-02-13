@@ -2912,10 +2912,12 @@ extern "C"
 			return false;
 		}
 
+		const bool mirror = true;
+
 		const XrPosef& xr_pose = xr_view.pose;
 #if 0
-		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, true, false);
-		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(glm_xr_pose.rotation_);
+		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, true, mirror);
+		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(BVR::default_rotation);// glm_xr_pose.rotation_);
 #else
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
 		const glm::mat4 hmd_rotation_matrix_orig = glm::mat4_cast(glm_xr_pose.rotation_);
@@ -2964,12 +2966,14 @@ extern "C"
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
-		const glm::mat4 view_rotation_matrix = hmd_rotation_matrix;
-
 		glm::mat4 mirror_matrix(1);
-		mirror_matrix[0][0] = -1.0f;
 
-		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * view_rotation_matrix;
+		if(mirror)
+		{
+			mirror_matrix[0][0] = -1.0f;
+		}
+
+		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * hmd_rotation_matrix;
 
 		BVR::GLMPose glm_pose;
 
@@ -3181,8 +3185,8 @@ extern "C"
 
 		glm::mat4 translation_matrix = glm_pose.to_matrix();
 
-		glm::mat4 view_matrix = translation_matrix * final_rotation_matrix;
-		memcpy(hand_matrix_ptr, &view_matrix, sizeof(float) * 16);
+		glm::mat4 final_hand_matrix = translation_matrix * final_rotation_matrix;
+		memcpy(hand_matrix_ptr, &final_hand_matrix, sizeof(float) * 16);
 
 		return true;
 	}
