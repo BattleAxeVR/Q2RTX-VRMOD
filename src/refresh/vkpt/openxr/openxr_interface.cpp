@@ -3312,7 +3312,6 @@ extern "C"
 		const float roll_deg = 0.0f;
 #endif
 
-
 		glm::mat4 mirror_matrix(1);
 
 		if(mirrored)
