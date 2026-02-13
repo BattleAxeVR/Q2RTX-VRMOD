@@ -284,44 +284,16 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 		float yaw = 0.0f;
 		float roll = 0.0f;
 
-#if APPLY_VR_VIEW_PITCH
-		float vr_pitch = 0.0f;
-
-		if(GetPitch(view_id, false, &vr_pitch))
-		{
-			pitch += vr_pitch;
-		}
-#endif
-
 #if APPLY_STEREO_VIEW_PITCH
 		pitch += fd->viewangles[PITCH];
 #endif
 
-#if APPLY_VR_VIEW_YAW
-		float vr_yaw = 0.0f;
-
-		if(GetYaw(view_id, false, &vr_yaw))
-		{
-			yaw += vr_yaw;
-		}
-#endif
-
 #if APPLY_STEREO_VIEW_YAW
-		float game_yaw = fd->viewangles[YAW];
-		yaw += game_yaw;
+		yaw += fd->viewangles[YAW];
 #endif
 
 #if APPLY_STEREO_VIEW_ROLL
 		roll += fd->viewangles[ROLL];
-#endif
-
-#if APPLY_VR_VIEW_ROLL
-		float vr_roll = 0.0f;
-
-		if(GetRoll(view_id, false, &vr_roll))
-		{
-			roll += vr_roll;
-		}
 #endif
 
 		viewangles[PITCH] = pitch;

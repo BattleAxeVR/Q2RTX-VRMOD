@@ -46,19 +46,11 @@ typedef struct
 
 bool Is_OpenXR_Session_Running();
 
-bool GetEyePosition(const int view_id, float* eye_pos_vec3, float* tracking_to_world_matrix);
 bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr);
 bool GetFov(const int view_id, XrFovf* fov_ptr);
 float GetIPD();
-
-bool GetHandPosition(const int hand_id, float* world_pos);
 bool GetHandMatrix(const int hand_id, float* view_origin_ptr, float* view_angles_ptr, const float* scale_ptr, float* hand_matrix_ptr);
-
 bool GetVRControllerState(const int hand_id, const bool update, VRControllerState* vr_controller_state_ptr);
-
-bool GetYaw(const int view_id, const bool in_radians, float* yaw_ptr);
-bool GetPitch(const int view_id, const bool in_radians, float* pitch_ptr);
-bool GetRoll(const int view_id, const bool in_radians, float* roll_ptr);
 
 #endif // SUPPORT_OPENXR
 
