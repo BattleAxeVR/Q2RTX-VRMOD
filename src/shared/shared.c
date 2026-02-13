@@ -35,17 +35,20 @@ void AngleVectors(const vec3_t angles, vec3_t forward, vec3_t right, vec3_t up)
     sr = sin(angle);
     cr = cos(angle);
 
-    if (forward) {
+    if (forward) 
+    {
         forward[0] = cp * cy;
         forward[1] = cp * sy;
         forward[2] = -sp;
     }
-    if (right) {
+    if (right) 
+    {
         right[0] = (-1 * sr * sp * cy + -1 * cr * -sy);
         right[1] = (-1 * sr * sp * sy + -1 * cr * cy);
         right[2] = -1 * sr * cp;
     }
-    if (up) {
+    if (up) 
+    {
         up[0] = (cr * sp * cy + -sr * -sy);
         up[1] = (cr * sp * sy + -sr * cy);
         up[2] = cr * cp;
@@ -58,7 +61,8 @@ vec_t VectorNormalize(vec3_t v)
 
     length = VectorLength(v);
 
-    if (length) {
+    if (length) 
+    {
         ilength = 1 / length;
         v[0] *= ilength;
         v[1] *= ilength;
@@ -85,7 +89,8 @@ void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs)
     int        i;
     vec_t    val;
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) 
+    {
         val = v[i];
         mins[i] = min(mins[i], val);
         maxs[i] = max(maxs[i], val);
@@ -94,9 +99,10 @@ void AddPointToBounds(const vec3_t v, vec3_t mins, vec3_t maxs)
 
 void UnionBounds(const vec3_t a[2], const vec3_t b[2], vec3_t c[2])
 {
-    int        i;
+    int i;
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) 
+    {
         c[0][i] = min(a[0][i], b[0][i]);
         c[1][i] = max(a[1][i], b[1][i]);
     }
@@ -113,7 +119,8 @@ vec_t RadiusFromBounds(const vec3_t mins, const vec3_t maxs)
     vec3_t  corner;
     vec_t   a, b;
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) 
+    {
         a = fabsf(mins[i]);
         b = fabsf(maxs[i]);
         corner[i] = max(a, b);
@@ -136,7 +143,8 @@ char *COM_SkipPath(const char *pathname)
     Q_assert(pathname);
 
     last = (char *)pathname;
-    while (*pathname) {
+    while (*pathname) 
+    {
         if (*pathname == '/')
             last = (char *)pathname + 1;
         pathname++;
@@ -153,7 +161,8 @@ size_t COM_StripExtension(char *out, const char *in, size_t size)
 {
     size_t ret = COM_FileExtension(in) - in;
 
-    if (size) {
+    if (size) 
+    {
         size_t len = min(ret, size - 1);
         memcpy(out, in, len);
         out[len] = 0;
@@ -173,11 +182,14 @@ char *COM_FileExtension(const char *in)
 
     Q_assert(in);
 
-    for (last = s = in + strlen(in); s != in; s--) {
-        if (*s == '/') {
+    for (last = s = in + strlen(in); s != in; s--) 
+    {
+        if (*s == '/') 
+        {
             break;
         }
-        if (*s == '.') {
+        if (*s == '.') 
+        {
             return (char *)s;
         }
     }
@@ -198,9 +210,13 @@ void COM_FilePath(const char *in, char *out, size_t size)
 
     Q_strlcpy(out, in, size);
     s = strrchr(out, '/');
-    if (s) {
+
+    if (s) 
+    {
         *s = 0;
-    } else {
+    } 
+    else 
+    {
         *out = 0;
     }
 }
@@ -215,10 +231,14 @@ if path doesn't have .EXT, append extension
 */
 size_t COM_DefaultExtension(char *path, const char *ext, size_t size)
 {
-    if (*COM_FileExtension(path))
+    if(*COM_FileExtension(path))
+    {
         return strlen(path);
+    }
     else
+    {
         return Q_strlcat(path, ext, size);
+    }
 }
 
 /*
@@ -233,18 +253,24 @@ bool COM_IsFloat(const char *s)
 {
     int c, dot = '.';
 
-    if (*s == '-') {
+    if (*s == '-') 
+    {
         s++;
     }
-    if (!*s) {
+    if (!*s) 
+    {
         return false;
     }
 
-    do {
+    do 
+    {
         c = *s++;
-        if (c == dot) {
+        if (c == dot) 
+        {
             dot = 0;
-        } else if (!Q_isdigit(c)) {
+        } 
+        else if (!Q_isdigit(c)) 
+        {
             return false;
         }
     } while (*s);
@@ -256,13 +282,16 @@ bool COM_IsUint(const char *s)
 {
     int c;
 
-    if (!*s) {
+    if (!*s) 
+    {
         return false;
     }
 
-    do {
+    do 
+    {
         c = *s++;
-        if (!Q_isdigit(c)) {
+        if (!Q_isdigit(c)) 
+        {
             return false;
         }
     } while (*s);
@@ -274,13 +303,16 @@ bool COM_IsPath(const char *s)
 {
     int c;
 
-    if (!*s) {
+    if (!*s) 
+    {
         return false;
     }
 
-    do {
+    do 
+    {
         c = *s++;
-        if (!Q_ispath(c)) {
+        if (!Q_ispath(c)) 
+        {
             return false;
         }
     } while (*s);
@@ -292,9 +324,11 @@ bool COM_IsWhite(const char *s)
 {
     int c;
 
-    while (*s) {
+    while (*s) 
+    {
         c = *s++;
-        if (Q_isgraph(c)) {
+        if (Q_isgraph(c)) 
+        {
             return false;
         }
     }
@@ -328,7 +362,8 @@ size_t COM_strclr(char *s)
 
     p = s;
     len = 0;
-    while (*s) {
+    while (*s) 
+    {
         c = *s++;
         c &= 127;
         if (Q_isprint(c)) {
