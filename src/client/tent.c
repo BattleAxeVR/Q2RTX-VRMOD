@@ -1818,7 +1818,7 @@ void CL_AddTEnts(void)
     CL_AddBeams();
 
     CL_AddPlayerBeams(LEFT);
-    CL_AddPlayerBeams(LEFT);
+    //CL_AddPlayerBeams(RIGHT);
 
     CL_AddExplosions();
     CL_ProcessSustain();
