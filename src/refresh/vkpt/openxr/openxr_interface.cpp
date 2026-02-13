@@ -3153,14 +3153,14 @@ extern "C"
 		//glm_pose.translation_ += hand_offset_WS;
 
 		{
-			static float offset_x = 0.0f;
-			static float offset_y = 0.0f;
+			static float offset_x = 0.0f; // + X = move to right
+			static float offset_y = 1.0f; // + Y = closer to camera
 
 			const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
 			const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
 
-			//const glm::vec4 hand_position_LS = glm::vec4(glm_aim_pose.translation_.x + offset_x, 0.0f, glm_aim_pose.translation_.z + offset_y, 0.0f);
-			const glm::vec4 hand_position_LS = glm::vec4(offset_x, 0.0f, offset_y, 1.0f);
+			const glm::vec4 hand_position_LS = glm::vec4(glm_aim_pose.translation_.x + offset_x, 0.0f, glm_aim_pose.translation_.z + offset_y, 1.0f);
+			//const glm::vec4 hand_position_LS = glm::vec4(offset_x, 0.0f, offset_y, 1.0f);
 			const glm::vec4 hand_position_WS = game_rotation2 * hand_position_LS;
 
 			static float world_mult = 10.0f;
