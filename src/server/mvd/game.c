@@ -434,7 +434,8 @@ CHASE CAMERA
 
 void MVD_WriteStringList(mvd_client_t *client, mvd_cs_t *cs)
 {
-    for (; cs; cs = cs->next) {
+    for (; cs; cs = cs->next) 
+    {
         MSG_WriteByte(svc_configstring);
         MSG_WriteShort(cs->index);
         MSG_WriteString(cs->string);
@@ -449,9 +450,9 @@ static void MVD_FollowStop(mvd_client_t *client)
 
     client->ps.viewangles[ROLL] = 0;
 
-    for (i = 0; i < 3; i++) {
-        client->ps.pmove.delta_angles[i] = ANGLE2SHORT(
-                                               client->ps.viewangles[i]) - client->lastcmd.angles[i];
+    for (i = 0; i < 3; i++) 
+    {
+        client->ps.pmove.delta_angles[i] = ANGLE2SHORT(client->ps.viewangles[i]) - client->lastcmd.angles[i];
     }
 
     VectorClear(client->ps.kick_angles);
@@ -463,14 +464,17 @@ static void MVD_FollowStop(mvd_client_t *client)
     client->ps.fov = client->fov;
 
     // send delta configstrings
-    if (mvd->dummy)
+    if(mvd->dummy)
+    {
         MVD_WriteStringList(client, mvd->dummy->configstrings);
+    }
 
     client->clientNum = mvd->clientNum;
     client->oldtarget = client->target;
     client->target = NULL;
 
-    if (client->layout_type == LAYOUT_FOLLOW) {
+    if (client->layout_type == LAYOUT_FOLLOW) 
+    {
         MVD_SetDefaultLayout(client);
     }
 
@@ -479,7 +483,8 @@ static void MVD_FollowStop(mvd_client_t *client)
 
 static void MVD_FollowStart(mvd_client_t *client, mvd_player_t *target)
 {
-    if (client->target == target) {
+    if (client->target == target) 
+    {
         return;
     }
 
@@ -499,17 +504,25 @@ static bool MVD_TestTarget(mvd_client_t *client, mvd_player_t *target)
 {
     mvd_t *mvd = client->mvd;
 
-    if (!target)
+    if(!target)
+    {
         return false;
+    }
 
-    if (!target->inuse)
+    if(!target->inuse)
+    {
         return false;
+    }
 
-    if (target == mvd->dummy)
+    if(target == mvd->dummy)
+    {
         return false;
+    }
 
-    if (!client->chase_auto)
+    if(!client->chase_auto)
+    {
         return true;
+    }
 
     return Q_IsBitSet(client->chase_bitmap, target - mvd->players);
 }
@@ -519,22 +532,29 @@ static mvd_player_t *MVD_FollowNext(mvd_client_t *client, mvd_player_t *from)
     mvd_t *mvd = client->mvd;
     mvd_player_t *target;
 
-    if (!mvd->players) {
+    if (!mvd->players) 
+    {
         return NULL;
     }
 
-    if (!from) {
+    if (!from) 
+    {
         from = mvd->players + mvd->maxclients - 1;
     }
 
     target = from;
-    do {
-        if (target == mvd->players + mvd->maxclients - 1) {
+    do 
+    {
+        if (target == mvd->players + mvd->maxclients - 1) 
+        {
             target = mvd->players;
-        } else {
+        } 
+        else 
+        {
             target++;
         }
-        if (target == from) {
+        if (target == from) 
+        {
             return NULL;
         }
     } while (!MVD_TestTarget(client, target));
@@ -548,22 +568,30 @@ static mvd_player_t *MVD_FollowPrev(mvd_client_t *client, mvd_player_t *from)
     mvd_t *mvd = client->mvd;
     mvd_player_t *target;
 
-    if (!mvd->players) {
+    if (!mvd->players) 
+    {
         return NULL;
     }
 
-    if (!from) {
+    if (!from) 
+    {
         from = mvd->players;
     }
 
     target = from;
-    do {
-        if (target == mvd->players) {
+
+    do 
+    {
+        if (target == mvd->players) 
+        {
             target = mvd->players + mvd->maxclients - 1;
-        } else {
+        } 
+        else 
+        {
             target--;
         }
-        if (target == from) {
+        if (target == from) 
+        {
             return NULL;
         }
     } while (!MVD_TestTarget(client, target));
@@ -581,13 +609,17 @@ static mvd_player_t *MVD_MostFollowed(mvd_t *mvd)
 
     memset(count, 0, sizeof(count));
 
-    FOR_EACH_MVDCL(other, mvd) {
-        if (other->cl->state == cs_spawned && other->target) {
+    FOR_EACH_MVDCL(other, mvd) 
+    {
+        if (other->cl->state == cs_spawned && other->target) 
+        {
             count[other->target - mvd->players]++;
         }
     }
-    for (i = 0, player = mvd->players; i < mvd->maxclients; i++, player++) {
-        if (player->inuse && player != mvd->dummy && maxcount < count[i]) {
+    for (i = 0, player = mvd->players; i < mvd->maxclients; i++, player++) 
+    {
+        if (player->inuse && player != mvd->dummy && maxcount < count[i]) 
+        {
             maxcount = count[i];
             target = player;
         }
@@ -603,14 +635,20 @@ static void MVD_UpdateTarget(mvd_client_t *client)
     int i;
 
     // find new target for effects auto chasecam
-    if (client->chase_mask && !mvd->intermission) {
-        for (i = 0; i < mvd->maxclients; i++) {
+    if (client->chase_mask && !mvd->intermission) 
+    {
+        for (i = 0; i < mvd->maxclients; i++) 
+        {
             target = &mvd->players[i];
-            if (!target->inuse || target == mvd->dummy) {
+
+            if (!target->inuse || target == mvd->dummy) 
+            {
                 continue;
             }
             ent = &mvd->edicts[i + 1];
-            if (ent->s.effects & client->chase_mask) {
+
+            if (ent->s.effects & client->chase_mask) 
+            {
                 MVD_FollowStart(client, target);
                 return;
             }
@@ -619,11 +657,16 @@ static void MVD_UpdateTarget(mvd_client_t *client)
 
     // check if current target is still active
     target = client->target;
-    if (target) {
-        if (target->inuse) {
+
+    if (target) 
+    {
+        if (target->inuse) 
+        {
             return;
         }
-        if (!MVD_FollowNext(client, target)) {
+
+        if (!MVD_FollowNext(client, target)) 
+        {
             MVD_FollowStop(client);
             return;
         }
@@ -631,17 +674,23 @@ static void MVD_UpdateTarget(mvd_client_t *client)
 
     // find the next target for auto chasecam
     target = client->oldtarget;
-    if (client->chase_auto) {
-        if (MVD_TestTarget(client, target)) {
+
+    if (client->chase_auto) 
+    {
+        if (MVD_TestTarget(client, target)) 
+        {
             MVD_FollowStart(client, target);
-        } else {
+        } 
+        else 
+        {
             MVD_FollowNext(client, target);
         }
         return;
     }
 
     // if the map has just started, try to return to the previous target
-    if (target && target->inuse && client->chase_wait) {
+    if (target && target->inuse && client->chase_wait) 
+    {
         MVD_FollowStart(client, target);
     }
 }
@@ -652,52 +701,76 @@ static void MVD_UpdateClient(mvd_client_t *client)
     mvd_player_t *target = client->target;
     int i;
 
-    if (!target) {
+    if (!target) 
+    {
         int contents = 0;
 
         // copy stats of the dummy MVD observer
-        if (mvd->dummy) {
-            for (i = 0; i < MAX_STATS; i++) {
+        if (mvd->dummy) 
+        {
+            for (i = 0; i < MAX_STATS; i++) 
+            {
                 client->ps.stats[i] = mvd->dummy->ps.stats[i];
             }
         }
 
         // get contents from world
-        if (mvd->cm.cache) {
+        if (mvd->cm.cache) 
+        {
             vec3_t vieworg;
             VectorMA(client->ps.viewoffset, 0.125f, client->ps.pmove.origin, vieworg);
             contents = CM_PointContents(vieworg, mvd->cm.cache->nodes);
         }
 
-        if (contents & (CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER))
+        if(contents & (CONTENTS_LAVA | CONTENTS_SLIME | CONTENTS_WATER))
+        {
             client->ps.rdflags = RDF_UNDERWATER;
+        }
         else
+        {
             client->ps.rdflags = 0;
+        }
 
-        if (contents & (CONTENTS_SOLID | CONTENTS_LAVA))
+        if(contents & (CONTENTS_SOLID | CONTENTS_LAVA))
+        {
             Vector4Set(client->ps.blend, 1.0f, 0.3f, 0.0f, 0.6f);
-        else if (contents & CONTENTS_SLIME)
+        }
+        else if(contents & CONTENTS_SLIME)
+        {
             Vector4Set(client->ps.blend, 0.0f, 0.1f, 0.05f, 0.6f);
-        else if (contents & CONTENTS_WATER)
+        }
+        else if(contents & CONTENTS_WATER)
+        {
             Vector4Set(client->ps.blend, 0.5f, 0.3f, 0.2f, 0.4f);
+        }
         else
+        {
             Vector4Clear(client->ps.blend);
-    } else {
+        }
+    } 
+    else 
+    {
         // copy entire player state
         client->ps = target->ps;
-        if ((client->uf & UF_LOCALFOV) || (!(client->uf & UF_PLAYERFOV)
-                                           && client->ps.fov >= 90)) {
+
+        if ((client->uf & UF_LOCALFOV) || (!(client->uf & UF_PLAYERFOV) && client->ps.fov >= 90)) 
+        {
             client->ps.fov = client->fov;
         }
         client->ps.pmove.pm_flags |= PMF_NO_PREDICTION;
         client->ps.pmove.pm_type = PM_FREEZE;
         client->clientNum = target - mvd->players;
 
-        if (target != mvd->dummy) {
-            if (mvd_stats_hack->integer && mvd->dummy) {
+        if (target != mvd->dummy) 
+        {
+            if (mvd_stats_hack->integer && mvd->dummy) 
+            {
                 // copy stats of the dummy MVD observer
-                for (i = 0; i < MAX_STATS; i++) {
-                    if (mvd_stats_hack->integer & BIT(i)) {
+
+                for (i = 0; i < MAX_STATS; i++) 
+                {
+                    if (mvd_stats_hack->integer & BIT(i)) 
+                    {
                         client->ps.stats[i] = mvd->dummy->ps.stats[i];
                     }
                 }
@@ -709,7 +782,8 @@ static void MVD_UpdateClient(mvd_client_t *client)
     }
 
     // override score
-    switch (mvd_stats_score->integer) {
+    switch (mvd_stats_score->integer) 
+    {
     case 0:
         client->ps.stats[STAT_FRAGS] = 0;
         break;

@@ -1631,7 +1631,9 @@ void teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t
     if (!other->client)
         return;
     dest = G_Find(NULL, FOFS(targetname), self->target);
-    if (!dest) {
+
+    if (!dest) 
+    {
         gi.dprintf("Couldn't find destination\n");
         return;
     }
@@ -1653,7 +1655,8 @@ void teleporter_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t
     other->s.event = EV_PLAYER_TELEPORT;
 
     // set angles
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) 
+    {
         other->client->ps.pmove.delta_angles[i] = ANGLE2SHORT(dest->s.angles[i] - other->client->resp.cmd_angles[i]);
     }
 
@@ -1674,7 +1677,8 @@ void SP_misc_teleporter(edict_t *ent)
 {
     edict_t     *trig;
 
-    if (!ent->target) {
+    if (!ent->target) 
+    {
         gi.dprintf("teleporter without a target.\n");
         G_FreeEdict(ent);
         return;

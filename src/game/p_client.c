@@ -390,24 +390,40 @@ void TossClientWeapon(edict_t *self)
     bool        quad;
     float       spread;
 
-    if (!deathmatch->value)
+    if(!deathmatch->value)
+    {
         return;
+    }
 
     item = self->client->pers.weapon;
-    if (! self->client->pers.inventory[self->client->ammo_index])
-        item = NULL;
-    if (item && (strcmp(item->pickup_name, "Blaster") == 0))
-        item = NULL;
 
-    if (!((int)(dmflags->value) & DF_QUAD_DROP))
+    if(!self->client->pers.inventory[self->client->ammo_index])
+    {
+        item = NULL;
+    }
+
+    if(item && (strcmp(item->pickup_name, "Blaster") == 0))
+    {
+        item = NULL;
+    }
+
+    if(!((int)(dmflags->value) & DF_QUAD_DROP))
+    {
         quad = false;
+    }
     else
+    {
         quad = (self->client->quad_framenum > (level.framenum + 10));
+    }
 
-    if (item && quad)
+    if(item && quad)
+    {
         spread = 22.5f;
+    }
     else
+    {
         spread = 0.0f;
+    }
 
     if (item) 
     {
@@ -459,17 +475,27 @@ void LookAtKiller(edict_t *self, edict_t *inflictor, edict_t *attacker)
         return;
     }
 
-    if (dir[0])
+    if(dir[0])
+    {
         self->client->killer_yaw = RAD2DEG(atan2(dir[1], dir[0]));
-    else {
-        self->client->killer_yaw = 0;
-        if (dir[1] > 0)
-            self->client->killer_yaw = 90;
-        else if (dir[1] < 0)
-            self->client->killer_yaw = -90;
     }
-    if (self->client->killer_yaw < 0)
+    else 
+    {
+        self->client->killer_yaw = 0;
+
+        if(dir[1] > 0)
+        {
+            self->client->killer_yaw = 90;
+        }
+        else if(dir[1] < 0)
+        {
+            self->client->killer_yaw = -90;
+        }
+    }
+    if(self->client->killer_yaw < 0)
+    {
         self->client->killer_yaw += 360;
+    }
 
 }
 
@@ -500,20 +526,28 @@ void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
 //  self->solid = SOLID_NOT;
     self->svflags |= SVF_DEADMONSTER;
 
-    if (!self->deadflag) {
+    if (!self->deadflag) 
+    {
         self->client->respawn_framenum = level.framenum + 1.0f * BASE_FRAMERATE;
         LookAtKiller(self, inflictor, attacker);
         self->client->ps.pmove.pm_type = PM_DEAD;
         ClientObituary(self, inflictor, attacker);
         TossClientWeapon(self);
-        if (deathmatch->value)
+
+        if(deathmatch->value)
+        {
             Cmd_Help_f(self);       // show scores
+        }
 
         // clear inventory
         // this is kind of ugly, but it's how we want to handle keys in coop
-        for (n = 0; n < game.num_items; n++) {
-            if (coop->value && itemlist[n].flags & IT_KEY)
+        for (n = 0; n < game.num_items; n++) 
+        {
+            if(coop->value && itemlist[n].flags & IT_KEY)
+            {
                 self->client->resp.coop_respawn.inventory[n] = self->client->pers.inventory[n];
+            }
+
             self->client->pers.inventory[n] = 0;
         }
     }
@@ -525,26 +559,38 @@ void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage
     self->client->enviro_framenum = 0;
     self->flags &= ~FL_POWER_ARMOR;
 
-    if (self->health < -40) {
+    if (self->health < -40) 
+    {
         // gib
         gi.sound(self, CHAN_BODY, gi.soundindex("misc/udeath.wav"), 1, ATTN_NORM, 0);
-        for (n = 0; n < 4; n++)
+
+        for(n = 0; n < 4; n++)
+        {
             ThrowGib(self, "models/objects/gibs/sm_meat/tris.md2", damage, GIB_ORGANIC);
+        }
         ThrowClientHead(self, damage);
 
         self->takedamage = DAMAGE_NO;
-    } else {
+    } 
+    else 
+    {
         // normal death
-        if (!self->deadflag) {
+        if (!self->deadflag) 
+        {
             static int i;
 
             i = (i + 1) % 3;
             // start a death animation
+
             self->client->anim_priority = ANIM_DEATH;
-            if (self->client->ps.pmove.pm_flags & PMF_DUCKED) {
+
+            if (self->client->ps.pmove.pm_flags & PMF_DUCKED) 
+            {
                 self->s.frame = FRAME_crdeath1 - 1;
                 self->client->anim_end = FRAME_crdeath5;
-            } else switch (i) {
+            } 
+            else switch (i) 
+            {
                 case 0:
                     self->s.frame = FRAME_death101 - 1;
                     self->client->anim_end = FRAME_death106;
@@ -594,6 +640,7 @@ void InitClientPersistant(gclient_t *client)
 		// Q2RTX: Spawn with a flare gun and some grenades to use with it.
 		// Flare gun is new and not found anywhere in the game as a pickup item.
 		const gitem_t* item_flareg = FindItem("Flare Gun");
+
 		if (item_flareg)
 		{
 			client->pers.inventory[ITEM_INDEX(item_flareg)] = 1;
