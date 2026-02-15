@@ -851,7 +851,8 @@ typedef struct {
 
 // this structure is cleared on each PutClientInServer(),
 // except for 'client->pers'
-struct gclient_s {
+struct gclient_s 
+{
     // known to server
     player_state_t  ps;             // communicated by server to clients
     int             ping;
@@ -934,9 +935,14 @@ struct gclient_s {
 
     edict_t     *chase_target;      // player we are chasing
     bool        update_chase;       // need to update chase info?
+
+    bool override_gun;
+    vec3_t override_gun_origin;
+    vec3_t override_gun_direction;
 };
 
-struct edict_s {
+struct edict_s 
+{
     entity_state_t  s;
     struct gclient_s    *client;    // NULL if not a player
                                     // the server expects the first part

@@ -711,35 +711,47 @@ void MSG_WriteDeltaEntity(const entity_packed_t *from,
     else if (bits & U_EFFECTS16)
         MSG_WriteShort(to->effects);
 
-    if ((bits & U_RENDERFX32) == U_RENDERFX32)
+    if((bits & U_RENDERFX32) == U_RENDERFX32)
+    {
         MSG_WriteLong(to->renderfx);
-    else if (bits & U_RENDERFX8)
+    }
+    else if(bits & U_RENDERFX8)
+    {
         MSG_WriteByte(to->renderfx);
-    else if (bits & U_RENDERFX16)
+    }
+    else if(bits & U_RENDERFX16)
+    {
         MSG_WriteShort(to->renderfx);
+    }
 
     if (bits & U_ORIGIN1) MSG_WriteShort(to->origin[0]);
     if (bits & U_ORIGIN2) MSG_WriteShort(to->origin[1]);
     if (bits & U_ORIGIN3) MSG_WriteShort(to->origin[2]);
 
-    if (bits & U_ANGLE16) {
+    if (bits & U_ANGLE16) 
+    {
         if (bits & U_ANGLE1) MSG_WriteShort(to->angles[0]);
         if (bits & U_ANGLE2) MSG_WriteShort(to->angles[1]);
         if (bits & U_ANGLE3) MSG_WriteShort(to->angles[2]);
-    } else {
+    } 
+    else 
+    {
         if (bits & U_ANGLE1) MSG_WriteChar(to->angles[0] >> 8);
         if (bits & U_ANGLE2) MSG_WriteChar(to->angles[1] >> 8);
         if (bits & U_ANGLE3) MSG_WriteChar(to->angles[2] >> 8);
     }
 
-    if (bits & U_OLDORIGIN) {
+    if (bits & U_OLDORIGIN) 
+    {
         MSG_WriteShort(to->old_origin[0]);
         MSG_WriteShort(to->old_origin[1]);
         MSG_WriteShort(to->old_origin[2]);
     }
 
-    if (bits & U_SOUND) {
-        if (flags & MSG_ES_EXTENSIONS) {
+    if (bits & U_SOUND) 
+    {
+        if (flags & MSG_ES_EXTENSIONS) 
+        {
             int w = to->sound & 0x3fff;
 
             if (to->loop_volume != from->loop_volume)
@@ -750,35 +762,55 @@ void MSG_WriteDeltaEntity(const entity_packed_t *from,
             MSG_WriteShort(w);
             if (w & 0x4000)
                 MSG_WriteByte(to->loop_volume);
+
             if (w & 0x8000)
                 MSG_WriteByte(to->loop_attenuation);
-        } else {
+        } 
+        else 
+        {
             MSG_WriteByte(to->sound);
         }
     }
 
-    if (bits & U_EVENT)
+    if(bits & U_EVENT)
+    {
         MSG_WriteByte(to->event);
-
-    if (bits & U_SOLID) {
-        if (flags & MSG_ES_LONGSOLID)
-            MSG_WriteLong(to->solid);
-        else
-            MSG_WriteShort(to->solid);
     }
 
-    if ((bits & U_MOREFX32) == U_MOREFX32)
+    if (bits & U_SOLID) 
+    {
+        if(flags & MSG_ES_LONGSOLID)
+        {
+            MSG_WriteLong(to->solid);
+        }
+        else
+        {
+            MSG_WriteShort(to->solid);
+        }
+    }
+
+    if((bits & U_MOREFX32) == U_MOREFX32)
+    {
         MSG_WriteLong(to->morefx);
-    else if (bits & U_MOREFX8)
+    }
+    else if(bits & U_MOREFX8)
+    {
         MSG_WriteByte(to->morefx);
-    else if (bits & U_MOREFX16)
+    }
+    else if(bits & U_MOREFX16)
+    {
         MSG_WriteShort(to->morefx);
+    }
 
-    if (bits & U_ALPHA)
+    if(bits & U_ALPHA)
+    {
         MSG_WriteByte(to->alpha);
+    }
 
-    if (bits & U_SCALE)
+    if(bits & U_SCALE)
+    {
         MSG_WriteByte(to->scale);
+    }
 }
 
 #define OFFSET2CHAR(x)  Q_clip_int8((x) * 4)
@@ -793,14 +825,22 @@ void MSG_PackPlayer(player_packed_t *out, const player_state_t *in)
     for (i = 0; i < 3; i++) out->kick_angles[i] = OFFSET2CHAR(in->kick_angles[i]);
     for (i = 0; i < 3; i++) out->gunoffset[i] = OFFSET2CHAR(in->gunoffset[i]);
     for (i = 0; i < 3; i++) out->gunangles[i] = OFFSET2CHAR(in->gunangles[i]);
+
     out->gunindex = in->gunindex;
     out->gunframe = in->gunframe;
-    for (i = 0; i < 4; i++)
+
+    for(i = 0; i < 4; i++)
+    {
         out->blend[i] = Q_clip_uint8(in->blend[i] * 255);
+    }
+
     out->fov = (int)in->fov;
     out->rdflags = in->rdflags;
-    for (i = 0; i < MAX_STATS; i++)
+
+    for(i = 0; i < MAX_STATS; i++)
+    {
         out->stats[i] = in->stats[i];
+    }
 }
 
 void MSG_WriteDeltaPlayerstate_Default(const player_packed_t *from, const player_packed_t *to, msgPsFlags_t flags)

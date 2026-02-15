@@ -803,24 +803,29 @@ edict_t *Drop_Item(edict_t *ent, const gitem_t *item)
     dropped->spawnflags = DROPPED_ITEM;
     dropped->s.effects = item->world_model_flags;
     dropped->s.renderfx = RF_GLOW;
+
     VectorSet(dropped->mins, -15, -15, -15);
     VectorSet(dropped->maxs, 15, 15, 15);
+
     gi.setmodel(dropped, dropped->item->world_model);
     dropped->solid = SOLID_TRIGGER;
     dropped->movetype = MOVETYPE_TOSS;
     dropped->touch = drop_temp_touch;
     dropped->owner = ent;
 
-    if (ent->client) {
+    if (ent->client) 
+    {
         trace_t trace;
 
         AngleVectors(ent->client->v_angle, forward, right, NULL);
         VectorSet(offset, 24, 0, -16);
         G_ProjectSource(ent->s.origin, offset, forward, right, dropped->s.origin);
-        trace = gi.trace(ent->s.origin, dropped->mins, dropped->maxs,
-                         dropped->s.origin, ent, CONTENTS_SOLID);
+
+        trace = gi.trace(ent->s.origin, dropped->mins, dropped->maxs, dropped->s.origin, ent, CONTENTS_SOLID);
         VectorCopy(trace.endpos, dropped->s.origin);
-    } else {
+    } 
+    else 
+    {
         AngleVectors(ent->s.angles, forward, right, NULL);
         VectorCopy(ent->s.origin, dropped->s.origin);
     }
@@ -841,10 +846,13 @@ void Use_Item(edict_t *ent, edict_t *other, edict_t *activator)
     ent->svflags &= ~SVF_NOCLIENT;
     ent->use = NULL;
 
-    if (ent->spawnflags & ITEM_NO_TOUCH) {
+    if (ent->spawnflags & ITEM_NO_TOUCH) 
+    {
         ent->solid = SOLID_BBOX;
         ent->touch = NULL;
-    } else {
+    } 
+    else 
+    {
         ent->solid = SOLID_TRIGGER;
         ent->touch = Touch_Item;
     }
@@ -867,10 +875,15 @@ void droptofloor(edict_t *ent)
     VectorSet(ent->mins, -15, -15, -15);
     VectorSet(ent->maxs, 15, 15, 15);
 
-    if (ent->model)
+    if(ent->model)
+    {
         gi.setmodel(ent, ent->model);
+    }
     else
+    {
         gi.setmodel(ent, ent->item->world_model);
+    }
+
     ent->solid = SOLID_TRIGGER;
     ent->movetype = MOVETYPE_TOSS;
     ent->touch = Touch_Item;
@@ -879,7 +892,9 @@ void droptofloor(edict_t *ent)
     dest[2] -= 128;
 
     tr = gi.trace(ent->s.origin, ent->mins, ent->maxs, dest, ent, MASK_SOLID);
-    if (tr.startsolid) {
+
+    if (tr.startsolid) 
+    {
         gi.dprintf("droptofloor: %s startsolid at %s\n", ent->classname, vtos(ent->s.origin));
         G_FreeEdict(ent);
         return;
@@ -887,27 +902,32 @@ void droptofloor(edict_t *ent)
 
     VectorCopy(tr.endpos, ent->s.origin);
 
-    if (ent->team) {
+    if (ent->team) 
+    {
         ent->flags &= ~FL_TEAMSLAVE;
         ent->chain = ent->teamchain;
         ent->teamchain = NULL;
 
         ent->svflags |= SVF_NOCLIENT;
         ent->solid = SOLID_NOT;
-        if (ent == ent->teammaster) {
+
+        if (ent == ent->teammaster) 
+        {
             ent->nextthink = level.framenum + 1;
             ent->think = DoRespawn;
         }
     }
 
-    if (ent->spawnflags & ITEM_NO_TOUCH) {
+    if (ent->spawnflags & ITEM_NO_TOUCH) 
+    {
         ent->solid = SOLID_BBOX;
         ent->touch = NULL;
         ent->s.effects &= ~EF_ROTATE;
         ent->s.renderfx &= ~RF_GLOW;
     }
 
-    if (ent->spawnflags & ITEM_TRIGGER_SPAWN) {
+    if (ent->spawnflags & ITEM_TRIGGER_SPAWN) 
+    {
         ent->svflags |= SVF_NOCLIENT;
         ent->solid = SOLID_NOT;
         ent->use = Use_Item;
@@ -931,45 +951,69 @@ void PrecacheItem(const gitem_t *it)
     const char *data;
     size_t len;
 
-    if (!it)
+    if(!it)
+    {
         return;
+    }
 
     if (it->pickup_sound)
         gi.soundindex(it->pickup_sound);
+
     if (it->world_model)
         gi.modelindex(it->world_model);
+
     if (it->view_model)
         gi.modelindex(it->view_model);
+
     if (it->icon)
         gi.imageindex(it->icon);
 
     // parse everything for its ammo
-    if (it->ammo && it->ammo[0]) {
+    if (it->ammo && it->ammo[0]) 
+    {
         const gitem_t *ammo = FindItem(it->ammo);
-        if (ammo != it)
+
+        if(ammo != it)
+        {
             PrecacheItem(ammo);
+        }
     }
 
     // parse NULL terminated precache list for other items
     s = it->precaches;
-    if (!s)
-        return;
 
-    while (*s) {
+    if(!s)
+    {
+        return;
+    }
+
+    while(*s)
+    {
         data = *s++;
         len = strlen(data);
-        if (len >= MAX_QPATH || len < 5)
+
+        if(len >= MAX_QPATH || len < 5)
+        {
             gi.error("PrecacheItem: %s has bad precache string", it->classname);
+        }
 
         // determine type based on extension
-        if (!strcmp(data + len - 3, "md2"))
+        if(!strcmp(data + len - 3, "md2"))
+        {
             gi.modelindex(data);
-        else if (!strcmp(data + len - 3, "sp2"))
+        }
+        else if(!strcmp(data + len - 3, "sp2"))
+        {
             gi.modelindex(data);
-        else if (!strcmp(data + len - 3, "wav"))
+        }
+        else if(!strcmp(data + len - 3, "wav"))
+        {
             gi.soundindex(data);
-        else if (!strcmp(data + len - 3, "pcx"))
+        }
+        else if(!strcmp(data + len - 3, "pcx"))
+        {
             gi.imageindex(data);
+        }
     }
 }
 
@@ -987,42 +1031,56 @@ void SpawnItem(edict_t *ent, const gitem_t *item)
 {
     PrecacheItem(item);
 
-    if (ent->spawnflags) {
-        if (strcmp(ent->classname, "key_power_cube") != 0) {
+    if (ent->spawnflags) 
+    {
+        if (strcmp(ent->classname, "key_power_cube") != 0) 
+        {
             ent->spawnflags = 0;
             gi.dprintf("%s at %s has invalid spawnflags set\n", ent->classname, vtos(ent->s.origin));
         }
     }
 
     // some items will be prevented in deathmatch
-    if (deathmatch->value) {
-        if ((int)dmflags->value & DF_NO_ARMOR) {
-            if (item->pickup == Pickup_Armor || item->pickup == Pickup_PowerArmor) {
+    if (deathmatch->value) 
+    {
+        if ((int)dmflags->value & DF_NO_ARMOR) 
+        {
+            if (item->pickup == Pickup_Armor || item->pickup == Pickup_PowerArmor) 
+            {
                 G_FreeEdict(ent);
                 return;
             }
         }
-        if ((int)dmflags->value & DF_NO_ITEMS) {
-            if (item->pickup == Pickup_Powerup) {
+
+        if ((int)dmflags->value & DF_NO_ITEMS) 
+        {
+            if (item->pickup == Pickup_Powerup) 
+            {
                 G_FreeEdict(ent);
                 return;
             }
         }
-        if ((int)dmflags->value & DF_NO_HEALTH) {
-            if (item->pickup == Pickup_Health || item->pickup == Pickup_Adrenaline || item->pickup == Pickup_AncientHead) {
+
+        if ((int)dmflags->value & DF_NO_HEALTH) 
+        {
+            if (item->pickup == Pickup_Health || item->pickup == Pickup_Adrenaline || item->pickup == Pickup_AncientHead) 
+            {
                 G_FreeEdict(ent);
                 return;
             }
         }
-        if ((int)dmflags->value & DF_INFINITE_AMMO) {
-            if ((item->flags == IT_AMMO) || (strcmp(ent->classname, "weapon_bfg") == 0)) {
+        if ((int)dmflags->value & DF_INFINITE_AMMO) 
+        {
+            if ((item->flags == IT_AMMO) || (strcmp(ent->classname, "weapon_bfg") == 0)) 
+            {
                 G_FreeEdict(ent);
                 return;
             }
         }
     }
 
-    if (coop->value && (strcmp(ent->classname, "key_power_cube") == 0)) {
+    if (coop->value && (strcmp(ent->classname, "key_power_cube") == 0)) 
+    {
         ent->spawnflags |= (1 << (8 + level.power_cubes));
         level.power_cubes++;
     }
@@ -1032,8 +1090,11 @@ void SpawnItem(edict_t *ent, const gitem_t *item)
     ent->think = droptofloor;
     ent->s.effects = item->world_model_flags;
     ent->s.renderfx = RF_GLOW;
-    if (ent->model)
+
+    if(ent->model)
+    {
         gi.modelindex(ent->model);
+    }
 }
 
 //======================================================================

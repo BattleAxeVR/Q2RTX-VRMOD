@@ -48,7 +48,8 @@ typedef struct {
     uint8_t     loop_attenuation;
 } entity_packed_t;
 
-typedef struct {
+typedef struct 
+{
     pmove_state_t   pmove;
     int16_t         viewangles[3];
     int8_t          viewoffset[3];
@@ -63,7 +64,8 @@ typedef struct {
     int16_t         stats[MAX_STATS];
 } player_packed_t;
 
-typedef enum {
+typedef enum 
+{
     MSG_PS_IGNORE_GUNINDEX      = BIT(0),   // ignore gunindex
     MSG_PS_IGNORE_GUNFRAMES     = BIT(1),   // ignore gunframe/gunoffset/gunangles
     MSG_PS_IGNORE_BLEND         = BIT(2),   // ignore blend
