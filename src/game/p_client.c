@@ -412,16 +412,22 @@ void TossClientWeapon(edict_t *self)
     if (item) 
     {
         self->client->v_angle[YAW] -= spread;
+
         drop = Drop_Item(self, item);
+
         self->client->v_angle[YAW] += spread;
+
         drop->spawnflags = DROPPED_PLAYER_ITEM;
     }
 
     if (quad) 
     {
         self->client->v_angle[YAW] += spread;
+
         drop = Drop_Item(self, FindItemByClassname("item_quad"));
+
         self->client->v_angle[YAW] -= spread;
+
         drop->spawnflags |= DROPPED_PLAYER_ITEM;
 
         drop->touch = Touch_Item;
