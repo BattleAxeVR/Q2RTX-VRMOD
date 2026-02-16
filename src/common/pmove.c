@@ -23,7 +23,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if SUPPORT_OPENXR
 #include "../refresh/vkpt/openxr/openxr_c_interface.h"
-extern cvar_t *cl_xr_guns;
 #endif
 
 #define STEPSIZE    18
@@ -32,7 +31,8 @@ extern cvar_t *cl_xr_guns;
 // pmove, just to make damn sure we don't have
 // any differences when running on client or server
 
-typedef struct {
+typedef struct 
+{
     vec3_t      origin;         // full float precision
     vec3_t      velocity;       // full float precision
 
@@ -836,6 +836,17 @@ PM_CheckDuck
 Sets mins, maxs, and pm->viewheight
 ==============
 */
+
+int vr_guns_enabled = 0;
+
+float vr_gun_origin_x = 0.0f;
+float vr_gun_origin_y = 0.0f;
+float vr_gun_origin_z = 0.0f;
+
+float vr_gun_dir_x = 0.0f;
+float vr_gun_dir_y = 1.0f;
+float vr_gun_dir_z = 0.0f;
+
 static void PM_CheckDuck(void)
 {
     trace_t trace;
@@ -892,18 +903,18 @@ static void PM_CheckDuck(void)
         pm->viewheight = 22;
     }
 
-#if SUPPORT_OPENXR//APPLY_CONTROLLER_TRACKING_TO_GUN
-    if (cl_xr_guns->value >= 1.0f)
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
+    pm->override_gun = vr_guns_enabled;
+
+    if (pm->override_gun)
     {
-        pm->override_gun = 1;
+        pm->override_gun_origin[0] = vr_gun_origin_x;
+        pm->override_gun_origin[1] = vr_gun_origin_y;
+        pm->override_gun_origin[2] = vr_gun_origin_z;
 
-        //pm->override_gun_origin[0] = 1;
-        //pm->override_gun_origin[1] = 1;
-        //pm->override_gun_origin[1] = 1;
-
-        pm->override_gun_direction[0] = 1;
-        pm->override_gun_direction[1] = 0;
-        pm->override_gun_direction[2] = 0;
+        pm->override_gun_direction[0] = vr_gun_dir_x;
+        pm->override_gun_direction[1] = vr_gun_dir_y;
+        pm->override_gun_direction[2] = vr_gun_dir_z;
     }
 #endif
 }

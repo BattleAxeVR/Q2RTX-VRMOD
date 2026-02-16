@@ -991,13 +991,6 @@ void MSG_WriteDeltaPlayerstate_Default(const player_packed_t *from, const player
         MSG_WriteChar(to->gunangles[0]);
         MSG_WriteChar(to->gunangles[1]);
         MSG_WriteChar(to->gunangles[2]);
-        //MSG_WriteByte(to->override_gun);
-        //MSG_WriteChar(to->override_gun_origin[0]);
-        //MSG_WriteChar(to->override_gun_origin[1]);
-        //MSG_WriteChar(to->override_gun_origin[2]);
-        //MSG_WriteChar(to->override_gun_direction[0]);
-        //MSG_WriteChar(to->override_gun_direction[1]);
-        //MSG_WriteChar(to->override_gun_direction[2]);
     }
 
     if (pflags & PS_BLEND) 
@@ -2271,15 +2264,6 @@ void MSG_ParseDeltaPlayerstate_Default(const player_state_t *from,
         to->gunangles[0] = MSG_ReadChar() * 0.25f;
         to->gunangles[1] = MSG_ReadChar() * 0.25f;
         to->gunangles[2] = MSG_ReadChar() * 0.25f;
-
-        to->override_gun = MSG_ReadByte();
-
-        to->override_gun_origin[0] = MSG_ReadChar() * 0.25f;
-        to->override_gun_origin[1] = MSG_ReadChar() * 0.25f;
-        to->override_gun_origin[2] = MSG_ReadChar() * 0.25f;
-        to->override_gun_direction[0] = MSG_ReadChar() * 0.25f;
-        to->override_gun_direction[1] = MSG_ReadChar() * 0.25f;
-        to->override_gun_direction[2] = MSG_ReadChar() * 0.25f;
     }
 
     if (flags & PS_BLEND) 

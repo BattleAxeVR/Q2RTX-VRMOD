@@ -1283,18 +1283,6 @@ void PutClientInServer(edict_t *ent)
     VectorCopy(spawn_angles, client->ps.viewangles);
     VectorCopy(spawn_angles, client->v_angle);
 
-#if 0
-    client->override_gun = true;
-
-    for (i = 0; i < 3; i++) 
-    {
-        client->override_gun_origin[i] = client->ps.pmove.origin[i];
-        client->override_gun_direction[i] = 1.0f;
-    }
-#else
-    client->override_gun = false;
-#endif
-
     // spawn a spectator
     if (client->pers.spectator) 
     {
@@ -1725,24 +1713,22 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
             ent->groundentity_linkcount = pm.groundentity->linkcount;
         }
 
-        ent->client->override_gun = false;
-        
         if(ent->deadflag)
         {
             client->ps.viewangles[ROLL] = 40;
             client->ps.viewangles[PITCH] = -15;
             client->ps.viewangles[YAW] = client->killer_yaw;
         }
-        else if (pm.override_gun)// ent->override_gun)
+        else if (pm.override_gun)
         {
             VectorCopy(pm.viewangles, client->v_angle);
             VectorCopy(pm.viewangles, client->ps.viewangles);
 
             ent->client->override_gun = true;
 
-            //ent->client->override_gun_origin[0] = pm.override_gun_origin[0];
-            //ent->client->override_gun_origin[1] = pm.override_gun_origin[1];
-            //ent->client->override_gun_origin[2] = pm.override_gun_origin[2];
+            ent->client->override_gun_origin[0] = pm.override_gun_origin[0];
+            ent->client->override_gun_origin[1] = pm.override_gun_origin[1];
+            ent->client->override_gun_origin[2] = pm.override_gun_origin[2];
 
             ent->client->override_gun_direction[0] = pm.override_gun_direction[0];
             ent->client->override_gun_direction[1] = pm.override_gun_direction[1];

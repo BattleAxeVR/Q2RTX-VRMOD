@@ -53,9 +53,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "openxr/defines.h"
 
-//#include "../../src/game/g_local.h"
-//extern edict_t* external_edict;
-
 #if SUPPORT_OPENXR
 #include "openxr/openxr_c_interface.h"
 #endif
@@ -2169,8 +2166,15 @@ static void process_bsp_entity(const entity_t* entity, int* instance_count)
 #define MESH_FILTER_MASKED 4
 #define MESH_FILTER_ALL 7
 
-#define GAME_INCLUDE
-#include "shared/game.h"
+extern int vr_guns_enabled;
+
+extern float vr_gun_origin_x;
+extern float vr_gun_origin_y;
+extern float vr_gun_origin_z;
+
+extern float vr_gun_dir_x;
+extern float vr_gun_dir_y;
+extern float vr_gun_dir_z;
 
 static void process_regular_entity(
 	const entity_t* entity, 
@@ -2192,15 +2196,13 @@ static void process_regular_entity(
 
 	float transform[16] = { 0 };
 
-	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+	const bool stereo = (cl_stereo->value == 1.0f);
+	const bool xr_guns = stereo && (cl_xr_guns->value >= 1.0f);
 
 	if(is_viewer_weapon)
 	{
 #if APPLY_CONTROLLER_TRACKING_TO_GUN
-
-		cl.override_gun = false;
-		
-		if(stereo && cl_xr_guns->value >= 1.0f)
+		if(xr_guns)
 		{
 			// -X = closer to camera, +X farther away
 			// + Y = move to right
@@ -2227,63 +2229,43 @@ static void process_regular_entity(
 				gun_offsets[2] *= cl_xr_gun_scale->value;
 			}
 
-			GetHandMatrix(hand_id, (float*)&fd->vieworg, (float*)&fd->viewangles, &gun_scale, transform, (float*)&gun_offsets);
+			const bool hand_ok = GetHandMatrix(hand_id, (float*)&fd->vieworg, (float*)&fd->viewangles, &gun_scale, transform, (float*)&gun_offsets);
 
+			vr_guns_enabled = hand_ok ? 1 : 0;
+
+			if(hand_ok)
 			{
-				cl.override_gun = true;
-
 				vec4_t forward_dir_LS = { 1, 0, 0, 0 };
 				vec4_t gun_dir_WS = { 0 };
-				mult_matrix_vector(forward_dir_LS, transform, gun_dir_WS);
+				mult_matrix_vector(gun_dir_WS, transform, forward_dir_LS);
+				VectorNormalize(gun_dir_WS);
 
-				//cl.override_gun_direction[0] = gun_dir_WS[0];
-				//cl.override_gun_direction[1] = gun_dir_WS[1];
-				//cl.override_gun_direction[2] = gun_dir_WS[2];
-
-				((entity_t*)entity)->angles[0] = gun_dir_WS[0];
-				((entity_t*)entity)->angles[1] = gun_dir_WS[1];
-				((entity_t*)entity)->angles[2] = gun_dir_WS[2];
+				vr_gun_dir_x = gun_dir_WS[0];
+				vr_gun_dir_y = gun_dir_WS[1];
+				vr_gun_dir_z = gun_dir_WS[2];
 
 				vec4_t zero_LS = { 0, 0, 0, 1 };
 				vec4_t gun_origin_WS = { 0 };
-				mult_matrix_vector(zero_LS, transform, gun_origin_WS);
+				mult_matrix_vector(gun_origin_WS, transform, zero_LS);
 
-				((entity_t*)entity)->origin[0] = gun_origin_WS[0];
-				((entity_t*)entity)->origin[1] = gun_origin_WS[1];
-				((entity_t*)entity)->origin[2] = gun_origin_WS[2];
-
-				cl.override_gun_origin[0] = gun_origin_WS[0];
-				cl.override_gun_origin[1] = gun_origin_WS[1];
-				cl.override_gun_origin[2] = gun_origin_WS[2];
+				vr_gun_origin_x = gun_origin_WS[0];
+				vr_gun_origin_y = gun_origin_WS[1];
+				vr_gun_origin_z = gun_origin_WS[2];
 			}
 		}
 		else
 #endif
 		{
+			vr_guns_enabled = false;
+
 			const int view_id = LEFT;
 			create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
-
-			cl.override_gun = true;
-
-			vec4_t forward_dir_LS = { 1, 0, 0, 0 };
-			vec4_t gun_dir_WS = { 0 };
-			mult_matrix_vector(forward_dir_LS, transform, gun_dir_WS);
-
-			cl.override_gun_direction[0] = gun_dir_WS[0];
-			cl.override_gun_direction[1] = gun_dir_WS[1];
-			cl.override_gun_direction[2] = gun_dir_WS[2];
-
-			vec4_t zero_LS = { 0, 0, 0, 1 };
-			vec4_t gun_origin_WS = { 0 };
-			mult_matrix_vector(zero_LS, transform, gun_origin_WS);
-
-			cl.override_gun_origin[0] = gun_origin_WS[0];
-			cl.override_gun_origin[1] = gun_origin_WS[1];
-			cl.override_gun_origin[2] = gun_origin_WS[2];
 		}
 	}
 	else
 	{
+		vr_guns_enabled = false; 
+
 		const int view_id = LEFT;
 		create_entity_matrix(view_id, transform, (entity_t*)entity);
 	}

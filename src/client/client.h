@@ -332,10 +332,6 @@ typedef struct client_state_s {
 
     bool    need_powerscreen_scale;
 
-    bool override_gun;
-    vec3_t override_gun_origin;
-    vec3_t override_gun_direction;
-
 } client_state_t;
 
 extern client_state_t   cl;
