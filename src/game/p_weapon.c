@@ -931,6 +931,7 @@ void Blaster_Fire(edict_t *ent, const vec3_t g_offset, int damage, bool hyper, i
 
     // send muzzle flash
     gi.WriteByte(svc_muzzleflash);
+
     gi.WriteShort(ent - g_edicts);
 
     if(hyper)

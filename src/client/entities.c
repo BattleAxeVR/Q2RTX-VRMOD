@@ -587,7 +587,7 @@ static void CL_AddPacketEntities(void)
 
     memset(&ent, 0, sizeof(ent));
 
-    for (pnum = 0; pnum < cl.frame.numEntities; pnum++) 
+    for(pnum = 0; pnum < cl.frame.numEntities; pnum++)
     {
         i = (cl.frame.firstEntity + pnum) & PARSE_ENTITIES_MASK;
         s1 = &cl.entityStates[i];
@@ -599,83 +599,87 @@ static void CL_AddPacketEntities(void)
         renderfx = s1->renderfx;
 
         // set frame
-        if (effects & EF_ANIM01)
+        if(effects & EF_ANIM01)
             ent.frame = autoanim & 1;
-        else if (effects & EF_ANIM23)
+        else if(effects & EF_ANIM23)
             ent.frame = 2 + (autoanim & 1);
-        else if (effects & EF_ANIM_ALL)
+        else if(effects & EF_ANIM_ALL)
             ent.frame = autoanim;
-        else if (effects & EF_ANIM_ALLFAST)
+        else if(effects & EF_ANIM_ALLFAST)
             ent.frame = cl.time / 100;
         else
             ent.frame = s1->frame;
 
         // quad and pent can do different things on client
-        if (effects & EF_PENT) {
+        if(effects & EF_PENT) {
             effects &= ~EF_PENT;
             effects |= EF_COLOR_SHELL;
             renderfx |= RF_SHELL_RED;
         }
 
-        if (effects & EF_QUAD) {
+        if(effects & EF_QUAD) {
             effects &= ~EF_QUAD;
             effects |= EF_COLOR_SHELL;
             renderfx |= RF_SHELL_BLUE;
         }
 
-        if (effects & EF_DOUBLE) {
+        if(effects & EF_DOUBLE) {
             effects &= ~EF_DOUBLE;
             effects |= EF_COLOR_SHELL;
             renderfx |= RF_SHELL_DOUBLE;
         }
 
-        if (effects & EF_HALF_DAMAGE) {
+        if(effects & EF_HALF_DAMAGE) {
             effects &= ~EF_HALF_DAMAGE;
             effects |= EF_COLOR_SHELL;
             renderfx |= RF_SHELL_HALF_DAM;
         }
 
-        if (s1->morefx & EFX_DUALFIRE) {
+        if(s1->morefx & EFX_DUALFIRE) {
             effects |= EF_COLOR_SHELL;
             renderfx |= RF_SHELL_LITE_GREEN;
         }
 
         // optionally remove the glowing effect
-        if (cl_noglow->integer && !(renderfx & RF_BEAM))
+        if(cl_noglow->integer && !(renderfx & RF_BEAM))
             renderfx &= ~RF_GLOW;
 
         ent.oldframe = cent->prev.frame;
         ent.backlerp = 1.0f - cl.lerpfrac;
 
-        if (renderfx & RF_BEAM) {
+        if(renderfx & RF_BEAM) {
             // interpolate start and end points for beams
             LerpVector(cent->prev.origin, cent->current.origin,
-                       cl.lerpfrac, ent.origin);
+                cl.lerpfrac, ent.origin);
             LerpVector(cent->prev.old_origin, cent->current.old_origin,
-                       cl.lerpfrac, ent.oldorigin);
-        } else {
-            if (s1->number == cl.frame.clientNum + 1) {
+                cl.lerpfrac, ent.oldorigin);
+        }
+        else {
+            if(s1->number == cl.frame.clientNum + 1) {
                 // use predicted origin
                 VectorCopy(cl.playerEntityOrigin, ent.origin);
                 VectorCopy(cl.playerEntityOrigin, ent.oldorigin);
-            } else {
+            }
+            else {
                 // interpolate origin
                 LerpVector(cent->prev.origin, cent->current.origin,
-                           cl.lerpfrac, ent.origin);
+                    cl.lerpfrac, ent.origin);
                 VectorCopy(ent.origin, ent.oldorigin);
             }
 #if USE_FPS
             // run alias model animation
-            if (cent->prev_frame != s1->frame) {
+            if(cent->prev_frame != s1->frame) {
                 int delta = cl.time - cent->anim_start;
                 float frac;
 
-                if (delta > BASE_FRAMETIME) {
+                if(delta > BASE_FRAMETIME) {
                     cent->prev_frame = s1->frame;
                     frac = 1;
-                } else if (delta > 0) {
+                }
+                else if(delta > 0) {
                     frac = delta * BASE_1_FRAMETIME;
-                } else {
+                }
+                else {
                     frac = 0;
                 }
 
@@ -685,95 +689,108 @@ static void CL_AddPacketEntities(void)
 #endif
         }
 
-        if (effects & EF_BOB && !cl_nobob->integer) {
+        if(effects & EF_BOB && !cl_nobob->integer) {
             ent.origin[2] += autobob;
             ent.oldorigin[2] += autobob;
         }
 
-        if ((effects & EF_GIB) && !cl_gibs->integer)
+        if((effects & EF_GIB) && !cl_gibs->integer)
             goto skip;
 
         // create a new entity
 
-        if (cl.csr.extended) {
-            if (renderfx & RF_FLARE)
+        if(cl.csr.extended) {
+            if(renderfx & RF_FLARE)
                 goto skip;
 
-            if (renderfx & RF_CUSTOM_LIGHT) {
+            if(renderfx & RF_CUSTOM_LIGHT) {
                 color_t color;
-                if (!s1->skinnum)
+                if(!s1->skinnum)
                     color.u32 = U32_WHITE;
                 else
                     color.u32 = BigLong(s1->skinnum);
                 V_AddLight(ent.origin, DLIGHT_CUTOFF + s1->frame,
-                           color.u8[0] / 255.0f,
-                           color.u8[1] / 255.0f,
-                           color.u8[2] / 255.0f);
+                    color.u8[0] / 255.0f,
+                    color.u8[1] / 255.0f,
+                    color.u8[2] / 255.0f);
                 goto skip;
             }
 
-            if (renderfx & RF_BEAM && s1->modelindex > 1) {
+            if(renderfx & RF_BEAM && s1->modelindex > 1) {
                 CL_DrawBeam(ent.oldorigin, ent.origin, cl.model_draw[s1->modelindex]);
                 goto skip;
             }
         }
 
         // tweak the color of beams
-        if (renderfx & RF_BEAM) {
+        if(renderfx & RF_BEAM) {
             // the four beam colors are encoded in 32 bits of skinnum (hack)
             ent.alpha = 0.30f;
             ent.skinnum = (s1->skinnum >> ((Q_rand() % 4) * 8)) & 0xff;
             ent.model = 0;
-        } else {
+        }
+        else {
             // set skin
-            if (s1->modelindex == MODELINDEX_PLAYER) {
+            if(s1->modelindex == MODELINDEX_PLAYER) {
                 // use custom player skin
                 ent.skinnum = 0;
                 ci = &cl.clientinfo[s1->skinnum & 0xff];
                 ent.skin = ci->skin;
                 ent.model = ci->model;
-                if (!ent.skin || !ent.model) {
+                if(!ent.skin || !ent.model) {
                     ent.skin = cl.baseclientinfo.skin;
                     ent.model = cl.baseclientinfo.model;
                     ci = &cl.baseclientinfo;
                 }
-                if (renderfx & RF_USE_DISGUISE) {
+                if(renderfx & RF_USE_DISGUISE) {
                     char buffer[MAX_QPATH];
 
                     Q_concat(buffer, sizeof(buffer), "players/", ci->model_name, "/disguise.pcx");
                     ent.skin = R_RegisterSkin(buffer);
                 }
-            } else {
+            }
+            else 
+            {
                 ent.skinnum = s1->skinnum;
                 ent.skin = 0;
                 ent.model = cl.model_draw[s1->modelindex];
-                if (ent.model == cl_mod_laser || ent.model == cl_mod_dmspot)
+                if(ent.model == cl_mod_laser || ent.model == cl_mod_dmspot)
                     renderfx |= RF_NOSHADOW;
             }
         }
 
         // allow skin override for remaster
-        if (cl.csr.extended && renderfx & RF_CUSTOMSKIN && (unsigned)s1->skinnum < cl.csr.max_images) {
+        if(cl.csr.extended && renderfx & RF_CUSTOMSKIN && (unsigned)s1->skinnum < cl.csr.max_images)
+        {
             ent.skin = cl.image_precache[s1->skinnum];
             ent.skinnum = 0;
         }
 
         // only used for black hole model right now, FIXME: do better
-        if ((renderfx & RF_TRANSLUCENT) && !(renderfx & RF_BEAM))
+        if((renderfx & RF_TRANSLUCENT) && !(renderfx & RF_BEAM))
+        {
             ent.alpha = 0.70f;
+        }
 
         // render effects (fullbright, translucent, etc)
-        if (effects & EF_COLOR_SHELL)
+        if(effects & EF_COLOR_SHELL)
+        {
             ent.flags = 0;  // renderfx go on color shell entity
+        }
         else
+        {
             ent.flags = renderfx;
+        }
 
         // calculate angles
-        if (effects & EF_ROTATE) {  // some bonus items auto-rotate
+        if (effects & EF_ROTATE)
+        {  // some bonus items auto-rotate
             ent.angles[0] = 0;
             ent.angles[1] = autorotate;
             ent.angles[2] = 0;
-        } else if (effects & EF_SPINNINGLIGHTS) {
+        } 
+        else if (effects & EF_SPINNINGLIGHTS) 
+        {
             vec3_t forward;
             vec3_t start;
 
@@ -784,22 +801,31 @@ static void CL_AddPacketEntities(void)
             AngleVectors(ent.angles, forward, NULL, NULL);
             VectorMA(ent.origin, 64, forward, start);
             V_AddLight(start, 100, 1, 0, 0);
-        } else if (s1->number == cl.frame.clientNum + 1) {
+        } 
+        else if (s1->number == cl.frame.clientNum + 1) 
+        {
             VectorCopy(cl.playerEntityAngles, ent.angles);      // use predicted angles
-        } else { // interpolate angles
-            LerpAngles(cent->prev.angles, cent->current.angles,
-                       cl.lerpfrac, ent.angles);
+        } 
+        else
+        { // interpolate angles
+            LerpAngles(cent->prev.angles, cent->current.angles,cl.lerpfrac, ent.angles);
+
             // mimic original ref_gl "leaning" bug (uuugly!)
-            if (s1->modelindex == MODELINDEX_PLAYER && cl_rollhack->integer)
+            if(s1->modelindex == MODELINDEX_PLAYER && cl_rollhack->integer)
+            {
                 ent.angles[ROLL] = -ent.angles[ROLL];
+            }
         }
 
-        if (s1->morefx & EFX_FLASHLIGHT) {
+        if (s1->morefx & EFX_FLASHLIGHT) 
+        {
             V_Flashlight(&ent, s1);
         }
 
-        if (s1->morefx & EFX_GRENADE_LIGHT)
+        if(s1->morefx & EFX_GRENADE_LIGHT)
+        {
             V_AddLight(ent.origin, 100, 1, 1, 0);
+        }
 
         int base_entity_flags = 0;
         if (s1->number == cl.frame.clientNum + 1) {

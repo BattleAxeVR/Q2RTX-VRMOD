@@ -343,15 +343,22 @@ void fire_blaster(edict_t *self, vec3_t start, vec3_t dir, int damage, int speed
     bolt->think = G_FreeEdict;
     bolt->dmg = damage;
     bolt->classname = "bolt";
-    if (hyper)
+
+    if(hyper)
+    {
         bolt->spawnflags = 1;
+    }
     gi.linkentity(bolt);
 
-    if (self->client)
+    if(self->client)
+    {
         check_dodge(self, bolt->s.origin, dir, speed);
+    }
 
     tr = gi.trace(self->s.origin, NULL, NULL, bolt->s.origin, bolt, MASK_SHOT);
-    if (tr.fraction < 1.0f) {
+
+    if (tr.fraction < 1.0f) 
+    {
         VectorMA(bolt->s.origin, -10, dir, bolt->s.origin);
         bolt->touch(bolt, tr.ent, NULL, NULL);
     }
@@ -367,11 +374,14 @@ void Grenade_Explode(edict_t *ent)
     vec3_t      origin;
     int         mod;
 
-    if (ent->owner->client)
+    if(ent->owner->client)
+    {
         PlayerNoise(ent->owner, ent->s.origin, PNOISE_IMPACT);
+    }
 
     //FIXME: if we are onground then raise our Z just a bit since we are a point?
-    if (ent->enemy) {
+    if (ent->enemy) 
+    {
         float   points;
         vec3_t  v;
         vec3_t  dir;
@@ -381,33 +391,56 @@ void Grenade_Explode(edict_t *ent)
         VectorSubtract(ent->s.origin, v, v);
         points = ent->dmg - 0.5f * VectorLength(v);
         VectorSubtract(ent->enemy->s.origin, ent->s.origin, dir);
-        if (ent->spawnflags & 1)
+
+        if(ent->spawnflags & 1)
+        {
             mod = MOD_HANDGRENADE;
+        }
         else
+        {
             mod = MOD_GRENADE;
+        }
         T_Damage(ent->enemy, ent, ent->owner, dir, ent->s.origin, vec3_origin, (int)points, (int)points, DAMAGE_RADIUS, mod);
     }
 
-    if (ent->spawnflags & 2)
+    if(ent->spawnflags & 2)
+    {
         mod = MOD_HELD_GRENADE;
-    else if (ent->spawnflags & 1)
+    }
+    else if(ent->spawnflags & 1)
+    {
         mod = MOD_HG_SPLASH;
+    }
     else
+    {
         mod = MOD_G_SPLASH;
+    }
     T_RadiusDamage(ent, ent->owner, ent->dmg, ent->enemy, ent->dmg_radius, mod);
 
     VectorMA(ent->s.origin, -0.02f, ent->velocity, origin);
     gi.WriteByte(svc_temp_entity);
-    if (ent->waterlevel) {
-        if (ent->groundentity)
+
+    if (ent->waterlevel) 
+    {
+        if(ent->groundentity)
+        {
             gi.WriteByte(TE_GRENADE_EXPLOSION_WATER);
+        }
         else
+        {
             gi.WriteByte(TE_ROCKET_EXPLOSION_WATER);
-    } else {
-        if (ent->groundentity)
+        }
+    } 
+    else 
+    {
+        if(ent->groundentity)
+        {
             gi.WriteByte(TE_GRENADE_EXPLOSION);
+        }
         else
+        {
             gi.WriteByte(TE_ROCKET_EXPLOSION);
+        }
     }
     gi.WritePosition(origin);
     gi.multicast(ent->s.origin, MULTICAST_PHS);
@@ -417,21 +450,32 @@ void Grenade_Explode(edict_t *ent)
 
 void Grenade_Touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf)
 {
-    if (other == ent->owner)
+    if(other == ent->owner)
+    {
         return;
+    }
 
-    if (surf && (surf->flags & SURF_SKY)) {
+    if (surf && (surf->flags & SURF_SKY)) 
+    {
         G_FreeEdict(ent);
         return;
     }
 
-    if (!other->takedamage) {
-        if (ent->spawnflags & 1) {
-            if (random() > 0.5f)
+    if (!other->takedamage) 
+    {
+        if (ent->spawnflags & 1) 
+        {
+            if(random() > 0.5f)
+            {
                 gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/hgrenb1a.wav"), 1, ATTN_NORM, 0);
+            }
             else
+            {
                 gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/hgrenb2a.wav"), 1, ATTN_NORM, 0);
-        } else {
+            }
+        } 
+        else 
+        {
             gi.sound(ent, CHAN_VOICE, gi.soundindex("weapons/grenlb1b.wav"), 1, ATTN_NORM, 0);
         }
         return;
@@ -509,15 +553,24 @@ void fire_grenade2(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int s
     grenade->dmg = damage;
     grenade->dmg_radius = damage_radius;
     grenade->classname = "hgrenade";
-    if (held)
+
+    if(held)
+    {
         grenade->spawnflags = 3;
+    }
     else
+    {
         grenade->spawnflags = 1;
+    }
+
     grenade->s.sound = gi.soundindex("weapons/hgrenc1b.wav");
 
-    if (timer <= 0.0f)
+    if(timer <= 0.0f)
+    {
         Grenade_Explode(grenade);
-    else {
+    }
+    else 
+    {
         gi.sound(self, CHAN_WEAPON, gi.soundindex("weapons/hgrent1a.wav"), 1, ATTN_NORM, 0);
         gi.linkentity(grenade);
     }
@@ -533,29 +586,41 @@ void rocket_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *sur
     vec3_t      origin;
     int         n;
 
-    if (other == ent->owner)
+    if(other == ent->owner)
+    {
         return;
+    }
 
-    if (surf && (surf->flags & SURF_SKY)) {
+    if (surf && (surf->flags & SURF_SKY)) 
+    {
         G_FreeEdict(ent);
         return;
     }
 
-    if (ent->owner->client)
+    if(ent->owner->client)
+    {
         PlayerNoise(ent->owner, ent->s.origin, PNOISE_IMPACT);
+    }
 
     // calculate position for the explosion entity
     VectorMA(ent->s.origin, -0.02f, ent->velocity, origin);
 
-    if (other->takedamage) {
+    if (other->takedamage) 
+    {
         T_Damage(other, ent, ent->owner, ent->velocity, ent->s.origin, plane->normal, ent->dmg, 0, 0, MOD_ROCKET);
-    } else {
+    } 
+    else 
+    {
         // don't throw any debris in net games
-        if (!deathmatch->value && !coop->value) {
-            if ((surf) && !(surf->flags & (SURF_WARP | SURF_TRANS33 | SURF_TRANS66 | SURF_FLOWING))) {
+        if (!deathmatch->value && !coop->value) 
+        {
+            if ((surf) && !(surf->flags & (SURF_WARP | SURF_TRANS33 | SURF_TRANS66 | SURF_FLOWING))) 
+            {
                 n = Q_rand() % 5;
-                while (n--)
+                while(n--)
+                {
                     ThrowDebris(ent, "models/objects/debris2/tris.md2", 2, ent->s.origin);
+                }
             }
         }
     }
@@ -563,10 +628,15 @@ void rocket_touch(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *sur
     T_RadiusDamage(ent, ent->owner, ent->radius_dmg, other, ent->dmg_radius, MOD_R_SPLASH);
 
     gi.WriteByte(svc_temp_entity);
-    if (ent->waterlevel)
+
+    if(ent->waterlevel)
+    {
         gi.WriteByte(TE_ROCKET_EXPLOSION_WATER);
+    }
     else
+    {
         gi.WriteByte(TE_ROCKET_EXPLOSION);
+    }
     gi.WritePosition(origin);
     gi.multicast(ent->s.origin, MULTICAST_PHS);
 
@@ -599,8 +669,10 @@ void fire_rocket(edict_t *self, vec3_t start, vec3_t dir, int damage, int speed,
     rocket->s.sound = gi.soundindex("weapons/rockfly.wav");
     rocket->classname = "rocket";
 
-    if (self->client)
+    if(self->client)
+    {
         check_dodge(self, rocket->s.origin, dir, speed);
+    }
 
     gi.linkentity(rocket);
 }
@@ -626,22 +698,32 @@ void fire_rail(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick)
     water = false;
     mask = MASK_SHOT | CONTENTS_SLIME | CONTENTS_LAVA;
     lastfrac = 1;
-    while (ignore) {
+
+    while (ignore) 
+    {
         tr = gi.trace(from, NULL, NULL, end, ignore, mask);
 
-        if (tr.contents & (CONTENTS_SLIME | CONTENTS_LAVA)) {
+        if (tr.contents & (CONTENTS_SLIME | CONTENTS_LAVA)) 
+        {
             mask &= ~(CONTENTS_SLIME | CONTENTS_LAVA);
             water = true;
-        } else {
+        } 
+        else 
+        {
             //ZOID--added so rail goes through SOLID_BBOX entities (gibs, etc)
-            if (((tr.ent->svflags & SVF_MONSTER) || (tr.ent->client) ||
-                (tr.ent->solid == SOLID_BBOX)) && (lastfrac + tr.fraction > 0))
+            if(((tr.ent->svflags & SVF_MONSTER) || (tr.ent->client) || (tr.ent->solid == SOLID_BBOX)) && (lastfrac + tr.fraction > 0))
+            {
                 ignore = tr.ent;
+            }
             else
+            {
                 ignore = NULL;
+            }
 
-            if ((tr.ent != self) && (tr.ent->takedamage))
+            if((tr.ent != self) && (tr.ent->takedamage))
+            {
                 T_Damage(tr.ent, self, self, aimdir, tr.endpos, tr.plane.normal, damage, kick, 0, MOD_RAILGUN);
+            }
         }
 
         VectorCopy(tr.endpos, from);
@@ -655,7 +737,9 @@ void fire_rail(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick)
     gi.WritePosition(tr.endpos);
     gi.multicast(self->s.origin, MULTICAST_PHS);
 //  gi.multicast (start, MULTICAST_PHS);
-    if (water) {
+
+    if (water) 
+    {
         gi.WriteByte(svc_temp_entity);
         gi.WriteByte(TE_RAILTRAIL);
         gi.WritePosition(start);
@@ -663,8 +747,10 @@ void fire_rail(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick)
         gi.multicast(tr.endpos, MULTICAST_PHS);
     }
 
-    if (self->client)
+    if(self->client)
+    {
         PlayerNoise(self, tr.endpos, PNOISE_IMPACT);
+    }
 }
 
 /*
@@ -679,16 +765,22 @@ void bfg_explode(edict_t *self)
     vec3_t  v;
     float   dist;
 
-    if (self->s.frame == 0) {
+    if (self->s.frame == 0) 
+    {
         // the BFG effect
         ent = NULL;
-        while ((ent = findradius(ent, self->s.origin, self->dmg_radius)) != NULL) {
+
+        while ((ent = findradius(ent, self->s.origin, self->dmg_radius)) != NULL) 
+        {
             if (!ent->takedamage)
                 continue;
+
             if (ent == self->owner)
                 continue;
+
             if (!CanDamage(ent, self))
                 continue;
+
             if (!CanDamage(ent, self->owner))
                 continue;
 
@@ -697,8 +789,11 @@ void bfg_explode(edict_t *self)
             VectorSubtract(self->s.origin, v, v);
             dist = VectorLength(v);
             points = self->radius_dmg * (1.0f - sqrtf(dist / self->dmg_radius));
-            if (ent == self->owner)
+
+            if(ent == self->owner)
+            {
                 points = points * 0.5f;
+            }
 
             gi.WriteByte(svc_temp_entity);
             gi.WriteByte(TE_BFG_EXPLOSION);
@@ -710,8 +805,11 @@ void bfg_explode(edict_t *self)
 
     self->nextthink = level.framenum + 1;
     self->s.frame++;
-    if (self->s.frame == 5)
+
+    if(self->s.frame == 5)
+    {
         self->think = G_FreeEdict;
+    }
 }
 
 void bfg_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
@@ -719,17 +817,23 @@ void bfg_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
     if (other == self->owner)
         return;
 
-    if (surf && (surf->flags & SURF_SKY)) {
+    if (surf && (surf->flags & SURF_SKY)) 
+    {
         G_FreeEdict(self);
         return;
     }
 
-    if (self->owner->client)
+    if(self->owner->client)
+    {
         PlayerNoise(self->owner, self->s.origin, PNOISE_IMPACT);
+    }
 
     // core explosion - prevents firing it into the wall/floor
-    if (other->takedamage)
+    if(other->takedamage)
+    {
         T_Damage(other, self, self->owner, self->velocity, self->s.origin, plane->normal, 200, 0, 0, MOD_BFG_BLAST);
+    }
+
     T_RadiusDamage(self, self->owner, 200, other, 100, MOD_BFG_BLAST);
 
     gi.sound(self, CHAN_VOICE, gi.soundindex("weapons/bfg__x1b.wav"), 1, ATTN_NORM, 0);
@@ -762,13 +866,19 @@ void bfg_think(edict_t *self)
     int     dmg;
     trace_t tr;
 
-    if (deathmatch->value)
+    if(deathmatch->value)
+    {
         dmg = 5;
+    }
     else
+    {
         dmg = 10;
+    }
 
     ent = NULL;
-    while ((ent = findradius(ent, self->s.origin, 256)) != NULL) {
+
+    while ((ent = findradius(ent, self->s.origin, 256)) != NULL) 
+    {
         if (ent == self)
             continue;
 
@@ -789,18 +899,23 @@ void bfg_think(edict_t *self)
         ignore = self;
         VectorCopy(self->s.origin, start);
         VectorMA(start, 2048, dir, end);
-        while (1) {
+
+        while (1) 
+        {
             tr = gi.trace(start, NULL, NULL, end, ignore, CONTENTS_SOLID | CONTENTS_MONSTER | CONTENTS_DEADMONSTER);
 
-            if (!tr.ent)
+            if(!tr.ent)
+            {
                 break;
+            }
 
             // hurt it if we can
             if ((tr.ent->takedamage) && !(tr.ent->flags & FL_IMMUNE_LASER) && (tr.ent != self->owner))
                 T_Damage(tr.ent, self, self->owner, dir, tr.endpos, vec3_origin, dmg, 1, DAMAGE_ENERGY, MOD_BFG_LASER);
 
             // if we hit something that's not a monster or player we're done
-            if (!(tr.ent->svflags & SVF_MONSTER) && (!tr.ent->client)) {
+            if (!(tr.ent->svflags & SVF_MONSTER) && (!tr.ent->client)) 
+            {
                 gi.WriteByte(svc_temp_entity);
                 gi.WriteByte(TE_LASER_SPARKS);
                 gi.WriteByte(4);
