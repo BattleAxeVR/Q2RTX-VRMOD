@@ -626,6 +626,18 @@ void weapon_grenade_fire(edict_t *ent, bool held)
 
     timer = (ent->client->grenade_framenum - level.framenum) * FRAMETIME;
     speed = GRENADE_MINSPEED + (GRENADE_TIMER - timer) * ((GRENADE_MAXSPEED - GRENADE_MINSPEED) / GRENADE_TIMER);
+
+    if(ent->client->override_gun)
+    {
+        start[0] = ent->client->override_gun_origin[0];
+        start[1] = ent->client->override_gun_origin[1];
+        start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[2] = ent->client->override_gun_direction[2];
+    }
+
     fire_grenade2(ent, start, forward, damage, speed, timer, radius, held);
 
     if(!((int)dmflags->value & DF_INFINITE_AMMO))
@@ -808,6 +820,17 @@ void weapon_grenadelauncher_fire(edict_t *ent)
     VectorScale(forward, -2, ent->client->kick_origin);
     ent->client->kick_angles[0] = -1;
 
+    if(ent->client->override_gun)
+    {
+        start[0] = ent->client->override_gun_origin[0];
+        start[1] = ent->client->override_gun_origin[1];
+        start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[2] = ent->client->override_gun_direction[2];
+    }
+
     fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
 
     gi.WriteByte(svc_muzzleflash);
@@ -866,6 +889,18 @@ void Weapon_RocketLauncher_Fire(edict_t *ent)
 
     VectorSet(offset, 8, 8, ent->viewheight - 8);
     P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
+
+    if(ent->client->override_gun)
+    {
+        start[0] = ent->client->override_gun_origin[0];
+        start[1] = ent->client->override_gun_origin[1];
+        start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[2] = ent->client->override_gun_direction[2];
+    }
+
     fire_rocket(ent, start, forward, damage, 650, damage_radius, radius_damage);
 
     // send muzzle flash
@@ -1310,6 +1345,17 @@ void Chaingun_Fire(edict_t *ent)
         VectorSet(offset, 0, r, u + ent->viewheight - 8);
         P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
 
+        if(ent->client->override_gun)
+        {
+            start[0] = ent->client->override_gun_origin[0];
+            start[1] = ent->client->override_gun_origin[1];
+            start[2] = ent->client->override_gun_origin[2];
+
+            forward[0] = ent->client->override_gun_direction[0];
+            forward[1] = ent->client->override_gun_direction[1];
+            forward[2] = ent->client->override_gun_direction[2];
+        }
+
         fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_CHAINGUN);
     }
 
@@ -1369,6 +1415,17 @@ void weapon_shotgun_fire(edict_t *ent)
     {
         damage *= 4;
         kick *= 4;
+    }
+
+    if(ent->client->override_gun)
+    {
+        start[0] = ent->client->override_gun_origin[0];
+        start[1] = ent->client->override_gun_origin[1];
+        start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[2] = ent->client->override_gun_direction[2];
     }
 
     if(deathmatch->value)
@@ -1441,8 +1498,20 @@ void weapon_supershotgun_fire(edict_t *ent)
         VectorSet(offset, 0, 8, ent->viewheight - 8);
         P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
     }
+
+    if(ent->client->override_gun)
+    {
+        start[0] = ent->client->override_gun_origin[0];
+        start[1] = ent->client->override_gun_origin[1];
+        start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[2] = ent->client->override_gun_direction[2];
+    }
 	
     fire_shotgun(ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
+
     v[YAW]   = ent->client->v_angle[YAW] + 5;
     AngleVectors(v, forward, NULL, NULL);
 
@@ -1457,6 +1526,17 @@ void weapon_supershotgun_fire(edict_t *ent)
         P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
     }
 	
+    if(ent->client->override_gun)
+    {
+        start[0] = ent->client->override_gun_origin[0];
+        start[1] = ent->client->override_gun_origin[1];
+        start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[2] = ent->client->override_gun_direction[2];
+    }
+
     fire_shotgun(ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 
     // send muzzle flash
@@ -1523,6 +1603,18 @@ void weapon_railgun_fire(edict_t *ent)
 
     VectorSet(offset, 0, 7,  ent->viewheight - 8);
     P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
+
+    if(ent->client->override_gun)
+    {
+        start[0] = ent->client->override_gun_origin[0];
+        start[1] = ent->client->override_gun_origin[1];
+        start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[2] = ent->client->override_gun_direction[2];
+    }
+
     fire_rail(ent, start, forward, damage, kick);
 
     // send muzzle flash
@@ -1610,6 +1702,18 @@ void weapon_bfg_fire(edict_t *ent)
 
     VectorSet(offset, 8, 8, ent->viewheight - 8);
     P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
+
+    if(ent->client->override_gun)
+    {
+        start[0] = ent->client->override_gun_origin[0];
+        start[1] = ent->client->override_gun_origin[1];
+        start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[2] = ent->client->override_gun_direction[2];
+    }
+
     fire_bfg(ent, start, forward, damage, 400, damage_radius);
 
     ent->client->ps.gunframe++;
@@ -1659,6 +1763,17 @@ void weapon_flaregun_fire(edict_t *ent)
 
 	VectorScale(forward, -2, ent->client->kick_origin);
 	ent->client->kick_angles[0] = -1;
+
+    if(ent->client->override_gun)
+    {
+        start[0] = ent->client->override_gun_origin[0];
+        start[1] = ent->client->override_gun_origin[1];
+        start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[2] = ent->client->override_gun_direction[2];
+    }
 
 	// Make the flaregun actually shoot the flare 
 	 // 
