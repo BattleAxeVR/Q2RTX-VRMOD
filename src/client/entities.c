@@ -1156,12 +1156,15 @@ static void CL_AddViewWeapon(int hand_id)
     // Disable weapon animations in stereo / VR mode
     const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
 
+#if DISABLE_GUN_ANIMATIONS
     if(stereo)
     {
         gun.frame = 19;
         gun.oldframe = 19;
     }
-    else if (gun_frame)
+    else 
+#endif
+    if (gun_frame)
     {
         gun.frame = gun_frame;  // development tool
         gun.oldframe = gun_frame;   // development tool

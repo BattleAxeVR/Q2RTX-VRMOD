@@ -1021,7 +1021,7 @@ bool init_vulkan(void)
 
 	VkResult result = VK_SUCCESS;
 
-#if SUPPORT_OPENXR
+#if CONNECT_TO_OPENXR
 	result = CreateVulkanOpenXRInstance(&inst_create_info, &qvk.instance);
 
 	if(result != VK_SUCCESS)
@@ -1612,7 +1612,7 @@ bool init_vulkan(void)
 
 	// create device and queue
 
-#if SUPPORT_OPENXR
+#if CONNECT_TO_OPENXR
 	result = CreateVulkanOpenXRDevice(&dev_create_info, &qvk.physical_device, &qvk.device);
 
 	if (result != VK_SUCCESS)
@@ -2078,7 +2078,7 @@ static void process_bsp_entity(const entity_t* entity, int* instance_count)
 		return;
 	}
 	
-	const int view_id = BOTH;
+	const int view_id = LEFT;
 
 	float transform[16] = { 0 };
 	create_entity_matrix(view_id, transform, (entity_t*)entity);
@@ -2187,7 +2187,6 @@ static void process_regular_entity(
 	float transform[16] = { 0 };
 
 	const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
-	const int view_id = BOTH;
 
 	if(is_viewer_weapon)
 	{
@@ -2224,11 +2223,13 @@ static void process_regular_entity(
 		else
 #endif
 		{
+			const int view_id = LEFT;
 			create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
 		}
 	}
 	else
 	{
+		const int view_id = LEFT;
 		create_entity_matrix(view_id, transform, (entity_t*)entity);
 	}
 	
@@ -2486,7 +2487,7 @@ static void prepare_entities(EntityUploadInfo* upload_info)
 			if (model->num_light_polys > 0)
 			{
 				const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
-				const int view_id = BOTH;
+				const int view_id = LEFT;
 
 				float transform[16] = { 0 };
 				const bool is_viewer_weapon = (entity->flags & RF_WEAPONMODEL) != 0;
