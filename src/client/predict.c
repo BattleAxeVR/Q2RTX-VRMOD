@@ -217,7 +217,8 @@ void CL_PredictMovement(void)
     pm.s = cl.frame.ps.pmove;
 
     // run frames
-    while (++ack <= current) {
+    while (++ack <= current) 
+    {
         pm.cmd = cl.cmds[ack & CMD_MASK];
         Pmove(&pm, &cl.pmp);
 
@@ -226,7 +227,8 @@ void CL_PredictMovement(void)
     }
 
     // run pending cmd
-    if (cl.cmd.msec) {
+    if (cl.cmd.msec) 
+    {
         pm.cmd = cl.cmd;
         pm.cmd.forwardmove = cl.localmove[0];
         pm.cmd.sidemove = cl.localmove[1];
@@ -236,14 +238,19 @@ void CL_PredictMovement(void)
 
         // save for debug checking
         VectorCopy(pm.s.origin, cl.predicted_origins[(current + 1) & CMD_MASK]);
-    } else {
+    } 
+    else 
+    {
         frame = current - 1;
     }
 
-    if (pm.s.pm_type != PM_SPECTATOR && (pm.s.pm_flags & PMF_ON_GROUND)) {
+    if (pm.s.pm_type != PM_SPECTATOR && (pm.s.pm_flags & PMF_ON_GROUND)) 
+    {
         oldz = cl.predicted_origins[cl.predicted_step_frame & CMD_MASK][2];
         step = pm.s.origin[2] - oldz;
-        if (step > 63 && step < 160) {
+
+        if (step > 63 && step < 160) 
+        {
             cl.predicted_step = step * 0.125f;
             cl.predicted_step_time = cls.realtime;
             cl.predicted_step_frame = frame + 1;    // don't double step
