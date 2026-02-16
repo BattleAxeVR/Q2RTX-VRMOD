@@ -916,9 +916,15 @@ void Blaster_Fire(edict_t *ent, const vec3_t g_offset, int damage, bool hyper, i
     VectorScale(forward, -2, ent->client->kick_origin);
     ent->client->kick_angles[0] = -1;
     
-    //if(ent->client->override_gun)
+    if(ent->client->override_gun)
     {
-        //forward[0] += 2.0f;
+        //start[0] = ent->client->override_gun_origin[0];
+        //start[1] = ent->client->override_gun_origin[1];
+        //start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[1] = ent->client->override_gun_direction[2];
     }
 
     fire_blaster(ent, start, forward, damage, 1000, effect, hyper);

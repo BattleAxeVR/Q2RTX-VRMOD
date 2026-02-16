@@ -19,6 +19,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "shared/shared.h"
 #include "common/pmove.h"
 
+#include "../refresh/vkpt/openxr/defines.h"
+
+#if SUPPORT_OPENXR
+#include "../refresh/vkpt/openxr/openxr_c_interface.h"
+extern cvar_t *cl_xr_guns;
+#endif
+
 #define STEPSIZE    18
 
 // all of the locals will be zeroed before each
@@ -884,6 +891,21 @@ static void PM_CheckDuck(void)
         pm->maxs[2] = 32;
         pm->viewheight = 22;
     }
+
+#if SUPPORT_OPENXR//APPLY_CONTROLLER_TRACKING_TO_GUN
+    if (cl_xr_guns->value >= 1.0f)
+    {
+        pm->override_gun = 1;
+
+        //pm->override_gun_origin[0] = 1;
+        //pm->override_gun_origin[1] = 1;
+        //pm->override_gun_origin[1] = 1;
+
+        pm->override_gun_direction[0] = 1;
+        pm->override_gun_direction[1] = 0;
+        pm->override_gun_direction[2] = 0;
+    }
+#endif
 }
 
 /*

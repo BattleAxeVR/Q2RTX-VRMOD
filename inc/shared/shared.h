@@ -919,6 +919,11 @@ typedef struct {
     // callbacks to test the world
     trace_t     (* q_gameabi trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end);
     int         (*pointcontents)(const vec3_t point);
+
+    uint8_t override_gun;
+    vec3_t override_gun_origin;
+    vec3_t override_gun_direction;
+
 } pmove_t;
 
 // entity_state_t->effects
@@ -1437,6 +1442,11 @@ typedef struct
     int         rdflags;        // refdef flags
 
     short       stats[MAX_STATS];       // fast status bar updates
+
+    uint8_t override_gun;
+    vec3_t override_gun_origin;
+    vec3_t override_gun_direction;
+
 } player_state_t;
 
 //==============================================

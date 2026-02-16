@@ -1091,5 +1091,9 @@ struct edict_s
     // common data blocks
     moveinfo_t      moveinfo;
     monsterinfo_t   monsterinfo;
+
+    bool override_gun;
+    vec3_t override_gun_origin;
+    vec3_t override_gun_direction;
 };
 

@@ -53,6 +53,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "openxr/defines.h"
 
+//#include "../../src/game/g_local.h"
+//extern edict_t* external_edict;
+
 #if SUPPORT_OPENXR
 #include "openxr/openxr_c_interface.h"
 #endif
@@ -2166,6 +2169,9 @@ static void process_bsp_entity(const entity_t* entity, int* instance_count)
 #define MESH_FILTER_MASKED 4
 #define MESH_FILTER_ALL 7
 
+#define GAME_INCLUDE
+#include "shared/game.h"
+
 static void process_regular_entity(
 	const entity_t* entity, 
 	const model_t* model, 
@@ -2191,6 +2197,9 @@ static void process_regular_entity(
 	if(is_viewer_weapon)
 	{
 #if APPLY_CONTROLLER_TRACKING_TO_GUN
+
+		cl.override_gun = false;
+		
 		if(stereo && cl_xr_guns->value >= 1.0f)
 		{
 			// -X = closer to camera, +X farther away
@@ -2219,12 +2228,58 @@ static void process_regular_entity(
 			}
 
 			GetHandMatrix(hand_id, (float*)&fd->vieworg, (float*)&fd->viewangles, &gun_scale, transform, (float*)&gun_offsets);
+
+			{
+				cl.override_gun = true;
+
+				vec4_t forward_dir_LS = { 1, 0, 0, 0 };
+				vec4_t gun_dir_WS = { 0 };
+				mult_matrix_vector(forward_dir_LS, transform, gun_dir_WS);
+
+				//cl.override_gun_direction[0] = gun_dir_WS[0];
+				//cl.override_gun_direction[1] = gun_dir_WS[1];
+				//cl.override_gun_direction[2] = gun_dir_WS[2];
+
+				((entity_t*)entity)->angles[0] = gun_dir_WS[0];
+				((entity_t*)entity)->angles[1] = gun_dir_WS[1];
+				((entity_t*)entity)->angles[2] = gun_dir_WS[2];
+
+				vec4_t zero_LS = { 0, 0, 0, 1 };
+				vec4_t gun_origin_WS = { 0 };
+				mult_matrix_vector(zero_LS, transform, gun_origin_WS);
+
+				((entity_t*)entity)->origin[0] = gun_origin_WS[0];
+				((entity_t*)entity)->origin[1] = gun_origin_WS[1];
+				((entity_t*)entity)->origin[2] = gun_origin_WS[2];
+
+				cl.override_gun_origin[0] = gun_origin_WS[0];
+				cl.override_gun_origin[1] = gun_origin_WS[1];
+				cl.override_gun_origin[2] = gun_origin_WS[2];
+			}
 		}
 		else
 #endif
 		{
 			const int view_id = LEFT;
 			create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
+
+			cl.override_gun = true;
+
+			vec4_t forward_dir_LS = { 1, 0, 0, 0 };
+			vec4_t gun_dir_WS = { 0 };
+			mult_matrix_vector(forward_dir_LS, transform, gun_dir_WS);
+
+			cl.override_gun_direction[0] = gun_dir_WS[0];
+			cl.override_gun_direction[1] = gun_dir_WS[1];
+			cl.override_gun_direction[2] = gun_dir_WS[2];
+
+			vec4_t zero_LS = { 0, 0, 0, 1 };
+			vec4_t gun_origin_WS = { 0 };
+			mult_matrix_vector(zero_LS, transform, gun_origin_WS);
+
+			cl.override_gun_origin[0] = gun_origin_WS[0];
+			cl.override_gun_origin[1] = gun_origin_WS[1];
+			cl.override_gun_origin[2] = gun_origin_WS[2];
 		}
 	}
 	else

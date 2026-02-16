@@ -62,6 +62,9 @@ typedef struct
     uint8_t         fov;
     uint8_t         rdflags;
     int16_t         stats[MAX_STATS];
+    uint8_t override_gun;
+    vec3_t override_gun_origin;
+    vec3_t override_gun_direction;
 } player_packed_t;
 
 typedef enum 

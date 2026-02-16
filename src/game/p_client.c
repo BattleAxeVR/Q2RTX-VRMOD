@@ -1733,20 +1733,20 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
             client->ps.viewangles[PITCH] = -15;
             client->ps.viewangles[YAW] = client->killer_yaw;
         }
-        else if (ent->override_gun)
+        else if (pm.override_gun)// ent->override_gun)
         {
             VectorCopy(pm.viewangles, client->v_angle);
             VectorCopy(pm.viewangles, client->ps.viewangles);
 
             ent->client->override_gun = true;
 
-            ent->client->override_gun_origin[0] = ent->override_gun_origin[0];
-            ent->client->override_gun_origin[1] = ent->override_gun_origin[1];
-            ent->client->override_gun_origin[2] = ent->override_gun_origin[2];
+            //ent->client->override_gun_origin[0] = pm.override_gun_origin[0];
+            //ent->client->override_gun_origin[1] = pm.override_gun_origin[1];
+            //ent->client->override_gun_origin[2] = pm.override_gun_origin[2];
 
-            ent->client->override_gun_direction[0] = ent->override_gun_direction[0];
-            ent->client->override_gun_direction[1] = ent->override_gun_direction[1];
-            ent->client->override_gun_direction[2] = ent->override_gun_direction[2];
+            ent->client->override_gun_direction[0] = pm.override_gun_direction[0];
+            ent->client->override_gun_direction[1] = pm.override_gun_direction[1];
+            ent->client->override_gun_direction[2] = pm.override_gun_direction[2];
         }
         else
         {
