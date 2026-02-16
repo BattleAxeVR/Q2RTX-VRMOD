@@ -193,9 +193,12 @@ void turret_breach_think(edict_t *self)
 void turret_breach_finish_init(edict_t *self)
 {
     // get and save info for muzzle location
-    if (!self->target) {
+    if (!self->target) 
+    {
         gi.dprintf("%s at %s needs a target\n", self->classname, vtos(self->s.origin));
-    } else {
+    } 
+    else 
+    {
         self->target_ent = G_PickTarget(self->target);
         VectorSubtract(self->target_ent->s.origin, self->s.origin, self->move_origin);
         G_FreeEdict(self->target_ent);

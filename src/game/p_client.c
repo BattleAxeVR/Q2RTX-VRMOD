@@ -42,7 +42,8 @@ void SP_FixCoopSpots(edict_t *self)
 
     spot = NULL;
 
-    while (1) {
+    while (1) 
+    {
         spot = G_Find(spot, FOFS(classname), "info_player_start");
         if (!spot)
             return;
@@ -1142,11 +1143,14 @@ void PutClientInServer(edict_t *ent)
     memcpy(userinfo, client->pers.userinfo, sizeof(userinfo));
 
     // deathmatch wipes most client data every spawn
-    if (deathmatch->value) {
+    if (deathmatch->value) 
+    {
         resp = client->resp;
         InitClientPersistant(client);
-    } else {
-//      int         n;
+    } 
+    else 
+    {
+//      int n;
 
         resp = client->resp;
         // this is kind of ugly, but it's how we want to handle keys in coop
@@ -1158,8 +1162,11 @@ void PutClientInServer(edict_t *ent)
         resp.coop_respawn.game_helpchanged = client->pers.game_helpchanged;
         resp.coop_respawn.helpchanged = client->pers.helpchanged;
         client->pers = resp.coop_respawn;
-        if (resp.score > client->pers.score)
+
+        if(resp.score > client->pers.score)
+        {
             client->pers.score = resp.score;
+        }
     } 
 
     ClientUserinfoChanged(ent, userinfo);
@@ -1168,8 +1175,12 @@ void PutClientInServer(edict_t *ent)
     saved = client->pers;
     memset(client, 0, sizeof(*client));
     client->pers = saved;
-    if (client->pers.health <= 0)
+
+    if(client->pers.health <= 0)
+    {
         InitClientPersistant(client);
+    }
+
     client->resp = resp;
 
     // copy some data from the client to the entity
@@ -1203,14 +1214,22 @@ void PutClientInServer(edict_t *ent)
     // clear playerstate values
     memset(&ent->client->ps, 0, sizeof(client->ps));
 
-    if (deathmatch->value && ((int)dmflags->value & DF_FIXED_FOV)) {
+    if (deathmatch->value && ((int)dmflags->value & DF_FIXED_FOV)) 
+    {
         client->ps.fov = 90;
-    } else {
+    } 
+    else 
+    {
         client->ps.fov = Q_atoi(Info_ValueForKey(client->pers.userinfo, "fov"));
-        if (client->ps.fov < 1)
+
+        if(client->ps.fov < 1)
+        {
             client->ps.fov = 90;
-        else if (client->ps.fov > 160)
+        }
+        else if(client->ps.fov > 160)
+        {
             client->ps.fov = 160;
+        }
     }
 
     client->ps.gunindex = gi.modelindex(client->pers.weapon->view_model);
@@ -1232,17 +1251,22 @@ void PutClientInServer(edict_t *ent)
     temp[2] -= 64;
     temp2[2] += 16;
     tr = gi.trace(temp2, ent->mins, ent->maxs, temp, ent, MASK_PLAYERSOLID);
-    if (!tr.allsolid && !tr.startsolid && Q_stricmp(level.mapname, "tech5")) {
+
+    if (!tr.allsolid && !tr.startsolid && Q_stricmp(level.mapname, "tech5")) 
+    {
         VectorCopy(tr.endpos, ent->s.origin);
         ent->groundentity = tr.ent;
-    } else {
+    } 
+    else 
+    {
         VectorCopy(spawn_origin, ent->s.origin);
         ent->s.origin[2] += 10; // make sure off ground
     }
 
     VectorCopy(ent->s.origin, ent->s.old_origin);
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) 
+    {
         client->ps.pmove.origin[i] = COORD2SHORT(ent->s.origin[i]);
     }
 
@@ -1250,7 +1274,8 @@ void PutClientInServer(edict_t *ent)
     spawn_angles[ROLL] = 0;
 
     // set the delta angle
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) 
+    {
         client->ps.pmove.delta_angles[i] = ANGLE2SHORT(spawn_angles[i] - client->resp.cmd_angles[i]);
     }
 
@@ -1258,10 +1283,22 @@ void PutClientInServer(edict_t *ent)
     VectorCopy(spawn_angles, client->ps.viewangles);
     VectorCopy(spawn_angles, client->v_angle);
 
-    // spawn a spectator
-    if (client->pers.spectator) {
-        client->chase_target = NULL;
+#if 0
+    client->override_gun = true;
 
+    for (i = 0; i < 3; i++) 
+    {
+        client->override_gun_origin[i] = client->ps.pmove.origin[i];
+        client->override_gun_direction[i] = 1.0f;
+    }
+#else
+    client->override_gun = false;
+#endif
+
+    // spawn a spectator
+    if (client->pers.spectator) 
+    {
+        client->chase_target = NULL;
         client->resp.spectator = true;
 
         ent->movetype = MOVETYPE_NOCLIP;
@@ -1270,10 +1307,14 @@ void PutClientInServer(edict_t *ent)
         ent->client->ps.gunindex = 0;
         gi.linkentity(ent);
         return;
-    } else
+    } 
+    else
+    {
         client->resp.spectator = false;
+    }
 
-    if (!KillBox(ent)) {
+    if (!KillBox(ent)) 
+    {
         // could't spawn in?
     }
 
@@ -1574,6 +1615,7 @@ This will be called once for each client frame, which will
 usually be a couple times for each server frame.
 ==============
 */
+
 void ClientThink(edict_t *ent, usercmd_t *ucmd)
 {
     gclient_t   *client;
@@ -1584,8 +1626,10 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
     level.current_entity = ent;
     client = ent->client;
 
-    if (level.intermission_framenum) {
+    if (level.intermission_framenum) 
+    {
         client->ps.pmove.pm_type = PM_FREEZE;
+
         // can exit intermission after five seconds
         if (level.framenum > level.intermission_framenum + 5.0f * BASE_FRAMERATE
             && (ucmd->buttons & BUTTON_ANY))
@@ -1595,36 +1639,47 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
 
     pm_passent = ent;
 
-    if (ent->client->chase_target) {
-
+    if (ent->client->chase_target) 
+    {
         client->resp.cmd_angles[0] = SHORT2ANGLE(ucmd->angles[0]);
         client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
         client->resp.cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
 
     }
-    else {
+    else 
+    {
 
         // set up for pmove
         memset(&pm, 0, sizeof(pm));
 
         if(ent->movetype == MOVETYPE_NOCLIP)
+        {
             client->ps.pmove.pm_type = PM_SPECTATOR;
+        }
         else if(ent->s.modelindex != MODELINDEX_PLAYER)
+        {
             client->ps.pmove.pm_type = PM_GIB;
+        }
         else if(ent->deadflag)
+        {
             client->ps.pmove.pm_type = PM_DEAD;
+        }
         else
+        {
             client->ps.pmove.pm_type = PM_NORMAL;
+        }
 
         client->ps.pmove.gravity = sv_gravity->value;
         pm.s = client->ps.pmove;
 
-        for(i = 0; i < 3; i++) {
+        for(i = 0; i < 3; i++) 
+        {
             pm.s.origin[i] = COORD2SHORT(ent->s.origin[i]);
             pm.s.velocity[i] = COORD2SHORT(ent->velocity[i]);
         }
 
-        if(memcmp(&client->old_pmove, &pm.s, sizeof(pm.s))) {
+        if(memcmp(&client->old_pmove, &pm.s, sizeof(pm.s))) 
+        {
             pm.snapinitial = true;
             //      gi.dprintf ("pmove changed!\n");
         }
@@ -1637,7 +1692,8 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
         // perform a pmove
         gi.Pmove(&pm);
 
-        for(i = 0; i < 3; i++) {
+        for(i = 0; i < 3; i++) 
+        {
             ent->s.origin[i] = SHORT2COORD(pm.s.origin[i]);
             ent->velocity[i] = SHORT2COORD(pm.s.velocity[i]);
         }
@@ -1649,7 +1705,8 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
         client->resp.cmd_angles[1] = SHORT2ANGLE(ucmd->angles[1]);
         client->resp.cmd_angles[2] = SHORT2ANGLE(ucmd->angles[2]);
 
-        if(~client->ps.pmove.pm_flags & pm.s.pm_flags & PMF_JUMP_HELD && pm.waterlevel == 0) {
+        if(~client->ps.pmove.pm_flags & pm.s.pm_flags & PMF_JUMP_HELD && pm.waterlevel == 0) 
+        {
             gi.sound(ent, CHAN_VOICE, gi.soundindex("*jump1.wav"), 1, ATTN_NORM, 0);
             PlayerNoise(ent, ent->s.origin, PNOISE_SELF);
         }
@@ -1664,13 +1721,32 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
         ent->groundentity = pm.groundentity;
 
         if(pm.groundentity)
+        {
             ent->groundentity_linkcount = pm.groundentity->linkcount;
+        }
 
+        ent->client->override_gun = false;
+        
         if(ent->deadflag)
         {
             client->ps.viewangles[ROLL] = 40;
             client->ps.viewangles[PITCH] = -15;
             client->ps.viewangles[YAW] = client->killer_yaw;
+        }
+        else if (ent->override_gun)
+        {
+            VectorCopy(pm.viewangles, client->v_angle);
+            VectorCopy(pm.viewangles, client->ps.viewangles);
+
+            ent->client->override_gun = true;
+
+            ent->client->override_gun_origin[0] = ent->override_gun_origin[0];
+            ent->client->override_gun_origin[1] = ent->override_gun_origin[1];
+            ent->client->override_gun_origin[2] = ent->override_gun_origin[2];
+
+            ent->client->override_gun_direction[0] = ent->override_gun_direction[0];
+            ent->client->override_gun_direction[1] = ent->override_gun_direction[1];
+            ent->client->override_gun_direction[2] = ent->override_gun_direction[2];
         }
         else
         {

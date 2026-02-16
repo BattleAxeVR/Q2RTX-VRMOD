@@ -1965,22 +1965,32 @@ static void MVD_GameClientBegin(edict_t *ent)
     client->notified = false;
 
     // skip notifications for local clients
-    if (NET_IsLocalAddress(&client->cl->netchan.remote_address))
+    if(NET_IsLocalAddress(&client->cl->netchan.remote_address))
+    {
         client->notified = true;
+    }
 
     // skip notifications for Waiting Room channel
-    if (mvd == &mvd_waitingRoom)
+    if(mvd == &mvd_waitingRoom)
+    {
         client->notified = true;
+    }
+        
 
-    if (!client->begin_time) {
-        if (MVD_PartFilter(client)) {
-            MVD_BroadcastPrintf(mvd, PRINT_MEDIUM, UF_MUTE_MISC,
-                                "[MVD] %s entered the channel\n", client->cl->name);
+    if (!client->begin_time) 
+    {
+        if (MVD_PartFilter(client)) 
+        {
+            MVD_BroadcastPrintf(mvd, PRINT_MEDIUM, UF_MUTE_MISC, "[MVD] %s entered the channel\n", client->cl->name);
         }
         target = MVD_MostFollowed(mvd);
-    } else if (mvd->flags & MVF_SINGLEPOV) {
+    } 
+    else if (mvd->flags & MVF_SINGLEPOV) 
+    {
         target = MVD_MostFollowed(mvd);
-    } else {
+    } 
+    else 
+    {
         target = client->oldtarget;
     }
 
@@ -1989,15 +1999,20 @@ static void MVD_GameClientBegin(edict_t *ent)
 
     MVD_SetDefaultLayout(client);
 
-    if (mvd->intermission) {
+    if (mvd->intermission) 
+    {
         // force them to chase dummy MVD client
         client->target = mvd->dummy;
         MVD_SetFollowLayout(client);
         MVD_UpdateClient(client);
-    } else if (target && target->inuse) {
+    } 
+    else if (target && target->inuse) 
+    {
         // start normal chase cam mode
         MVD_FollowStart(client, target);
-    } else {
+    } 
+    else 
+    {
         // spawn the spectator
         VectorScale(mvd->spawnOrigin, 8, client->ps.pmove.origin);
         VectorCopy(mvd->spawnAngles, client->ps.viewangles);
@@ -2020,14 +2035,21 @@ static void MVD_GameClientUserinfoChanged(edict_t *ent, char *userinfo)
     client->uf = Q_atoi(Info_ValueForKey(userinfo, "uf"));
 
     fov = Q_atoi(Info_ValueForKey(userinfo, "fov"));
-    if (fov < 1) {
+    if (fov < 1) 
+    {
         fov = 90;
-    } else if (fov > 160) {
+    } 
+    else if (fov > 160) 
+    {
         fov = 160;
     }
+    
     client->fov = fov;
-    if (!client->target)
+
+    if(!client->target)
+    {
         client->ps.fov = fov;
+    }
 }
 
 void MVD_GameClientNameChanged(edict_t *ent, const char *name)
@@ -2035,7 +2057,8 @@ void MVD_GameClientNameChanged(edict_t *ent, const char *name)
     mvd_client_t *client = EDICT_MVDCL(ent);
     client_t *cl = client->cl;
 
-    if (client->begin_time && MVD_PartFilter(client)) {
+    if (client->begin_time && MVD_PartFilter(client)) 
+    {
         MVD_BroadcastPrintf(client->mvd, PRINT_MEDIUM, UF_MUTE_MISC,
                             "[MVD] %s changed name to %s\n", cl->name, name);
     }
@@ -2047,7 +2070,8 @@ void MVD_GameClientDrop(edict_t *ent, const char *prefix, const char *reason)
     mvd_client_t *client = EDICT_MVDCL(ent);
     client_t *cl = client->cl;
 
-    if (client->begin_time && MVD_PartFilter(client)) {
+    if (client->begin_time && MVD_PartFilter(client)) 
+    {
         MVD_BroadcastPrintf(client->mvd, PRINT_MEDIUM, UF_MUTE_MISC,
                             "[MVD] %s%s%s\n", cl->name, prefix, reason);
     }
@@ -2060,7 +2084,8 @@ static void MVD_GameClientDisconnect(edict_t *ent)
     mvd_client_t *client = EDICT_MVDCL(ent);
     client_t *cl = client->cl;
 
-    if (client->begin_time && MVD_PartFilter(client)) {
+    if (client->begin_time && MVD_PartFilter(client)) 
+    {
         MVD_BroadcastPrintf(client->mvd, PRINT_MEDIUM, UF_MUTE_MISC,
                             "[MVD] %s disconnected\n", cl->name);
     }
@@ -2078,42 +2103,57 @@ static mvd_player_t *MVD_HitPlayer(mvd_client_t *client)
     float fraction;
     int i;
 
-    if (!mvd->players)
+    if(!mvd->players)
+    {
         return NULL;
+    }
 
-    if (mvd->intermission)
+    if(mvd->intermission)
+    {
         return NULL;
+    }
 
     VectorMA(client->ps.viewoffset, 0.125f, client->ps.pmove.origin, start);
     AngleVectors(client->ps.viewangles, forward, NULL, NULL);
     VectorMA(start, 8192, forward, end);
 
-    if (mvd->cm.cache) {
-        CM_BoxTrace(&trace, start, end, vec3_origin, vec3_origin,
-                    mvd->cm.cache->nodes, CONTENTS_SOLID);
+    if (mvd->cm.cache) 
+    {
+        CM_BoxTrace(&trace, start, end, vec3_origin, vec3_origin, mvd->cm.cache->nodes, CONTENTS_SOLID);
         fraction = trace.fraction;
-    } else {
+    } 
+    else 
+    {
         fraction = 1;
     }
 
     target = NULL;
-    for (i = 0; i < mvd->maxclients; i++) {
+
+    for (i = 0; i < mvd->maxclients; i++) 
+    {
         player = &mvd->players[i];
-        if (!player->inuse || player == mvd->dummy)
+
+        if(!player->inuse || player == mvd->dummy)
+        {
             continue;
+        }
 
         ent = &mvd->edicts[i + 1];
-        if (!ent->inuse)
+
+        if(!ent->inuse)
+        {
             continue;
+        }
 
-        if (ent->solid != SOLID_BBOX)
+        if(ent->solid != SOLID_BBOX)
+        {
             continue;
+        }
 
-        CM_TransformedBoxTrace(&trace, start, end, vec3_origin, vec3_origin,
-                               CM_HeadnodeForBox(ent->mins, ent->maxs),
-                               CONTENTS_MONSTER, ent->s.origin, vec3_origin);
+        CM_TransformedBoxTrace(&trace, start, end, vec3_origin, vec3_origin, CM_HeadnodeForBox(ent->mins, ent->maxs), CONTENTS_MONSTER, ent->s.origin, vec3_origin);
 
-        if (trace.fraction < fraction) {
+        if (trace.fraction < fraction) 
+        {
             fraction = trace.fraction;
             target = player;
         }
@@ -2147,43 +2187,58 @@ static void MVD_GameClientThink(edict_t *ent, usercmd_t *cmd)
     if (cmd->buttons != old->buttons
         || cmd->forwardmove != old->forwardmove
         || cmd->sidemove != old->sidemove
-        || cmd->upmove != old->upmove) {
+        || cmd->upmove != old->upmove) 
+    {
         // don't timeout
         mvd_last_activity = svs.realtime;
     }
 
-    if ((cmd->buttons & ~old->buttons) & BUTTON_ATTACK) {
+    if ((cmd->buttons & ~old->buttons) & BUTTON_ATTACK) 
+    {
         mvd_player_t *hit;
 
         // small hack to allow picking up targets by aim
-        if (client->target == NULL && (hit = MVD_HitPlayer(client)) != NULL) {
+        if (client->target == NULL && (hit = MVD_HitPlayer(client)) != NULL) 
+        {
             client->oldtarget = hit;
         }
 
         MVD_Observe_f(client);
     }
 
-    if (client->target) {
-        if (cmd->upmove >= 10) {
-            if (client->jump_held < 1) {
-                if (!client->mvd->intermission) {
+    if (client->target) 
+    {
+        if (cmd->upmove >= 10) 
+        {
+            if (client->jump_held < 1) 
+            {
+                if (!client->mvd->intermission) 
+                {
                     MVD_FollowNext(client, client->target);
                     client->chase_mask = 0;
                 }
                 client->jump_held = 1;
             }
-        } else if (cmd->upmove <= -10) {
-            if (client->jump_held > -1) {
-                if (!client->mvd->intermission) {
+        } 
+        else if (cmd->upmove <= -10) 
+        {
+            if (client->jump_held > -1) 
+            {
+                if (!client->mvd->intermission) 
+                {
                     MVD_FollowPrev(client, client->target);
                     client->chase_mask = 0;
                 }
                 client->jump_held = -1;
             }
-        } else {
+        } 
+        else 
+        {
             client->jump_held = 0;
         }
-    } else {
+    } 
+    else 
+    {
         memset(&pm, 0, sizeof(pm));
         pm.trace = MVD_Trace;
         pm.pointcontents = MVD_PointContents;
@@ -2193,7 +2248,9 @@ static void MVD_GameClientThink(edict_t *ent, usercmd_t *cmd)
         PF_Pmove(&pm);
 
         client->ps.pmove = pm.s;
-        if (pm.s.pm_type != PM_FREEZE) {
+
+        if (pm.s.pm_type != PM_FREEZE) 
+        {
             VectorCopy(pm.viewangles, client->ps.viewangles);
         }
     }

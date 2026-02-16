@@ -1049,6 +1049,7 @@ void Qcommon_Init(int argc, char **argv)
 Qcommon_Frame
 =================
 */
+
 void Qcommon_Frame(void)
 {
 #if USE_CLIENT

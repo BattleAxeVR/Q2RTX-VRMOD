@@ -177,20 +177,29 @@ static request_t *CL_FindRequest(void)
         count = nextRequest;
 
     // find the most recent request sent to this address
-    for (i = 0; i < count; i++) {
+    for (i = 0; i < count; i++) 
+    {
         r = &clientRequests[(nextRequest - i - 1) & REQUEST_MASK];
-        if (!r->type) {
+
+        if (!r->type) 
+        {
             continue;
         }
-        if (r->adr.type == NA_BROADCAST) {
-            if (cls.realtime - r->time > 3000) {
+        if (r->adr.type == NA_BROADCAST) 
+        {
+            if (cls.realtime - r->time > 3000) 
+            {
                 continue;
             }
-            if (!NET_IsLanAddress(&net_from)) {
+            if (!NET_IsLanAddress(&net_from)) 
+            {
                 continue;
             }
-        } else {
-            if (cls.realtime - r->time > 6000) {
+        } 
+        else 
+        {
+            if (cls.realtime - r->time > 6000) 
+            {
                 break;
             }
             if (!NET_IsEqualBaseAdr(&net_from, &r->adr)) {
@@ -3407,15 +3416,20 @@ unsigned CL_Frame(unsigned msec)
 
     UI_Frame(main_extra);
 
-    if (ref_frame) {
+    if (ref_frame) 
+    {
         // update the screen
-        if (host_speeds->integer)
+        if(host_speeds->integer)
+        {
             time_before_ref = Sys_Milliseconds();
+        }
 
         SCR_UpdateScreen();
 
-        if (host_speeds->integer)
+        if(host_speeds->integer)
+        {
             time_after_ref = Sys_Milliseconds();
+        }
 
         ref_extra -= ref_msec;
         R_FRAMES++;
@@ -3423,7 +3437,9 @@ unsigned CL_Frame(unsigned msec)
         // update audio after the 3D view was drawn
         S_Update();
         SCR_RunCinematic();
-    } else if (sync_mode == SYNC_SLEEP_10) {
+    } 
+    else if (sync_mode == SYNC_SLEEP_10) 
+    {
         // force audio and effects update if not rendering
         CL_CalcViewValues();
         S_Update();

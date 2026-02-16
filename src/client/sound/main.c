@@ -72,7 +72,8 @@ static cvar_t   *s_auto_focus;
 
 static void S_SoundInfo_f(void)
 {
-    if (!s_started) {
+    if (!s_started) 
+    {
         Com_Printf("Sound system not started.\n");
         return;
     }
@@ -88,23 +89,39 @@ static void S_SoundList_f(void)
     size_t  total;
 
     total = count = 0;
-    for (sfx = known_sfx, i = 0; i < num_sfx; i++, sfx++) {
-        if (!sfx->name[0])
+
+    for (sfx = known_sfx, i = 0; i < num_sfx; i++, sfx++) 
+    {
+        if(!sfx->name[0])
+        {
             continue;
+        }
         sc = sfx->cache;
-        if (sc) {
+
+        if (sc) 
+        {
             total += sc->size;
-            if (sc->loopstart >= 0)
+
+            if(sc->loopstart >= 0)
+            {
                 Com_Printf("L");
+            }
             else
+            {
                 Com_Printf(" ");
+            }
             Com_Printf("(%2db) (%dch) %6i : %s\n", sc->width * 8, sc->channels, sc->size, sfx->name);
-        } else {
-            if (sfx->name[0] == '*')
+        } 
+        else 
+        {
+            if(sfx->name[0] == '*')
+            {
                 Com_Printf("  placeholder : %s\n", sfx->name);
+            }
             else
-                Com_Printf("  not loaded  : %s (%s)\n",
-                           sfx->name, Q_ErrorString(sfx->error));
+            {
+                Com_Printf("  not loaded  : %s (%s)\n", sfx->name, Q_ErrorString(sfx->error));
+            }
         }
         count++;
     }
@@ -112,7 +129,8 @@ static void S_SoundList_f(void)
     Com_Printf("Total resident: %zu\n", total);
 }
 
-static const cmdreg_t c_sound[] = {
+static const cmdreg_t c_sound[] = 
+{
     { "stopsound", S_StopAllSounds },
     { "soundlist", S_SoundList_f },
     { "soundinfo", S_SoundInfo_f },
@@ -137,7 +155,9 @@ S_Init
 void S_Init(void)
 {
     s_enable = Cvar_Get("s_enable", "2", CVAR_SOUND);
-    if (s_enable->integer <= SS_NOT) {
+
+    if (s_enable->integer <= SS_NOT) 
+    {
         Com_Printf("Sound initialization disabled.\n");
         return;
     }
@@ -157,20 +177,23 @@ void S_Init(void)
     s_started = SS_NOT;
 
 #if USE_OPENAL
-    if (s_started == SS_NOT && s_enable->integer >= SS_OAL && snd_openal.init()) {
+    if (s_started == SS_NOT && s_enable->integer >= SS_OAL && snd_openal.init()) 
+    {
         s_started = SS_OAL;
         s_api = snd_openal;
     }
 #endif
 
 #if USE_SNDDMA
-    if (s_started == SS_NOT && s_enable->integer >= SS_DMA && snd_dma.init()) {
+    if (s_started == SS_NOT && s_enable->integer >= SS_DMA && snd_dma.init()) 
+    {
         s_started = SS_DMA;
         s_api = snd_dma;
     }
 #endif
 
-    if (s_started == SS_NOT) {
+    if (s_started == SS_NOT) 
+    {
         Com_EPrintf("Sound failed to initialize.\n");
         goto fail;
     }
@@ -191,8 +214,10 @@ void S_Init(void)
     s_registration_sequence = 1;
 
     // start the cd track
-    if (cls.state >= ca_precached)
+    if(cls.state >= ca_precached)
+    {
         OGG_RecoverState();
+    }
 
 fail:
     Cvar_SetInteger(s_enable, s_started, FROM_CODE);
@@ -208,6 +233,7 @@ static void S_FreeSound(sfx_t *sfx)
 {
     if (s_api.delete_sfx)
         s_api.delete_sfx(sfx);
+
     Z_Free(sfx->cache);
     Z_Free(sfx->truename);
     memset(sfx, 0, sizeof(*sfx));
@@ -219,9 +245,11 @@ void S_FreeAllSounds(void)
     sfx_t   *sfx;
 
     // free all sounds
-    for (i = 0, sfx = known_sfx; i < num_sfx; i++, sfx++) {
+    for (i = 0, sfx = known_sfx; i < num_sfx; i++, sfx++) 
+    {
         if (!sfx->name[0])
             continue;
+
         S_FreeSound(sfx);
     }
 

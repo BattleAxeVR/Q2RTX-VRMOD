@@ -79,9 +79,9 @@ typedef struct entity_s {
     color_t rgba;
 
     qhandle_t   skin;           // NULL for inline skin
-    int         flags;
+    int flags;
 
-    int                 id;
+    int id;
 
 	int tent_type;
 
@@ -100,7 +100,8 @@ typedef enum dlight_spot_emission_profile_e
     DLIGHT_SPOT_EMISSION_PROFILE_AXIS_ANGLE_TEXTURE
 } dlight_spot_emission_profile;
 
-typedef struct dlight_s {
+typedef struct dlight_s 
+{
     vec3_t  origin;
 #if USE_REF == REF_GL
     vec3_t  transformed;
