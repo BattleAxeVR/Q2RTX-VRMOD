@@ -20,6 +20,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "g_local.h"
 #include "m_player.h"
 
+#define APPLY_VR_BOLT_OFFSET 1
+#define DEFAULT_VR_BOLT_OFFSET 6.0f;
+
 static bool is_quad;
 static byte is_silenced;
 
@@ -925,6 +928,14 @@ void Blaster_Fire(edict_t *ent, const vec3_t g_offset, int damage, bool hyper, i
         forward[0] = ent->client->override_gun_direction[0];
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
+
+#if APPLY_VR_BOLT_OFFSET
+        static float vr_bolt_offset = DEFAULT_VR_BOLT_OFFSET;
+
+        start[0] += forward[0] * vr_bolt_offset;
+        start[1] += forward[1] * vr_bolt_offset;
+        start[2] += forward[2] * vr_bolt_offset;
+#endif
     }
 
     fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
