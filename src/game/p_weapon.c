@@ -1189,6 +1189,18 @@ void Machinegun_Fire(edict_t *ent)
     VectorSet(offset, 0, 8, ent->viewheight - 8);
 
     P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
+
+    if(ent->client->override_gun)
+    {
+        start[0] = ent->client->override_gun_origin[0];
+        start[1] = ent->client->override_gun_origin[1];
+        start[2] = ent->client->override_gun_origin[2];
+
+        forward[0] = ent->client->override_gun_direction[0];
+        forward[1] = ent->client->override_gun_direction[1];
+        forward[2] = ent->client->override_gun_direction[2];
+    }
+
     fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
 
     gi.WriteByte(svc_muzzleflash);
