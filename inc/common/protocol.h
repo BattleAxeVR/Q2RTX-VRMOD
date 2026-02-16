@@ -246,9 +246,6 @@ typedef enum {
 // q2pro protocol specific extra flags
 #define EPS_CLIENTNUM       BIT(6)
 
-#define EPS_VR_OVERRIDE_GUN    BIT(7)
-#define EPS_VR_GUN_ORIGIN      BIT(8)
-#define EPS_VR_GUN_DIRECTION   BIT(9)
 
 //==============================================
 

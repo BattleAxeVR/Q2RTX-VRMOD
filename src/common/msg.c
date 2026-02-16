@@ -841,11 +841,6 @@ void MSG_PackPlayer(player_packed_t *out, const player_state_t *in)
     {
         out->stats[i] = in->stats[i];
     }
-
-    out->override_gun = in->override_gun;
-    for (i = 0; i < 3; i++) out->override_gun_origin[i] = OFFSET2CHAR(in->override_gun_origin[i]);
-    for (i = 0; i < 3; i++) out->override_gun_direction[i] = OFFSET2CHAR(in->override_gun_direction[i]);
-
 }
 
 void MSG_WriteDeltaPlayerstate_Default(const player_packed_t *from, const player_packed_t *to, msgPsFlags_t flags)
@@ -1199,21 +1194,6 @@ int MSG_WriteDeltaPlayerstate_Enhanced(const player_packed_t    *from,
         {
             eflags |= EPS_GUNANGLES;
         }
-
-        if(to->override_gun != from->override_gun)
-        {
-            eflags |= EPS_VR_OVERRIDE_GUN;
-        }
-
-        if(!VectorCompare(from->override_gun_origin, to->override_gun_origin))
-        {
-            eflags |= EPS_VR_GUN_ORIGIN;
-        }
-
-        if(!VectorCompare(from->override_gun_direction, to->override_gun_direction))
-        {
-            eflags |= EPS_VR_GUN_DIRECTION;
-        }
     } 
     else 
     {
@@ -1352,25 +1332,6 @@ int MSG_WriteDeltaPlayerstate_Enhanced(const player_packed_t    *from,
         MSG_WriteChar(to->gunangles[0]);
         MSG_WriteChar(to->gunangles[1]);
         MSG_WriteChar(to->gunangles[2]);
-    }
-
-    if(eflags & EPS_VR_OVERRIDE_GUN)
-    {
-        MSG_WriteByte(to->override_gun);
-    }
-
-    if (eflags & EPS_VR_GUN_ORIGIN) 
-    {
-        MSG_WriteChar(to->override_gun_origin[0]);
-        MSG_WriteChar(to->override_gun_origin[1]);
-        MSG_WriteChar(to->override_gun_origin[2]);
-    }
-
-    if (eflags & EPS_VR_GUN_DIRECTION) 
-    {
-        MSG_WriteChar(to->override_gun_direction[0]);
-        MSG_WriteChar(to->override_gun_direction[1]);
-        MSG_WriteChar(to->override_gun_direction[2]);
     }
 
     if (pflags & PS_BLEND) 
@@ -2433,25 +2394,6 @@ void MSG_ParseDeltaPlayerstate_Enhanced(const player_state_t    *from,
         to->gunangles[0] = MSG_ReadChar() * 0.25f;
         to->gunangles[1] = MSG_ReadChar() * 0.25f;
         to->gunangles[2] = MSG_ReadChar() * 0.25f;
-    }
-
-    if(extraflags & EPS_VR_OVERRIDE_GUN)
-    {
-        to->override_gun = MSG_ReadByte();
-    }
-
-    if (extraflags & EPS_VR_GUN_ORIGIN) 
-    {
-        to->override_gun_origin[0] = MSG_ReadChar() * 0.25f;
-        to->override_gun_origin[1] = MSG_ReadChar() * 0.25f;
-        to->override_gun_origin[2] = MSG_ReadChar() * 0.25f;
-    }
-
-    if (extraflags & EPS_VR_GUN_DIRECTION) 
-    {
-        to->override_gun_direction[0] = MSG_ReadChar() * 0.25f;
-        to->override_gun_direction[1] = MSG_ReadChar() * 0.25f;
-        to->override_gun_direction[2] = MSG_ReadChar() * 0.25f;
     }
 
     if (flags & PS_BLEND) 
