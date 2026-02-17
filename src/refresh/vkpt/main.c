@@ -108,6 +108,8 @@ extern cvar_t *cl_xr_gun_offset_y;
 extern cvar_t *cl_xr_gun_offset_z;
 extern cvar_t *cl_xr_ipd_mult;
 
+extern int xr_gun_last_shot_hand;
+
 extern cvar_t *cvar_flt_fsr_rcas;
 
 static int drs_current_scale = 0;
@@ -2233,7 +2235,7 @@ static void process_regular_entity(
 
 			vr_guns_enabled = hand_ok ? 1 : 0;
 
-			if(hand_ok)
+			if(vr_guns_enabled && (xr_gun_last_shot_hand == hand_id))
 			{
 				vec4_t forward_dir_LS = { 1, 0, 0, 0 };
 				vec4_t gun_dir_WS = { 0 };

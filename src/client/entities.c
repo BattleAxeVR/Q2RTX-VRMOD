@@ -35,6 +35,7 @@ extern cvar_t *cl_xr_gun_offset_y;
 extern cvar_t *cl_xr_gun_offset_z;
 
 extern cvar_t *cl_xr_gun_idle_frame;
+extern int xr_gun_last_shot_hand;
 
 /*
 =========================================================================

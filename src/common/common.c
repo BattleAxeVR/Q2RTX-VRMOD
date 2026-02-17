@@ -66,6 +66,7 @@ extern void vr_button_event_joystick_press(int hand_id, bool is_down, unsigned t
 
 extern cvar_t *info_hand;
 extern cvar_t *cl_xr_guns;
+extern int xr_gun_last_shot_hand;
 #endif
 
 #if USE_DEBUG
@@ -1151,38 +1152,39 @@ void Qcommon_Frame(void)
         const int xr_guns = (int)cl_xr_guns->value;
         const bool is_dual_wielding = (xr_guns == 2);
 
-        
-        if(left_vr_controller.trigger_.is_down_)//was_pressed_)
+        if(left_vr_controller.trigger_.was_pressed_)
         {
             if(is_left_handed || is_dual_wielding)
             {
+                xr_gun_last_shot_hand = LEFT;
                 vr_button_event_trigger(LEFT, true, time);
             }
             else
             {
-                // Switch to left-hand
+                // Switch to left-hand for next frame
                 info_hand->integer = 1;
             }
-            
         }
-        else if (!left_vr_controller.trigger_.is_down_)//left_vr_controller.trigger_.was_released_)
-        {
-            vr_button_event_trigger(LEFT, false, time);
-        }
-
-        if(right_vr_controller.trigger_.is_down_)//was_pressed_)
+        else if(right_vr_controller.trigger_.was_pressed_)
         {
             if(is_right_handed || is_dual_wielding)
             {
+                xr_gun_last_shot_hand = RIGHT;
                 vr_button_event_trigger(RIGHT, true, time);
             }
             else
             {
-                // Switch to right-hand
+                // Switch to right-hand for next frame
                 info_hand->integer = 0;
             }
         }
-        else if (!right_vr_controller.trigger_.is_down_)//was_released_)
+        
+        if (!left_vr_controller.trigger_.was_released_)
+        {
+            vr_button_event_trigger(LEFT, false, time);
+        }
+        
+        if (!right_vr_controller.trigger_.was_released_)
         {
             vr_button_event_trigger(RIGHT, false, time);
         }
