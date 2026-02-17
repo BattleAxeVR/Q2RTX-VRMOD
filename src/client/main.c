@@ -53,6 +53,7 @@ cvar_t  *cl_xr_gun_offset_z;
 cvar_t  *cl_xr_ipd_mult;
 cvar_t  *cl_blit_scale;
 cvar_t  *cl_blit_bias;
+cvar_t  *cl_xr_gun_idle_frame;
 
 cvar_t  *cl_autopause;
 
@@ -2879,6 +2880,8 @@ static void CL_InitLocal(void)
 
     cl_blit_scale = Cvar_Get("blit_scale", "1", 0);
     cl_blit_bias = Cvar_Get("blit_bias", "1.5", 0);
+
+    cl_xr_gun_idle_frame = Cvar_Get("xr_gun_idle_frame", "-1", 0);
 
     cl_timeout = Cvar_Get("cl_timeout", "120", 0);
     cl_timeout->changed = cl_timeout_changed;

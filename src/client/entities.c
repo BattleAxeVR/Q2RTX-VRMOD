@@ -34,6 +34,8 @@ extern cvar_t *cl_xr_gun_offset_x;
 extern cvar_t *cl_xr_gun_offset_y;
 extern cvar_t *cl_xr_gun_offset_z;
 
+extern cvar_t *cl_xr_gun_idle_frame;
+
 /*
 =========================================================================
 
@@ -1181,16 +1183,14 @@ static void CL_AddViewWeapon(int hand_id)
 
     // Disable weapon animations in stereo / VR mode
     const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+    const int xr_gun_idle_frame = (int)cl_xr_gun_idle_frame->value;
 
-#if DISABLE_GUN_ANIMATIONS
-    if(stereo)
+    if(stereo && (xr_gun_idle_frame >= 0))
     {
-        gun.frame = 19;
-        gun.oldframe = 19;
+        gun.frame = xr_gun_idle_frame;
+        gun.oldframe = xr_gun_idle_frame;
     }
-    else 
-#endif
-    if (gun_frame)
+    else if (gun_frame)
     {
         gun.frame = gun_frame;  // development tool
         gun.oldframe = gun_frame;   // development tool

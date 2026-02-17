@@ -32,8 +32,6 @@
 // Extra define to skip actually using OpenXR but enable other functionality
 #define CONNECT_TO_OPENXR (SUPPORT_OPENXR && 1)
 
-#define DISABLE_GUN_ANIMATIONS (CONNECT_TO_OPENXR && 1)
-
 #define APPLY_STEREO_VIEW_PITCH 0
 #define APPLY_STEREO_VIEW_YAW 1
 #define APPLY_STEREO_VIEW_ROLL 0
