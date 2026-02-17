@@ -613,11 +613,11 @@ void vr_button_event_XA(int hand_id, bool is_down, unsigned time)
 
     if(hand_id == LEFT)
     {
-        key = K_MOUSE1;
+        key = K_SPACE;
     }
     else
     {
-        key = K_MWHEELUP;
+        key = K_SPACE;
     }
 
 
@@ -630,11 +630,11 @@ void vr_button_event_BY(int hand_id, bool is_down, unsigned time)
 
     if(hand_id == LEFT)
     {
-        key = K_ESCAPE;
+        key = K_MWHEELUP;  // TODO: Pick different bindings to change each hand's weapon independently, when xr_guns is 2
     }
     else
     {
-        key = K_SPACE;
+        key = K_MWHEELUP;
     }
 
     Key_Event2(key, is_down, time);
