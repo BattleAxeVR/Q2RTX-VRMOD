@@ -1186,11 +1186,23 @@ static void CL_AddViewWeapon(int hand_id)
     const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
     const int xr_gun_idle_frame = (int)cl_xr_gun_idle_frame->value;
 
+    const int xr_guns = (int)cl_xr_guns->value;
+    const bool is_dual_wielding = stereo && (xr_guns == 2);
+
+    const int idle_frame = (xr_gun_idle_frame >= 0) ? xr_gun_idle_frame : 5;
+
     if(stereo && (xr_gun_idle_frame >= 0))
     {
         gun.frame = xr_gun_idle_frame;
         gun.oldframe = xr_gun_idle_frame;
     }
+#if 1
+    else if(is_dual_wielding && (xr_gun_last_shot_hand != hand_id))
+    {
+        gun.frame = idle_frame;
+        gun.oldframe = idle_frame;
+    }
+#endif
     else if (gun_frame)
     {
         gun.frame = gun_frame;  // development tool
@@ -1265,20 +1277,22 @@ static void CL_SetupFirstPersonView(void)
     }
 
     const int stereo = (cl_stereo->value == 1.0f) ? 1 : 0;
+    int main_hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
 
     if(stereo)
     {
+        player_state_t* ps = CL_KEYPS;
         const bool dual_wield = (cl_xr_guns->value == 2.0f);
+        const bool show_both_guns = dual_wield && (ps->gunindex != 62);
 
-        if(dual_wield)
+        if(show_both_guns)
         {
             CL_AddViewWeapon(LEFT);
             CL_AddViewWeapon(RIGHT);
         }
         else
         {
-            int main_hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
-            CL_AddViewWeapon(main_hand_id);
+            CL_AddViewWeapon(dual_wield ? xr_gun_last_shot_hand : main_hand_id);
         }
     }
     else
@@ -1287,7 +1301,6 @@ static void CL_SetupFirstPersonView(void)
 
         if(!show_neither_weapon)
         {
-            int main_hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
             CL_AddViewWeapon(main_hand_id);
         }
     }
