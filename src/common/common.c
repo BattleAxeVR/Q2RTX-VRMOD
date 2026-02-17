@@ -63,6 +63,9 @@ extern void vr_button_event_BY(int hand_id, bool is_down, unsigned time);
 extern void vr_button_event_trigger(int hand_id, bool is_down, unsigned time);
 extern void vr_button_event_grip(int hand_id, bool is_down, unsigned time);
 extern void vr_button_event_joystick_press(int hand_id, bool is_down, unsigned time);
+
+extern cvar_t *info_hand;
+extern cvar_t *cl_xr_guns;
 #endif
 
 #if USE_DEBUG
@@ -1142,9 +1145,25 @@ void Qcommon_Frame(void)
         const float deadzone = 0.01f;
         unsigned time = Sys_Milliseconds();
 
+        const int main_hand_id = (info_hand->integer == 1) ? LEFT : RIGHT;
+        const bool is_left_handed = (main_hand_id == LEFT);
+        const bool is_right_handed = (main_hand_id == RIGHT);
+        const int xr_guns = (int)cl_xr_guns->value;
+        const bool is_dual_wielding = (xr_guns == 2);
+
+        
         if(left_vr_controller.trigger_.is_down_)//was_pressed_)
         {
-            vr_button_event_trigger(LEFT, true, time);
+            if(is_left_handed || is_dual_wielding)
+            {
+                vr_button_event_trigger(LEFT, true, time);
+            }
+            else
+            {
+                // Switch to left-hand
+                info_hand->integer = 1;
+            }
+            
         }
         else if (!left_vr_controller.trigger_.is_down_)//left_vr_controller.trigger_.was_released_)
         {
@@ -1153,7 +1172,15 @@ void Qcommon_Frame(void)
 
         if(right_vr_controller.trigger_.is_down_)//was_pressed_)
         {
-            vr_button_event_trigger(RIGHT, true, time);
+            if(is_right_handed || is_dual_wielding)
+            {
+                vr_button_event_trigger(RIGHT, true, time);
+            }
+            else
+            {
+                // Switch to right-hand
+                info_hand->integer = 0;
+            }
         }
         else if (!right_vr_controller.trigger_.is_down_)//was_released_)
         {
@@ -1217,8 +1244,10 @@ void Qcommon_Frame(void)
 
 #endif
 
-    if (host_speeds->integer)
+    if(host_speeds->integer)
+    {
         time_between = Sys_Milliseconds();
+    }
 
     clientrem = CL_Frame(msec);
 
@@ -1242,8 +1271,7 @@ void Qcommon_Frame(void)
         sv -= gm;
         cl -= rf;
 
-        Com_Printf("all:%3i ev:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n",
-                   all, ev, sv, gm, cl, rf);
+        Com_Printf("all:%3i ev:%3i sv:%3i gm:%3i cl:%3i rf:%3i\n", all, ev, sv, gm, cl, rf);
     }
 
 
