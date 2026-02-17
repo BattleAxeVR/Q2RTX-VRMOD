@@ -869,26 +869,35 @@ static void *SV_LoadGameLibraryFrom(const char *path)
     void *entry;
 
     entry = Sys_LoadLibrary(path, "GetGameAPI", &game_library);
-    if (!entry)
+
+    if(!entry)
+    {
         Com_EPrintf("Failed to load game library: %s\n", Com_GetLastError());
+    }
     else
+    {
         Com_Printf("Loaded game library from %s\n", path);
+    }
 
     return entry;
 }
 
 static void *SV_LoadGameLibrary(const char *libdir, const char *gamedir)
 {
-    char path[MAX_OSPATH];
+    char path[MAX_OSPATH] = { 0 };
 
-    if (Q_concat(path, sizeof(path), libdir,
-                 PATH_SEP_STRING, gamedir, PATH_SEP_STRING,
-                 "game" CPUSTRING LIBSUFFIX) >= sizeof(path)) {
+#if SUPPORT_OPENXR
+    if (Q_concat(path, sizeof(path), libdir, PATH_SEP_STRING, gamedir, PATH_SEP_STRING, "gamex86_64_vr.dll") >= sizeof(path)) 
+#else
+    if (Q_concat(path, sizeof(path), libdir, PATH_SEP_STRING, gamedir, PATH_SEP_STRING, "game" CPUSTRING LIBSUFFIX) >= sizeof(path)) 
+#endif
+    {
         Com_EPrintf("Game library path length exceeded\n");
         return NULL;
     }
 
-    if (os_access(path, X_OK)) {
+    if (os_access(path, X_OK)) 
+    {
         Com_Printf("Can't access %s: %s\n", path, strerror(errno));
         return NULL;
     }
@@ -912,51 +921,71 @@ void SV_InitGameProgs(void)
     SV_ShutdownGameProgs();
 
     // for debugging or `proxy' mods
-    if (sys_forcegamelib->string[0])
+    if(sys_forcegamelib->string[0])
+    {
         entry = SV_LoadGameLibraryFrom(sys_forcegamelib->string);
+    }
 
     // try game first
-    if (!entry && fs_game->string[0]) {
-        if (sys_homedir->string[0])
+    if (!entry && fs_game->string[0]) 
+    {
+        if(sys_homedir->string[0])
+        {
             entry = SV_LoadGameLibrary(sys_homedir->string, fs_game->string);
-        if (!entry)
+        }
+        if(!entry)
+        {
             entry = SV_LoadGameLibrary(sys_libdir->string, fs_game->string);
+        }
     }
 
     // then try baseq2
-    if (!entry) {
-        if (sys_homedir->string[0])
+    if (!entry) 
+    {
+        if(sys_homedir->string[0])
+        {
             entry = SV_LoadGameLibrary(sys_homedir->string, BASEGAME);
-        if (!entry)
+        }
+        if(!entry)
+        {
             entry = SV_LoadGameLibrary(sys_libdir->string, BASEGAME);
+        }
     }
 
     // all paths failed
-    if (!entry)
+    if(!entry)
+    {
         Com_Error(ERR_DROP, "Failed to load game library");
+    }
 
     // load a new game dll
     import = game_import;
 
     ge = entry(&import);
-    if (!ge) {
+
+    if (!ge) 
+    {
         Com_Error(ERR_DROP, "Game library returned NULL exports");
     }
 
-    if (ge->apiversion != GAME_API_VERSION) {
-        Com_Error(ERR_DROP, "Game library is version %d, expected %d",
-                  ge->apiversion, GAME_API_VERSION);
+    if (ge->apiversion != GAME_API_VERSION) 
+    {
+        Com_Error(ERR_DROP, "Game library is version %d, expected %d", ge->apiversion, GAME_API_VERSION);
     }
 
     // get extended api if present
     game_entry_ex_t entry_ex = Sys_GetProcAddress(game_library, "GetExtendedGameAPI");
-    if (entry_ex)
+
+    if(entry_ex)
+    {
         gex = entry_ex(&game_import_ex);
+    }
 
     // initialize
     ge->Init();
 
-    if (g_features->integer & GMF_PROTOCOL_EXTENSIONS) {
+    if (g_features->integer & GMF_PROTOCOL_EXTENSIONS) 
+    {
         Com_Printf("Game supports Q2PRO protocol extensions.\n");
         svs.csr = cs_remap_new;
     }
@@ -965,12 +994,14 @@ void SV_InitGameProgs(void)
     unsigned min_size = svs.csr.extended ? sizeof(edict_t) : q_offsetof(edict_t, x);
     unsigned max_size = INT_MAX / svs.csr.max_edicts;
 
-    if (ge->edict_size < min_size || ge->edict_size > max_size || ge->edict_size % q_alignof(edict_t)) {
+    if (ge->edict_size < min_size || ge->edict_size > max_size || ge->edict_size % q_alignof(edict_t)) 
+    {
         Com_Error(ERR_DROP, "Game library returned bad size of edict_t");
     }
 
     // sanitize max_edicts
-    if (ge->max_edicts <= sv_maxclients->integer || ge->max_edicts > svs.csr.max_edicts) {
+    if (ge->max_edicts <= sv_maxclients->integer || ge->max_edicts > svs.csr.max_edicts) 
+    {
         Com_Error(ERR_DROP, "Game library returned bad number of max_edicts");
     }
 }
