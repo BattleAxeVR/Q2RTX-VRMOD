@@ -3122,10 +3122,13 @@ extern "C"
 		const glm::vec3 up_dir_LS(0.0f, 0.0f, 1.0f);
 		const glm::vec3 up_dir_WS = normalize(glm_xr_pose.rotation_ * up_dir_LS);
 
-		//glm::fquat rotation_from_direction = glm::quatLookAtLH(forward_dir_WS, up_dir_LS); // backwards
-		glm::fquat rotation_from_direction = glm::quatLookAtRH(forward_dir_WS, up_dir_LS); // forwards, ok
-		
-		const glm::mat4 hmd_rotation_matrix = glm::mat4_cast(rotation_from_direction);
+		const glm::fquat pitch_and_yaw_rotation = glm::quatLookAtRH(forward_dir_WS, up_dir_LS);
+		const glm::mat4 pitch_and_yaw_rotation_matrix = glm::mat4_cast(pitch_and_yaw_rotation);
+
+		const glm::fquat roll_rotation = glm::quatLookAtRH(forward_dir_LS, up_dir_WS);
+		const glm::mat4 roll_rotation_matrix = glm::mat4_cast(roll_rotation);
+	
+		const glm::mat4 hmd_rotation_matrix = roll_rotation_matrix * pitch_and_yaw_rotation_matrix;
 #else
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
 		const glm::mat4 rotation_matrix_orig = glm::mat4_cast(inverse(glm_xr_pose.rotation_));
@@ -3226,7 +3229,11 @@ extern "C"
 			//mirror_matrix[2][2] = -1.0f; // upside-down
 		}
 
-		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * hmd_rotation_matrix;
+		//const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * pitch_and_yaw_rotation_matrix;
+		//const glm::mat4 final_rotation_matrix = roll_rotation_matrix * game_rotation_matrix * mirror_matrix * pitch_and_yaw_rotation_matrix;
+
+		const glm::mat4 final_rotation_matrix = hmd_rotation_matrix;
+		
 
 		BVR::GLMPose glm_pose;
 
