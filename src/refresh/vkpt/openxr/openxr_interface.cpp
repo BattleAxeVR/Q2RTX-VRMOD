@@ -3095,45 +3095,19 @@ extern "C"
 			return false;
 		}
 
-		const bool mirror = false;
-
 		const XrPosef& xr_pose = xr_view.pose;
-#if 0
 
-		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, true, false);
-		
-		const glm::vec3 forward_dir_LS(1.0f, 0.0f, 0.0f);
-		const glm::vec3 forward_dir_WS = normalize(inverse(glm_xr_pose.rotation_) * forward_dir_LS);
-
-		const glm::vec3 up_dir_LS(0.0f, 0.0f, 1.0f);
-		const glm::vec3 up_dir_WS = normalize(glm_xr_pose.rotation_ * up_dir_LS);
-
-		const glm::fquat pitch_and_yaw_rotation = glm::quatLookAtRH(forward_dir_WS, up_dir_LS);
-		const glm::mat4 pitch_and_yaw_rotation_matrix = glm::mat4_cast(pitch_and_yaw_rotation);
-
-		const glm::fquat roll_rotation = glm::quatLookAtRH(forward_dir_LS, up_dir_WS);
-		const glm::mat4 roll_rotation_matrix = glm::mat4_cast(roll_rotation);
-	
-		const glm::mat4 hmd_rotation_matrix = roll_rotation_matrix;// *pitch_and_yaw_rotation_matrix;
-
-		//const glm::fquat hmd_rotation = glm::quatLookAtRH(forward_dir_WS, up_dir_WS);
-		//const glm::mat4 hmd_rotation_matrix = glm::mat4_cast(hmd_rotation);
-#else
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
 		const glm::mat3 rotation_matrix_orig = glm::mat4_cast(glm_xr_pose.rotation_);
 
 		glm::mat3 S(0);
-
-		//S[0][0] = -1.0f;
-		//S[1][2] = 1.0f;
-		//S[2][1] = -1.0f;
 
 		S[0][1] = -1.0f;
 		S[1][2] = 1.0f;
 		S[2][0] = -1.0f;
 
 		glm::mat4 hmd_rotation_matrix = S * rotation_matrix_orig;
-#endif
+
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
 
 		const float view_position_x = view_origin.x;
@@ -3169,19 +3143,7 @@ extern "C"
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
-		glm::mat4 mirror_matrix(1);
-
-		if(mirror)
-		{
-			mirror_matrix[0][0] = -1.0f;
-			//mirror_matrix[1][1] = -1.0f; // left-right
-			//mirror_matrix[2][2] = -1.0f; // upside-down
-		}
-
-		//const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * pitch_and_yaw_rotation_matrix;
-		//const glm::mat4 final_rotation_matrix = roll_rotation_matrix * game_rotation_matrix * mirror_matrix * pitch_and_yaw_rotation_matrix;
-
-		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * hmd_rotation_matrix;
+		const glm::mat4 final_rotation_matrix = game_rotation_matrix * hmd_rotation_matrix;
 		
 		BVR::GLMPose glm_pose;
 
