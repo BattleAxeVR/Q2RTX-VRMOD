@@ -3024,7 +3024,6 @@ extern "C"
 		return true;
 	}
 
-
 	bool GetRoll(const int view_id, const bool in_degrees, float* roll_ptr)
 	{
 		if(!openxr_.is_session_running() || !roll_ptr)
@@ -3067,22 +3066,6 @@ extern "C"
 
 	bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr)
 	{
-#if 0
-		if(view_id == RIGHT)
-		{
-			float scale = 0.025f;
-			bool right_ok = GetHandMatrix(view_id, view_origin_ptr, view_angles_ptr, &scale, inv_view_matrix_ptr, nullptr);
-
-			if(right_ok)
-			{
-				const glm::mat4 inverse_view_matrix = *(glm::mat4*)inv_view_matrix_ptr;
-				glm::mat4 view_matrix = inverse(inverse_view_matrix);
-				memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
-				return true;
-			}
-		}
-
-#endif
 		if(!openxr_.is_session_running() || !view_matrix_ptr)
 		{
 			return false;
