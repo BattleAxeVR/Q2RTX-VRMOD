@@ -2948,43 +2948,121 @@ extern "C"
 		return true;
 	}
 
-	float GetEyePitch(const int view_id, const bool in_degrees)
+	bool GetPitch(const int view_id, const bool in_degrees, float* pitch_ptr)
 	{
-		float pitch_radians = 0.0f;
-
-		if(in_degrees)
+		if(!openxr_.is_session_running() || !pitch_ptr)
 		{
-			const float pitch_degrees = rad2deg(pitch_radians);
-			return pitch_degrees;
+			return false;
 		}
 
-		return pitch_radians;
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		const XrPosef& xr_pose = xr_view.pose;
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
+		glm::fquat& rotation = glm_pose.rotation_;
+
+#if 0
+		double a = 2.0 * ((rotation.x * rotation.y) + (rotation.z * rotation.w));
+		double roll_rad = asin(a);
+#else
+		double a = 2.0 * ((rotation.w * rotation.x) + (rotation.y * rotation.z));
+		double b = (sqr(rotation.w) - sqr(rotation.x) - sqr(rotation.y) + sqr(rotation.z));
+		double pitch_rad = -atan2(a, b);
+#endif
+
+		if (in_degrees)
+		{
+			const float pitch_deg = rad2deg(pitch_rad);
+			*pitch_ptr = pitch_deg;
+		}
+		else
+		{
+			*pitch_ptr = pitch_rad;
+		}
+
+		return true;
 	}
 
-	float GetEyeYaw(const int view_id, const bool in_degrees)
+
+	bool GetYaw(const int view_id, const bool in_degrees, float* yaw_ptr)
 	{
-		float yaw_radians = 0.0f;
+		if(!openxr_.is_session_running() || !yaw_ptr)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		const XrPosef& xr_pose = xr_view.pose;
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
+		glm::fquat& rotation = glm_pose.rotation_;
+
+		double a = (2.0 * rotation.y * rotation.w) - (2.0 * rotation.x * rotation.z);
+		double b = 1.0 - 2.0 * sqr(rotation.y) - 2.0 * sqr(rotation.z);
+		double yaw_rad = atan2(a, b);
 
 		if(in_degrees)
 		{
-			const float yaw_degrees = rad2deg(yaw_radians);
-			return yaw_degrees;
+			const float yaw_deg = (float)rad2deg(yaw_rad);
+			*yaw_ptr = yaw_deg;
+		}
+		else
+		{
+			*yaw_ptr = (float)yaw_rad;
 		}
 
-		return yaw_radians;
+		return true;
 	}
 
-	float GetEyeRoll(const int view_id, const bool in_degrees)
+
+	bool GetRoll(const int view_id, const bool in_degrees, float* roll_ptr)
 	{
-		float roll_radians = 0.0f;
+		if(!openxr_.is_session_running() || !roll_ptr)
+		{
+			return false;
+		}
+
+		XrView xr_view = {};
+
+		if(!openxr_.get_view(view_id, xr_view))
+		{
+			return false;
+		}
+
+		const XrPosef& xr_pose = xr_view.pose;
+		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
+		glm::fquat& rotation = glm_pose.rotation_;
+
+#if 0
+		double a = 2.0 * ((rotation.x * rotation.y) + (rotation.z * rotation.w));
+		double roll_rad = asin(a);
+#else
+		double a = 2.0 * ((rotation.w * rotation.z) + (rotation.x * rotation.y));
+		double b = (sqr(rotation.w) + sqr(rotation.x) - sqr(rotation.y) - sqr(rotation.z));
+		double roll_rad = -atan2(a, b);
+#endif
 
 		if(in_degrees)
 		{
-			const float roll_degrees = rad2deg(roll_radians);
-			return roll_degrees;
+			const float roll_deg = (float)rad2deg(roll_rad);
+			*roll_ptr = roll_deg;
+		}
+		else
+		{
+			*roll_ptr = (float)roll_rad;
 		}
 
-		return roll_radians;
+		return true;
 	}
 
 	bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr)
@@ -3247,7 +3325,8 @@ extern "C"
 		glm::vec3 scale_vec = glm::vec3(scale, scale, scale);
 		glm::mat4 scale_matrix = glm::scale(glm::mat4(1.0f), scale_vec);
 
-		const bool mirror = (hand_id == LEFT) ? true : false;
+		const bool is_left_handed = (hand_id == LEFT);
+		const bool mirror = false;// is_left_handed ? true : false;
 		const BVR::GLMPose glm_aim_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id], true, mirror);
 		const glm::mat4 aim_rotation_matrix(glm::mat4_cast(glm_aim_pose.rotation_));
 
@@ -3260,9 +3339,9 @@ extern "C"
 		const glm::vec3 view_angles_deg = *(glm::vec3*)view_angles_ptr;
 
 #if APPLY_STEREO_VIEW_PITCH
-		const float pitch_deg = view_angles_deg.x;
+		float pitch_deg = view_angles_deg.x;
 #else
-		const float pitch_deg = 0.0f;
+		float pitch_deg = 0.0f;
 #endif
 
 #if APPLY_STEREO_VIEW_YAW
@@ -3272,9 +3351,9 @@ extern "C"
 #endif
 
 #if APPLY_STEREO_VIEW_ROLL
-		const float roll_deg = view_angles_deg.z;
+		float roll_deg = view_angles_deg.z;
 #else
-		const float roll_deg = 0.0f;
+		float roll_deg = 0.0f;
 #endif
 
 		glm::mat4 mirror_matrix(1);
@@ -3282,6 +3361,7 @@ extern "C"
 		if(mirror)
 		{
 			yaw_deg += 180.0f;
+			roll_deg += 180.0f;
 			mirror_matrix[0][0] = -1.0f;
 		}
 
@@ -3289,7 +3369,7 @@ extern "C"
 		static float yaw_offset_deg = 0.0f;
 		static float roll_offset_deg = 0.0f;
 
-		const glm::vec3 euler_angles_rad = { -deg2rad(roll_offset_deg),  -deg2rad(pitch_deg + pitch_offset_deg), deg2rad(yaw_deg + yaw_offset_deg) };
+		const glm::vec3 euler_angles_rad = { -deg2rad(roll_offset_deg + roll_deg),  -deg2rad(pitch_deg + pitch_offset_deg), deg2rad(yaw_deg + yaw_offset_deg) };
 
 		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);

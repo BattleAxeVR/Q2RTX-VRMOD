@@ -49,9 +49,9 @@ bool Is_OpenXR_Session_Running();
 float GetIPD();
 bool GetFov(const int view_id, XrFovf* fov_ptr);
 
-float GetEyePitch(const int view_id, const bool in_degrees);
-float GetEyeYaw(const int view_id, const bool in_degrees);
-float GetEyeRoll(const int view_id, const bool in_degrees);
+bool GetPitch(const int view_id, const bool in_degrees, float* pitch_ptr);
+bool GetYaw(const int view_id, const bool in_degrees, float* yaw_ptr);
+bool GetRoll(const int view_id, const bool in_degrees, float* roll_ptr);
 
 bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr);
 bool GetHandMatrix(const int hand_id, float* view_origin_ptr, float* view_angles_ptr, const float* scale_ptr, float* hand_matrix_ptr, float* gun_offsets_ptr);

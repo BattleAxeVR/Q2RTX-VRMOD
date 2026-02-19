@@ -186,12 +186,12 @@ void create_projection_matrixXR(float znear, float zfar, XrFovf* fov, mat4_t pro
 	const float direction = FLIP_PROJ_DIR_FOR_OPENXR ? -1.0f : 1.0f;
 	const float opposite = FLIP_PROJ_DIR_FOR_OPENXR ? 1.0f : -1.0f;
 
-#if 1
-	const float tan_height = (tan_down - tan_up);
-	const float offsetZ = 0.0f;
-#else
+#if USE_EULER_ANGLES_FOR_XR_VIEW
 	const float tan_height = (tan_up - tan_down);
 	const float offsetZ = znear;
+#else
+	const float tan_height = (tan_down - tan_up);
+	const float offsetZ = 0.0f;
 #endif
 
 	if(zfar <= znear)
@@ -290,8 +290,12 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 #if APPLY_EULER_PITCH_ANGLE_VR
 		if(stereo)
 		{
-			const float pitch_vr_deg = GetEyePitch(view_id, true);
-			pitch_deg += pitch_vr_deg;
+			float pitch_vr_deg = 0.0f;
+
+			if(GetPitch(view_id, true, &pitch_vr_deg))
+			{
+				pitch_deg += pitch_vr_deg;
+			}
 		}
 #endif
 
@@ -303,8 +307,12 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 #if APPLY_EULER_YAW_ANGLE_VR
 		if(stereo)
 		{
-			const float yaw_vr_deg = GetEyeYaw(view_id, true);
-			yaw_deg += yaw_vr_deg;
+			float yaw_vr_deg = 0.0f;
+
+			if(GetYaw(view_id, true, &yaw_vr_deg))
+			{
+				yaw_deg += yaw_vr_deg;
+			}
 		}
 #endif
 
@@ -316,8 +324,12 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 #if APPLY_EULER_ROLL_ANGLE_VR
 		if(stereo)
 		{
-			const float roll_vr_deg = GetEyeRoll(view_id, true);
-			roll_deg += roll_vr_deg;
+			float roll_vr_deg = 0.0f;
+
+			if(GetRoll(view_id, true, &roll_vr_deg))
+			{
+				roll_deg += roll_vr_deg;
+			}
 		}
 #endif
 
