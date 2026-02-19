@@ -3095,10 +3095,10 @@ extern "C"
 			return false;
 		}
 
-		const bool mirror = true;
+		const bool mirror = false;
 
 		const XrPosef& xr_pose = xr_view.pose;
-#if 1
+#if 0
 
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, true, false);
 		
@@ -3120,59 +3120,19 @@ extern "C"
 		//const glm::mat4 hmd_rotation_matrix = glm::mat4_cast(hmd_rotation);
 #else
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
-		const glm::mat4 rotation_matrix_orig = glm::mat4_cast(inverse(glm_xr_pose.rotation_));
+		const glm::mat3 rotation_matrix_orig = glm::mat4_cast(glm_xr_pose.rotation_);
 
-		glm::mat4 S(0);
+		glm::mat3 S(0);
 
-		S[3][3] = 1.0f;
+		//S[0][0] = -1.0f;
+		//S[1][2] = 1.0f;
+		//S[2][1] = -1.0f;
 
-		static int flip = 0;
+		S[0][1] = -1.0f;
+		S[1][2] = 1.0f;
+		S[2][0] = -1.0f;
 
-		if(flip == 0)
-		{
-			S[0][2] = 1.0f; // look forward = ok
-			S[1][0] = -1.0f;
-			S[2][1] = 1.0f;
-		}
-		else if(flip == 1)
-		{
-			S[0][2] = -1.0f; // look backwards = bad
-			S[1][0] = -1.0f;
-			S[2][1] = 1.0f;
-		}
-		else if(flip == 2)
-		{
-			S[0][2] = 1.0f;
-			S[1][0] = 1.0f; // ? left right strafe is reversed
-			S[2][1] = 1.0f;
-		}
-		else if(flip == 3)
-		{
-			S[0][2] = 1.0f;
-			S[1][0] = 1.0f;
-			S[2][1] = -1.0f;
-		}
-		else if(flip == 4)
-		{
-			S[0][2] = 1.0f;
-			S[1][0] = 1.0f;
-			S[2][1] = -1.0f;
-		}
-		else if(flip == 5)
-		{
-			S[0][1] = 1.0f;
-			S[1][2] = 1.0f;
-			S[2][0] = 1.0f;
-		}
-		else if(flip == 6)
-		{
-			S[0][1] = 1.0f;
-			S[1][2] = 1.0f;
-			S[2][0] = -1.0f;
-		}
-
-		glm::mat4 Sinv = inverse(S);
-		glm::mat4 hmd_rotation_matrix = Sinv * rotation_matrix_orig;
+		glm::mat4 hmd_rotation_matrix = S * rotation_matrix_orig;
 #endif
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
 
