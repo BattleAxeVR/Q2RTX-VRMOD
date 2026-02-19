@@ -2948,6 +2948,45 @@ extern "C"
 		return true;
 	}
 
+	float GetEyePitch(const int view_id, const bool in_degrees)
+	{
+		float pitch_radians = 0.0f;
+
+		if(in_degrees)
+		{
+			const float pitch_degrees = rad2deg(pitch_radians);
+			return pitch_degrees;
+		}
+
+		return pitch_radians;
+	}
+
+	float GetEyeYaw(const int view_id, const bool in_degrees)
+	{
+		float yaw_radians = 0.0f;
+
+		if(in_degrees)
+		{
+			const float yaw_degrees = rad2deg(yaw_radians);
+			return yaw_degrees;
+		}
+
+		return yaw_radians;
+	}
+
+	float GetEyeRoll(const int view_id, const bool in_degrees)
+	{
+		float roll_radians = 0.0f;
+
+		if(in_degrees)
+		{
+			const float roll_degrees = rad2deg(roll_radians);
+			return roll_degrees;
+		}
+
+		return roll_radians;
+	}
+
 	bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr)
 	{
 		if(!openxr_.is_session_running() || !view_matrix_ptr)

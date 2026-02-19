@@ -280,25 +280,52 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 	{
 		vec3_t viewangles = { 0 };
 
-		float pitch = 0.0f;
-		float yaw = 0.0f;
-		float roll = 0.0f;
+		float pitch_deg = 0.0f;
+		float yaw_deg = 0.0f;
+		float roll_deg = 0.0f;
 
 #if APPLY_STEREO_VIEW_PITCH
-		pitch += fd->viewangles[PITCH];
+		pitch_deg += fd->viewangles[PITCH];
+
+#if APPLY_EULER_PITCH_ANGLE_VR
+		if(stereo)
+		{
+			const float pitch_vr_deg = GetEyePitch(view_id, true);
+			pitch_deg += pitch_vr_deg;
+		}
+#endif
+
 #endif
 
 #if APPLY_STEREO_VIEW_YAW
-		yaw += fd->viewangles[YAW];
+		yaw_deg += fd->viewangles[YAW];
+
+#if APPLY_EULER_YAW_ANGLE_VR
+		if(stereo)
+		{
+			const float yaw_vr_deg = GetEyeYaw(view_id, true);
+			yaw_deg += yaw_vr_deg;
+		}
+#endif
+
 #endif
 
 #if APPLY_STEREO_VIEW_ROLL
-		roll += fd->viewangles[ROLL];
+		roll_deg += fd->viewangles[ROLL];
+
+#if APPLY_EULER_ROLL_ANGLE_VR
+		if(stereo)
+		{
+			const float roll_vr_deg = GetEyeRoll(view_id, true);
+			roll_deg += roll_vr_deg;
+		}
 #endif
 
-		viewangles[PITCH] = pitch;
-		viewangles[YAW] = yaw;
-		viewangles[ROLL] = roll;
+#endif
+
+		viewangles[PITCH] = pitch_deg;
+		viewangles[YAW] = yaw_deg;
+		viewangles[ROLL] = roll_deg;
 
 		AnglesToAxis(viewangles, viewaxis);
 	}
