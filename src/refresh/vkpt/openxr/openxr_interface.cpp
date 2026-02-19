@@ -2963,8 +2963,8 @@ extern "C"
 		}
 
 		const XrPosef& xr_pose = xr_view.pose;
-		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
-		glm::fquat& rotation = glm_pose.rotation_;
+		const BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
+		const glm::fquat& rotation = glm_pose.rotation_;
 
 #if 0
 		double a = 2.0 * ((rotation.x * rotation.y) + (rotation.z * rotation.w));
@@ -3004,8 +3004,8 @@ extern "C"
 		}
 
 		const XrPosef& xr_pose = xr_view.pose;
-		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
-		glm::fquat& rotation = glm_pose.rotation_;
+		const BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
+		const glm::fquat& rotation = glm_pose.rotation_;
 
 		double a = (2.0 * rotation.y * rotation.w) - (2.0 * rotation.x * rotation.z);
 		double b = 1.0 - 2.0 * sqr(rotation.y) - 2.0 * sqr(rotation.z);
@@ -3040,8 +3040,22 @@ extern "C"
 		}
 
 		const XrPosef& xr_pose = xr_view.pose;
-		BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
-		glm::fquat& rotation = glm_pose.rotation_;
+		const BVR::GLMPose glm_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
+		glm::fquat rotation = glm_pose.rotation_;
+
+#if CORRECT_ROLL_EULER_GIMBAL_LOCK
+		{
+			double a = (2.0 * rotation.y * rotation.w) - (2.0 * rotation.x * rotation.z);
+			double b = 1.0 - 2.0 * sqr(rotation.y) - 2.0 * sqr(rotation.z);
+			double yaw_rad = atan2(a, b);
+
+			const glm::vec3 inverse_yaw = { 0.0f, yaw_rad, 0.0f };
+			//const glm::vec3 inverse_yaw = { 0.0f, -yaw_rad, 0.0f };
+			glm::fquat remove_yaw_rotation = glm::fquat(inverse_yaw);
+
+			rotation = normalize(remove_yaw_rotation * rotation);
+		}
+#endif
 
 #if 0
 		double a = 2.0 * ((rotation.x * rotation.y) + (rotation.z * rotation.w));
@@ -3067,6 +3081,22 @@ extern "C"
 
 	bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr)
 	{
+#if 1
+		if(view_id == RIGHT)
+		{
+			float scale = 0.025f;
+			bool right_ok = GetHandMatrix(view_id, view_origin_ptr, view_angles_ptr, &scale, inv_view_matrix_ptr, nullptr);
+
+			if(right_ok)
+			{
+				const glm::mat4 inverse_view_matrix = *(glm::mat4*)inv_view_matrix_ptr;
+				glm::mat4 view_matrix = inverse(inverse_view_matrix);
+				memcpy(view_matrix_ptr, &view_matrix, sizeof(float) * 16);
+				return true;
+			}
+		}
+
+#endif
 		if(!openxr_.is_session_running() || !view_matrix_ptr)
 		{
 			return false;
@@ -3178,7 +3208,8 @@ extern "C"
 
 		glm::mat4 mirror_matrix(1);
 
-		if(false)
+		static bool doit = false;
+		if(doit)
 		{
 			mirror_matrix[0][0] = -1.0f;
 			//mirror_matrix[1][1] = -1.0f; // left-right
@@ -3349,18 +3380,16 @@ extern "C"
 
 		return true;
 	}
-
-
 #endif
 
 	bool GetHandMatrix(const int hand_id, float* view_origin_ptr, float* view_angles_ptr, const float* scale_ptr, float* hand_matrix_ptr, float* gun_offsets_ptr)
 	{
-		if(!openxr_.is_session_running() || !view_origin_ptr || !view_angles_ptr || !hand_matrix_ptr || !scale_ptr || !gun_offsets_ptr || !openxr_.aim_pose_valid_[hand_id])
+		if(!openxr_.is_session_running() || !view_origin_ptr || !view_angles_ptr || !hand_matrix_ptr || !openxr_.aim_pose_valid_[hand_id])
 		{
 			return false;
 		}
 
-		float scale = *scale_ptr;
+		const float scale = scale_ptr ? *scale_ptr : 1.0f;
 
 		if(scale == 0.0f)
 		{
@@ -3372,8 +3401,11 @@ extern "C"
 
 		const bool is_left_handed = (hand_id == LEFT);
 		const bool mirror = false;// is_left_handed ? true : false;
-		const BVR::GLMPose glm_aim_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id], true, mirror);
-		const glm::mat4 aim_rotation_matrix(glm::mat4_cast(glm_aim_pose.rotation_));
+		const BVR::GLMPose glm_aim_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id], false, mirror);
+		
+		glm::fquat aim_rotation = glm_aim_pose.rotation_;
+
+		const glm::mat4 aim_rotation_matrix(glm::mat4_cast(aim_rotation));
 
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
 
@@ -3430,7 +3462,7 @@ extern "C"
 		const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
 
-		const glm::vec3 hand_offsets = *(glm::vec3*)gun_offsets_ptr;
+		const glm::vec3 hand_offsets = gun_offsets_ptr ? *(glm::vec3*)gun_offsets_ptr : glm::vec3(0,0,0);
 		const glm::mat4 pre_translation_matrix = glm::translate(glm::mat4(1), hand_offsets);
 
 		{
@@ -3441,7 +3473,6 @@ extern "C"
 
 			glm_pose.translation_.x += hand_position_WS.z * world_mult;
 			glm_pose.translation_.y += hand_position_WS.x * world_mult;
-
 			glm_pose.translation_.z += glm_aim_pose.translation_.y;
 		}
 
