@@ -251,16 +251,26 @@ float vectoyaw(vec3_t vec)
 {
     float   yaw;
 
-    if (/*vec[YAW] == 0 &&*/ vec[PITCH] == 0) {
+    if (/*vec[YAW] == 0 &&*/ vec[PITCH] == 0) 
+    {
         yaw = 0;
-        if (vec[YAW] > 0)
+        if(vec[YAW] > 0)
+        {
             yaw = 90;
-        else if (vec[YAW] < 0)
+        }
+        else if(vec[YAW] < 0)
+        {
             yaw = -90;
-    } else {
+        }
+    } 
+    else 
+    {
         yaw = (int)RAD2DEG(atan2(vec[YAW], vec[PITCH]));
-        if (yaw < 0)
+
+        if(yaw < 0)
+        {
             yaw += 360;
+        }
     }
 
     return yaw;
@@ -271,26 +281,47 @@ void vectoangles(vec3_t value1, vec3_t angles)
     float   forward;
     float   yaw, pitch;
 
-    if (value1[1] == 0 && value1[0] == 0) {
+    if (value1[1] == 0 && value1[0] == 0) 
+    {
         yaw = 0;
-        if (value1[2] > 0)
+
+        if(value1[2] > 0)
+        {
             pitch = 90;
+        }
         else
+        {
             pitch = 270;
-    } else {
-        if (value1[0])
+        }
+    } 
+    else 
+    {
+        if(value1[0])
+        {
             yaw = (int)RAD2DEG(atan2(value1[1], value1[0]));
-        else if (value1[1] > 0)
+        }
+        else if(value1[1] > 0)
+        {
             yaw = 90;
+        }
         else
+        {
             yaw = -90;
-        if (yaw < 0)
+        }
+
+        if(yaw < 0)
+        {
             yaw += 360;
+        }
 
         forward = sqrtf(value1[0] * value1[0] + value1[1] * value1[1]);
+
         pitch = (int)RAD2DEG(atan2(value1[2], forward));
-        if (pitch < 0)
+
+        if(pitch < 0)
+        {
             pitch += 360;
+        }
     }
 
     angles[PITCH] = -pitch;
@@ -300,7 +331,7 @@ void vectoangles(vec3_t value1, vec3_t angles)
 
 char *G_CopyString(char *in)
 {
-    char    *out;
+    char *out;
 
     out = gi.TagMalloc(strlen(in) + 1, TAG_LEVEL);
     strcpy(out, in);
@@ -332,17 +363,22 @@ edict_t *G_Spawn(void)
     edict_t     *e;
 
     e = &g_edicts[game.maxclients + 1];
-    for (i = game.maxclients + 1; i < globals.num_edicts; i++, e++) {
+
+    for (i = game.maxclients + 1; i < globals.num_edicts; i++, e++) 
+    {
         // the first couple seconds of server time can involve a lot of
         // freeing and allocating, so relax the replacement policy
-        if (!e->inuse && (e->freetime < 2 || level.time - e->freetime > 0.5f)) {
+        if (!e->inuse && (e->freetime < 2 || level.time - e->freetime > 0.5f)) 
+        {
             G_InitEdict(e);
             return e;
         }
     }
 
-    if (i == game.maxentities)
+    if(i == game.maxentities)
+    {
         gi.error("ED_Alloc: no free edicts");
+    }
 
     globals.num_edicts++;
     G_InitEdict(e);
@@ -360,7 +396,8 @@ void G_FreeEdict(edict_t *ed)
 {
     gi.unlinkentity(ed);        // unlink from world
 
-    if ((ed - g_edicts) <= (maxclients->value + BODY_QUEUE_SIZE)) {
+    if ((ed - g_edicts) <= (maxclients->value + BODY_QUEUE_SIZE)) 
+    {
 //      gi.dprintf("tried to free special edict\n");
         return;
     }
@@ -383,19 +420,26 @@ void G_TouchTriggers(edict_t *ent)
     edict_t     *touch[MAX_EDICTS], *hit;
 
     // dead things don't activate triggers!
-    if ((ent->client || (ent->svflags & SVF_MONSTER)) && (ent->health <= 0))
+    if((ent->client || (ent->svflags & SVF_MONSTER)) && (ent->health <= 0))
+    {
         return;
+    }
 
     num = gi.BoxEdicts(ent->absmin, ent->absmax, touch, MAX_EDICTS, AREA_TRIGGERS);
 
     // be careful, it is possible to have an entity in this
     // list removed before we get to it (killtriggered)
-    for (i = 0; i < num; i++) {
+    for (i = 0; i < num; i++) 
+    {
         hit = touch[i];
-        if (!hit->inuse)
+        if(!hit->inuse)
+        {
             continue;
-        if (!hit->touch)
+        }
+        if(!hit->touch)
+        {
             continue;
+        }
         hit->touch(hit, ent, NULL, NULL);
     }
 }
@@ -410,21 +454,32 @@ to force all entities it covers to immediately touch it
 */
 void G_TouchSolids(edict_t *ent)
 {
-    int         i, num;
-    edict_t     *touch[MAX_EDICTS], *hit;
+    int i, num;
+    edict_t *touch[MAX_EDICTS], *hit;
 
     num = gi.BoxEdicts(ent->absmin, ent->absmax, touch, MAX_EDICTS, AREA_SOLID);
 
     // be careful, it is possible to have an entity in this
     // list removed before we get to it (killtriggered)
-    for (i = 0; i < num; i++) {
+
+    for (i = 0; i < num; i++) 
+    {
         hit = touch[i];
-        if (!hit->inuse)
+
+        if(!hit->inuse)
+        {
             continue;
-        if (ent->touch)
+        }
+
+        if(ent->touch)
+        {
             ent->touch(hit, ent, NULL, NULL);
-        if (!ent->inuse)
+        }
+
+        if(!ent->inuse)
+        {
             break;
+        }
     }
 }
 
@@ -448,17 +503,23 @@ bool KillBox(edict_t *ent)
 {
     trace_t     tr;
 
-    while (1) {
+    while (1) 
+    {
         tr = gi.trace(ent->s.origin, ent->mins, ent->maxs, ent->s.origin, NULL, MASK_PLAYERSOLID);
-        if (!tr.ent)
+
+        if(!tr.ent)
+        {
             break;
+        }
 
         // nail it
         T_Damage(tr.ent, ent, ent, vec3_origin, ent->s.origin, vec3_origin, 100000, 0, DAMAGE_NO_PROTECTION, MOD_TELEFRAG);
 
         // if we didn't kill it, fail
-        if (tr.ent->solid)
+        if(tr.ent->solid)
+        {
             return false;
+        }
     }
 
     return true;        // all clear
