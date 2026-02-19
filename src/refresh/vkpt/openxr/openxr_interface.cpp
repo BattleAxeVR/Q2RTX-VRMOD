@@ -3081,7 +3081,7 @@ extern "C"
 
 	bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr)
 	{
-#if 1
+#if 0
 		if(view_id == RIGHT)
 		{
 			float scale = 0.025f;
@@ -3112,9 +3112,21 @@ extern "C"
 		const bool mirror = true;
 
 		const XrPosef& xr_pose = xr_view.pose;
-#if 0
-		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, true, mirror);
-		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(BVR::default_rotation);// glm_xr_pose.rotation_);
+#if 1
+
+		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, true, false);
+		//glm::fquat orig_rotation = glm_xr_pose.rotation_;
+
+		glm::fquat rot = glm_xr_pose.rotation_;
+
+		glm::vec3 forward_dir(1.0f, 0.0f, 0.0f);
+		glm::vec3 up_dir(0.0f, 0.0f, 1.0f);
+
+		//glm::fquat rotation_from_direction = glm::quatLookAtLH(forward_dir, up_dir); // opposite / mirrored left/right, incorrect
+		glm::fquat rotation_from_direction = glm::quatLookAtRH(forward_dir, up_dir); // opposite / mirrored left/right, incorrect
+		rot = rotation_from_direction;
+		
+		const glm::mat4 hmd_rotation_matrix = glm::mat4_cast(rot);
 #else
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
 		const glm::mat4 rotation_matrix_orig = glm::mat4_cast(inverse(glm_xr_pose.rotation_));
@@ -3208,8 +3220,7 @@ extern "C"
 
 		glm::mat4 mirror_matrix(1);
 
-		static bool doit = false;
-		if(doit)
+		if(mirror)
 		{
 			mirror_matrix[0][0] = -1.0f;
 			//mirror_matrix[1][1] = -1.0f; // left-right
