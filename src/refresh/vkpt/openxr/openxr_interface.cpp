@@ -3181,6 +3181,8 @@ extern "C"
 		if(false)
 		{
 			mirror_matrix[0][0] = -1.0f;
+			//mirror_matrix[1][1] = -1.0f; // left-right
+			//mirror_matrix[2][2] = -1.0f; // upside-down
 		}
 
 		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * hmd_rotation_matrix;
