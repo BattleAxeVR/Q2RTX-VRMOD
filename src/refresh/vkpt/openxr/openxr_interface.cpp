@@ -3100,13 +3100,14 @@ extern "C"
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
 		const glm::mat3 rotation_matrix_orig = glm::mat4_cast(glm_xr_pose.rotation_);
 
-		glm::mat3 S(0);
+		glm::mat3 B(0);
 
-		S[0][1] = -1.0f;
-		S[1][2] = 1.0f;
-		S[2][0] = -1.0f;
+		// Quake 2 is Right-handed, like OpenXR, but +Z is up
+		B[0][1] = -1.0f; // -Y is X
+		B[1][2] = 1.0f; // + Z is up
+		B[2][0] = -1.0f; // -X is Y
 
-		glm::mat4 hmd_rotation_matrix = S * rotation_matrix_orig;
+		glm::mat4 hmd_rotation_matrix = B * rotation_matrix_orig;
 
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
 
