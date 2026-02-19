@@ -3119,11 +3119,12 @@ extern "C"
 
 		glm::fquat rot = glm_xr_pose.rotation_;
 
-		glm::vec3 forward_dir(1.0f, 0.0f, 0.0f);
+		glm::vec3 forward_dir_LS(1.0f, 0.0f, 0.0f);
 		glm::vec3 up_dir(0.0f, 0.0f, 1.0f);
 
-		//glm::fquat rotation_from_direction = glm::quatLookAtLH(forward_dir, up_dir); // opposite / mirrored left/right, incorrect
-		glm::fquat rotation_from_direction = glm::quatLookAtRH(forward_dir, up_dir); // opposite / mirrored left/right, incorrect
+		//glm::fquat rotation_from_direction = glm::quatLookAtLH(forward_dir_LS, up_dir); // backwards
+		glm::fquat rotation_from_direction = glm::quatLookAtRH(forward_dir_LS, up_dir); // forwards, ok
+
 		rot = rotation_from_direction;
 		
 		const glm::mat4 hmd_rotation_matrix = glm::mat4_cast(rot);
