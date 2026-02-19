@@ -4063,7 +4063,8 @@ retry:;
 	}
 
 #ifdef VKPT_DEVICE_GROUPS
-	VkAcquireNextImageInfoKHR acquire_info = {
+	VkAcquireNextImageInfoKHR acquire_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR,
 		.swapchain = qvk.swap_chain,
 		.timeout = (~((uint64_t) 0)),
@@ -4077,7 +4078,8 @@ retry:;
 	VkResult res_swapchain = vkAcquireNextImageKHR(qvk.device, qvk.swap_chain, ~((uint64_t) 0),
 		qvk.semaphores[qvk.current_frame_index][0].image_available, VK_NULL_HANDLE, &qvk.current_swap_chain_image_index);
 #endif
-	if(res_swapchain == VK_ERROR_OUT_OF_DATE_KHR || res_swapchain == VK_SUBOPTIMAL_KHR) {
+	if(res_swapchain == VK_ERROR_OUT_OF_DATE_KHR || res_swapchain == VK_SUBOPTIMAL_KHR) 
+	{
 		recreate_swapchain();
 		goto retry;
 	}
