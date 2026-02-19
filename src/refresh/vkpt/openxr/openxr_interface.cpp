@@ -3087,7 +3087,7 @@ extern "C"
 		glm::mat4 hmd_rotation_matrix = glm::mat4_cast(BVR::default_rotation);// glm_xr_pose.rotation_);
 #else
 		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
-		const glm::mat4 rotation_matrix_orig = glm::mat4_cast(glm_xr_pose.rotation_);
+		const glm::mat4 rotation_matrix_orig = glm::mat4_cast(inverse(glm_xr_pose.rotation_));
 
 		glm::mat4 S(0);
 
@@ -3097,25 +3097,25 @@ extern "C"
 
 		if(flip == 0)
 		{
-			S[0][2] = 1.0f;
+			S[0][2] = 1.0f; // look forward = ok
 			S[1][0] = -1.0f;
 			S[2][1] = 1.0f;
 		}
 		else if(flip == 1)
 		{
-			S[0][2] = -1.0f;
+			S[0][2] = -1.0f; // look backwards = bad
 			S[1][0] = -1.0f;
 			S[2][1] = 1.0f;
 		}
 		else if(flip == 2)
 		{
 			S[0][2] = 1.0f;
-			S[1][0] = 1.0f;
+			S[1][0] = 1.0f; // ? left right strafe is reversed
 			S[2][1] = 1.0f;
 		}
 		else if(flip == 3)
 		{
-			S[0][2] = -1.0f;
+			S[0][2] = 1.0f;
 			S[1][0] = 1.0f;
 			S[2][1] = -1.0f;
 		}
