@@ -916,6 +916,8 @@ static void PM_CheckDuck(void)
         pm->override_gun_direction[1] = vr_gun_dir_y;
         pm->override_gun_direction[2] = vr_gun_dir_z;
     }
+#else
+    pm->override_gun = 0;
 #endif
 }
 

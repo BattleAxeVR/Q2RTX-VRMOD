@@ -20,8 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "g_local.h"
 #include "m_player.h"
 
-#define APPLY_VR_BOLT_OFFSET 1
-#define DEFAULT_VR_BOLT_OFFSET 6.0f;
+#include "../refresh/vkpt/openxr/defines.h"
 
 static bool is_quad;
 static byte is_silenced;
@@ -627,6 +626,7 @@ void weapon_grenade_fire(edict_t *ent, bool held)
     timer = (ent->client->grenade_framenum - level.framenum) * FRAMETIME;
     speed = GRENADE_MINSPEED + (GRENADE_TIMER - timer) * ((GRENADE_MAXSPEED - GRENADE_MINSPEED) / GRENADE_TIMER);
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -637,6 +637,7 @@ void weapon_grenade_fire(edict_t *ent, bool held)
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
     }
+#endif
 
     fire_grenade2(ent, start, forward, damage, speed, timer, radius, held);
 
@@ -820,6 +821,7 @@ void weapon_grenadelauncher_fire(edict_t *ent)
     VectorScale(forward, -2, ent->client->kick_origin);
     ent->client->kick_angles[0] = -1;
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -830,6 +832,7 @@ void weapon_grenadelauncher_fire(edict_t *ent)
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
     }
+#endif
 
     fire_grenade(ent, start, forward, damage, 600, 2.5f, radius);
 
@@ -890,6 +893,7 @@ void Weapon_RocketLauncher_Fire(edict_t *ent)
     VectorSet(offset, 8, 8, ent->viewheight - 8);
     P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -900,6 +904,7 @@ void Weapon_RocketLauncher_Fire(edict_t *ent)
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
     }
+#endif
 
     fire_rocket(ent, start, forward, damage, 650, damage_radius, radius_damage);
 
@@ -954,6 +959,7 @@ void Blaster_Fire(edict_t *ent, const vec3_t g_offset, int damage, bool hyper, i
     VectorScale(forward, -2, ent->client->kick_origin);
     ent->client->kick_angles[0] = -1;
     
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -972,6 +978,7 @@ void Blaster_Fire(edict_t *ent, const vec3_t g_offset, int damage, bool hyper, i
         start[2] += forward[2] * vr_bolt_offset;
 #endif
     }
+#endif
 
     fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
 
@@ -1190,6 +1197,7 @@ void Machinegun_Fire(edict_t *ent)
 
     P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -1200,6 +1208,7 @@ void Machinegun_Fire(edict_t *ent)
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
     }
+#endif
 
     fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
 
@@ -1357,6 +1366,7 @@ void Chaingun_Fire(edict_t *ent)
         VectorSet(offset, 0, r, u + ent->viewheight - 8);
         P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
         if(ent->client->override_gun)
         {
             start[0] = ent->client->override_gun_origin[0];
@@ -1367,6 +1377,7 @@ void Chaingun_Fire(edict_t *ent)
             forward[1] = ent->client->override_gun_direction[1];
             forward[2] = ent->client->override_gun_direction[2];
         }
+#endif
 
         fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_CHAINGUN);
     }
@@ -1429,6 +1440,7 @@ void weapon_shotgun_fire(edict_t *ent)
         kick *= 4;
     }
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -1439,6 +1451,7 @@ void weapon_shotgun_fire(edict_t *ent)
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
     }
+#endif
 
     if(deathmatch->value)
     {
@@ -1511,6 +1524,7 @@ void weapon_supershotgun_fire(edict_t *ent)
         P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
     }
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -1521,6 +1535,7 @@ void weapon_supershotgun_fire(edict_t *ent)
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
     }
+#endif
 	
     fire_shotgun(ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 
@@ -1538,6 +1553,7 @@ void weapon_supershotgun_fire(edict_t *ent)
         P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
     }
 	
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -1548,6 +1564,7 @@ void weapon_supershotgun_fire(edict_t *ent)
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
     }
+#endif
 
     fire_shotgun(ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 
@@ -1616,6 +1633,7 @@ void weapon_railgun_fire(edict_t *ent)
     VectorSet(offset, 0, 7,  ent->viewheight - 8);
     P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -1626,6 +1644,7 @@ void weapon_railgun_fire(edict_t *ent)
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
     }
+#endif
 
     fire_rail(ent, start, forward, damage, kick);
 
@@ -1715,6 +1734,7 @@ void weapon_bfg_fire(edict_t *ent)
     VectorSet(offset, 8, 8, ent->viewheight - 8);
     P_ProjectSource(ent, ent->s.origin, offset, forward, right, start);
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -1725,6 +1745,7 @@ void weapon_bfg_fire(edict_t *ent)
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
     }
+#endif
 
     fire_bfg(ent, start, forward, damage, 400, damage_radius);
 
@@ -1776,6 +1797,7 @@ void weapon_flaregun_fire(edict_t *ent)
 	VectorScale(forward, -2, ent->client->kick_origin);
 	ent->client->kick_angles[0] = -1;
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     if(ent->client->override_gun)
     {
         start[0] = ent->client->override_gun_origin[0];
@@ -1786,6 +1808,7 @@ void weapon_flaregun_fire(edict_t *ent)
         forward[1] = ent->client->override_gun_direction[1];
         forward[2] = ent->client->override_gun_direction[2];
     }
+#endif
 
 	// Make the flaregun actually shoot the flare 
 	 // 

@@ -5,6 +5,9 @@
 #ifndef DEFINES_H
 #define DEFINES_H
 
+#define APPLY_VR_BOLT_OFFSET 1
+#define DEFAULT_VR_BOLT_OFFSET 6.0f;
+
 #define SUPPORT_GAMEPADS 1
 
 #define SUPPORT_SNAP_TURN 1

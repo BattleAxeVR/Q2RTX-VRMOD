@@ -19,6 +19,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "g_local.h"
 #include "m_player.h"
 
+#include "../refresh/vkpt/openxr/defines.h"
+
 void ClientUserinfoChanged(edict_t *ent, char *userinfo);
 
 void SP_misc_teleporter_dest(edict_t *ent);
@@ -45,13 +47,23 @@ void SP_FixCoopSpots(edict_t *self)
     while (1) 
     {
         spot = G_Find(spot, FOFS(classname), "info_player_start");
-        if (!spot)
+
+        if(!spot)
+        {
             return;
-        if (!spot->targetname)
+        }
+
+        if(!spot->targetname)
+        {
             continue;
+        }
+
         VectorSubtract(self->s.origin, spot->s.origin, d);
-        if (VectorLength(d) < 384) {
-            if ((!self->targetname) || Q_stricmp(self->targetname, spot->targetname) != 0) {
+
+        if (VectorLength(d) < 384) 
+        {
+            if ((!self->targetname) || Q_stricmp(self->targetname, spot->targetname) != 0) 
+            {
 //              gi.dprintf("FixCoopSpots changed %s at %s targetname from %s to %s\n", self->classname, vtos(self->s.origin), self->targetname, spot->targetname);
                 self->targetname = spot->targetname;
             }
@@ -68,7 +80,8 @@ void SP_CreateCoopSpots(edict_t *self)
 {
     edict_t *spot;
 
-    if (Q_stricmp(level.mapname, "security") == 0) {
+    if (Q_stricmp(level.mapname, "security") == 0) 
+    {
         spot = G_Spawn();
         spot->classname = "info_player_coop";
         spot->s.origin[0] = 188 - 64;
@@ -102,9 +115,13 @@ The normal starting point for a level.
 */
 void SP_info_player_start(edict_t *self)
 {
-    if (!coop->value)
+    if(!coop->value)
+    {
         return;
-    if (Q_stricmp(level.mapname, "security") == 0) {
+    }
+
+    if (Q_stricmp(level.mapname, "security") == 0) 
+    {
         // invoke one of our gross, ugly, disgusting hacks
         self->think = SP_CreateCoopSpots;
         self->nextthink = level.framenum + 1;
@@ -116,10 +133,12 @@ potential spawning position for deathmatch games
 */
 void SP_info_player_deathmatch(edict_t *self)
 {
-    if (!deathmatch->value) {
+    if (!deathmatch->value) 
+    {
         G_FreeEdict(self);
         return;
     }
+
     SP_misc_teleporter_dest(self);
 }
 
@@ -129,7 +148,8 @@ potential spawning position for coop games
 
 void SP_info_player_coop(edict_t *self)
 {
-    if (!coop->value) {
+    if (!coop->value) 
+    {
         G_FreeEdict(self);
         return;
     }
@@ -171,27 +191,39 @@ void player_pain(edict_t *self, edict_t *other, float kick, int damage)
 
 bool IsFemale(edict_t *ent)
 {
-    char        *info;
+    char *info;
 
-    if (!ent->client)
+    if(!ent->client)
+    {
         return false;
+    }
 
     info = Info_ValueForKey(ent->client->pers.userinfo, "gender");
-    if (info[0] == 'f' || info[0] == 'F')
+
+    if(info[0] == 'f' || info[0] == 'F')
+    {
         return true;
+    }
+
     return false;
 }
 
 bool IsNeutral(edict_t *ent)
 {
-    char        *info;
+    char *info;
 
-    if (!ent->client)
+    if(!ent->client)
+    {
         return false;
+    }
 
     info = Info_ValueForKey(ent->client->pers.userinfo, "gender");
-    if (info[0] != 'f' && info[0] != 'F' && info[0] != 'm' && info[0] != 'M')
+
+    if(info[0] != 'f' && info[0] != 'F' && info[0] != 'm' && info[0] != 'M')
+    {
         return true;
+    }
+
     return false;
 }
 
@@ -202,16 +234,20 @@ void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
     char        *message2;
     int         ff;
 
-    if (coop->value && attacker->client)
+    if(coop->value && attacker->client)
+    {
         meansOfDeath |= MOD_FRIENDLY_FIRE;
+    }
 
-    if (deathmatch->value || coop->value) {
+    if (deathmatch->value || coop->value) 
+    {
         ff = meansOfDeath & MOD_FRIENDLY_FIRE;
         mod = meansOfDeath & ~MOD_FRIENDLY_FIRE;
         message = NULL;
         message2 = "";
 
-        switch (mod) {
+        switch (mod) 
+        {
         case MOD_SUICIDE:
             message = "suicides";
             break;
@@ -249,7 +285,9 @@ void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
             message = "was in the wrong place";
             break;
         }
-        if (attacker == self) {
+
+        if (attacker == self) 
+        {
             switch (mod) {
             case MOD_HELD_GRENADE:
                 message = "tried to put the pin back in";
@@ -284,7 +322,8 @@ void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
                 break;
             }
         }
-        if (message) {
+        if (message) 
+        {
             gi.bprintf(PRINT_MEDIUM, "%s %s.\n", self->client->pers.netname, message);
             if (deathmatch->value)
                 self->client->resp.score--;
@@ -293,8 +332,11 @@ void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
         }
 
         self->enemy = attacker;
-        if (attacker && attacker->client) {
-            switch (mod) {
+
+        if (attacker && attacker->client) 
+        {
+            switch (mod) 
+            {
             case MOD_BLASTER:
                 message = "was blasted by";
                 break;
@@ -364,9 +406,11 @@ void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
                 message2 = "'s personal space";
                 break;
             }
-            if (message) {
+            if (message) 
+            {
                 gi.bprintf(PRINT_MEDIUM, "%s %s %s%s\n", self->client->pers.netname, message, attacker->client->pers.netname, message2);
-                if (deathmatch->value) {
+                if (deathmatch->value) 
+                {
                     if (ff)
                         attacker->client->resp.score--;
                     else
@@ -378,18 +422,21 @@ void ClientObituary(edict_t *self, edict_t *inflictor, edict_t *attacker)
     }
 
     gi.bprintf(PRINT_MEDIUM, "%s died.\n", self->client->pers.netname);
-    if (deathmatch->value)
+
+    if(deathmatch->value)
+    {
         self->client->resp.score--;
+    }
 }
 
 void Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane, csurface_t *surf);
 
 void TossClientWeapon(edict_t *self)
 {
-    const gitem_t   *item;
-    edict_t     *drop;
-    bool        quad;
-    float       spread;
+    const gitem_t *item;
+    edict_t *drop;
+    bool quad;
+    float spread;
 
     if(!deathmatch->value)
     {
@@ -460,7 +507,7 @@ LookAtKiller
 */
 void LookAtKiller(edict_t *self, edict_t *inflictor, edict_t *attacker)
 {
-    vec3_t      dir;
+    vec3_t dir;
 
     if (attacker && attacker != world && attacker != self) 
     {
@@ -507,7 +554,7 @@ player_die
 */
 void player_die(edict_t *self, edict_t *inflictor, edict_t *attacker, int damage, vec3_t point)
 {
-    int     n;
+    int n;
 
     VectorClear(self->avelocity);
 
@@ -1719,6 +1766,7 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
             client->ps.viewangles[PITCH] = -15;
             client->ps.viewangles[YAW] = client->killer_yaw;
         }
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
         else if (pm.override_gun)
         {
             VectorCopy(pm.viewangles, client->v_angle);
@@ -1734,6 +1782,7 @@ void ClientThink(edict_t *ent, usercmd_t *ucmd)
             ent->client->override_gun_direction[1] = pm.override_gun_direction[1];
             ent->client->override_gun_direction[2] = pm.override_gun_direction[2];
         }
+#endif
         else
         {
             VectorCopy(pm.viewangles, client->v_angle);
