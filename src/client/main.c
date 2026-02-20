@@ -2876,7 +2876,7 @@ static void CL_InitLocal(void)
     cl_xr_proj = Cvar_Get("xr_proj", "1", 0);
 
     // 0 = Disable VR controllers overriding gun poses, 1, use 1 gun, 2 use 2 guns aka John Wick style dual wielding
-    cl_xr_guns = Cvar_Get("xr_guns", "0", 0); 
+    cl_xr_guns = Cvar_Get("xr_guns", "1", 0); 
 
     cl_xr_gun_scale = Cvar_Get("xr_gun_scale", "0.1", 0);
 
