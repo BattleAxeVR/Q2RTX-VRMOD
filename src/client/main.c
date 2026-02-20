@@ -2894,7 +2894,7 @@ static void CL_InitLocal(void)
     cl_xr_gun_idle_frame = Cvar_Get("xr_gun_idle_frame", "-1", 0);
 
     // VR Locomotion methods: 0 = Default Quake 2, 1 = Head-Oriented, 2 = Waist-Oriented (where available), 3 = Automatic 3rd person view
-    cl_xr_loco = Cvar_Get("xr_loco", "1", 0); 
+    cl_xr_loco = Cvar_Get("xr_loco", "0", 0); 
 
     // Turning: Smooth vs Snap Turn (set to 0 to use smooth turning)
     cl_xr_snap_turn_deg = Cvar_Get("xr_snap_turn_deg", "0", 0);
