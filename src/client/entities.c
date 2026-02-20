@@ -40,6 +40,7 @@ extern cvar_t *cl_xr_loco;
 extern int xr_gun_last_shot_hand;
 
 extern cvar_t *cl_snap_turn_deg;
+extern cvar_t *cl_automatic_3rd_person;
 
 /*
 =========================================================================

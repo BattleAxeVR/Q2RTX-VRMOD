@@ -29,6 +29,7 @@ extern cvar_t *cl_xr_loco;
 #endif
 
 extern cvar_t *cl_snap_turn_deg;
+extern cvar_t *cl_automatic_3rd_person;
 
 static cvar_t    *cl_nodelta;
 static cvar_t    *cl_maxpackets;
@@ -640,6 +641,7 @@ static void CL_AdjustAngles(int msec)
         {
             const float gamepad_val_normalized = (float)gamepad_right_x / 32767.0f;
 
+
 #if SUPPORT_SNAP_TURN
             const int snap_turn_deg = (int)cl_snap_turn_deg->value;
             const bool using_snap_turn = (snap_turn_deg > 0);
@@ -745,6 +747,8 @@ static void CL_BaseMove(vec3_t move)
         move[0] -= cl_forwardspeed->value * CL_KeyState(&in_back);
     }
 
+    const bool auto_3rd_person = (cl_automatic_3rd_person->value == 1.0f);
+
 #if SUPPORT_GAMEPADS
     int joystick_index = 0;
     SDL_GameController* gamecontroller = SDL_GameControllerOpen(joystick_index);
@@ -772,6 +776,26 @@ static void CL_BaseMove(vec3_t move)
         {
             strafe_amount = cl_sidespeed->value * normalized_left_x;
         }
+
+#if SUPPORT_AUTOMATIC_3RD_PERSON_VIEW
+        if(auto_3rd_person)
+        {
+            const bool is_actually_moving = ((fabs(walk_forward_amount) > 0.0f) || (fabs(strafe_amount) > 0.0f));
+
+            Sint16 gamepad_right_x = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_RIGHTX);
+            //const float normalized_right_x = (float)gamepad_right_x / 32767.0f;
+            const bool is_actually_turning = (fabs(gamepad_right_x) > 1000);//gamepad_stick_deadzone);
+
+            if(is_actually_moving || is_actually_turning)
+            {
+                cl_player_model->integer = CL_PLAYER_MODEL_THIRD_PERSON;
+            }
+            else
+            {
+                cl_player_model->integer = CL_PLAYER_MODEL_FIRST_PERSON;
+            }
+        }
+#endif
        
 #if SUPPORT_CUSTOM_VR_LOCOMOTION
         const int loco = (int)cl_xr_loco->value;
@@ -814,6 +838,26 @@ static void CL_BaseMove(vec3_t move)
         {
             strafe_amount = cl_sidespeed->value * strafe_value;
         }
+
+#if SUPPORT_AUTOMATIC_3RD_PERSON_VIEW
+        if(auto_3rd_person)
+        {
+            const bool is_actually_moving = ((fabs(walk_forward_amount) > 0.0f) || (fabs(strafe_amount) > 0.0f));
+            
+            const float deadzone = 0.01f;
+            const float turn_value = right_vr_controller.thumbstick_values_[0];
+            const bool is_actually_turning = (fabs(turn_value) > deadzone)
+
+            if(is_actually_moving || is_actually_turning)
+            {
+                cl_player_model->integer = CL_PLAYER_MODEL_THIRD_PERSON;
+            }
+            else
+            {
+                cl_player_model->integer = CL_PLAYER_MODEL_FIRST_PERSON;
+            }
+        }
+#endif
 
 #if SUPPORT_CUSTOM_VR_LOCOMOTION
         const int loco = (int)cl_xr_loco->value;

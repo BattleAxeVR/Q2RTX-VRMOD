@@ -56,6 +56,7 @@ cvar_t  *cl_blit_bias;
 cvar_t  *cl_xr_gun_idle_frame;
 cvar_t  *cl_xr_loco;
 cvar_t  *cl_snap_turn_deg;
+cvar_t  *cl_automatic_3rd_person;
 
 int xr_gun_last_shot_hand = RIGHT;
 
@@ -2910,11 +2911,13 @@ static void CL_InitLocal(void)
 
     cl_xr_gun_idle_frame = Cvar_Get("xr_gun_idle_frame", "-1", 0);
 
-    // VR Locomotion methods: 0 = Default Quake 2, 1 = Head-Oriented, 2 = Waist-Oriented (where available), 3 = Automatic 3rd person view
+    // VR Locomotion methods: 0 = Default Quake 2, 1 = Head-Oriented, 2 = Waist-Oriented (where available)
     cl_xr_loco = Cvar_Get("xr_loco", "0", 0); 
 
     // Turning: Smooth vs Snap Turn (set to 0 to use smooth turning)
     cl_snap_turn_deg = Cvar_Get("snap_turn_deg", "0", 0);
+
+    cl_automatic_3rd_person = Cvar_Get("automatic_3rd_person", "0", 0);
 
     cl_timeout = Cvar_Get("cl_timeout", "120", 0);
     cl_timeout->changed = cl_timeout_changed;
@@ -2923,8 +2926,8 @@ static void CL_InitLocal(void)
     rcon_address = Cvar_Get("rcon_address", "", CVAR_PRIVATE);
     rcon_address->generator = Com_Address_g;
 
-	//cl_player_model = Cvar_Get("cl_player_model", va("%d", CL_PLAYER_MODEL_FIRST_PERSON), CVAR_ARCHIVE);
-    cl_player_model = Cvar_Get("cl_player_model", va("%d", CL_PLAYER_MODEL_THIRD_PERSON), CVAR_ARCHIVE);
+	cl_player_model = Cvar_Get("cl_player_model", va("%d", CL_PLAYER_MODEL_FIRST_PERSON), CVAR_ARCHIVE);
+    //cl_player_model = Cvar_Get("cl_player_model", va("%d", CL_PLAYER_MODEL_THIRD_PERSON), CVAR_ARCHIVE);
 
 	cl_player_model->changed = cl_player_model_changed;
     cl_thirdperson_angle = Cvar_Get("cl_thirdperson_angle", "0", 0);

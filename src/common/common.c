@@ -72,6 +72,7 @@ extern int xr_gun_last_shot_hand;
 #endif
 
 extern cvar_t *cl_snap_turn_deg;
+extern cvar_t *cl_automatic_3rd_person;
 
 #if USE_DEBUG
 #include "features.h"
