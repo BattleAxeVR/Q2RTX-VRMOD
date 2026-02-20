@@ -66,6 +66,8 @@ extern void vr_button_event_joystick_press(int hand_id, bool is_down, unsigned t
 
 extern cvar_t *info_hand;
 extern cvar_t *cl_xr_guns;
+extern cvar_t *cl_xr_loco;
+extern cvar_t *cl_xr_snap_turn_deg;
 extern int xr_gun_last_shot_hand;
 #endif
 

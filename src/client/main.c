@@ -54,6 +54,8 @@ cvar_t  *cl_xr_ipd_mult;
 cvar_t  *cl_blit_scale;
 cvar_t  *cl_blit_bias;
 cvar_t  *cl_xr_gun_idle_frame;
+cvar_t  *cl_xr_loco;
+cvar_t  *cl_xr_snap_turn_deg;
 
 int xr_gun_last_shot_hand = RIGHT;
 
@@ -2890,6 +2892,9 @@ static void CL_InitLocal(void)
     cl_blit_bias = Cvar_Get("blit_bias", "1.5", 0);
 
     cl_xr_gun_idle_frame = Cvar_Get("xr_gun_idle_frame", "-1", 0);
+
+    cl_xr_loco = Cvar_Get("xr_loco", "0", 0); // 0 = Default Quake 2, 1 = Head-Oriented, 2 = Waist-Oriented (where available)
+    cl_xr_snap_turn_deg = Cvar_Get("xr_snap_turn_deg", "0", 0); // set this to 0 to use smooth turning
 
     cl_timeout = Cvar_Get("cl_timeout", "120", 0);
     cl_timeout->changed = cl_timeout_changed;

@@ -107,6 +107,8 @@ extern cvar_t *cl_xr_gun_offset_x;
 extern cvar_t *cl_xr_gun_offset_y;
 extern cvar_t *cl_xr_gun_offset_z;
 extern cvar_t *cl_xr_ipd_mult;
+extern cvar_t *cl_xr_loco;
+extern cvar_t *cl_xr_snap_turn_deg;
 
 extern int xr_gun_last_shot_hand;
 
