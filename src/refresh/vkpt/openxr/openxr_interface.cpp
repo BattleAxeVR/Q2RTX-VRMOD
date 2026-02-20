@@ -3144,17 +3144,26 @@ extern "C"
 		const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose, false, false);
 		const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose, false, false);
 
-		glm::vec3 head_position_LS = (left_eye_pose.translation_ + right_eye_pose.translation_) * 0.5f;
-		const glm::mat4 pre_translation_matrix = glm::translate(glm::mat4(1), -head_position_LS);
+		const glm::vec3 left_to_right_eye = right_eye_pose.translation_ - left_eye_pose.translation_;
+		static float ipd_mult = 1.0f;
+		const float ipd = length(left_to_right_eye) * ipd_mult;
+
+		const float half_ipd = ipd * 0.5f;
+		const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
+
+		const glm::vec3 ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f };
+		const glm::mat4 pre_translation_matrix = glm::translate(glm::mat4(1), ipd_offset_LS);
 
 		const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
-		const glm::vec4 eye_position_WS = game_rotation2 * glm::vec4(eye_pose.translation_.x, eye_pose.translation_.y, eye_pose.translation_.z, 0.0f);
+
+		const glm::vec3 head_position_LS = (left_eye_pose.translation_ + right_eye_pose.translation_) * 0.5f;
+		const glm::vec3 head_position_WS = game_rotation2 * head_position_LS;
 
 		static float world_mult = 1.0f;
-		glm_pose.translation_.x -= eye_position_WS.z * world_mult;
-		glm_pose.translation_.y -= eye_position_WS.x * world_mult;
-		glm_pose.translation_.z += eye_position_WS.y * world_mult;
+		glm_pose.translation_.x -= head_position_WS.z * world_mult;
+		glm_pose.translation_.y -= head_position_WS.x * world_mult;
+		glm_pose.translation_.z += head_position_WS.y * world_mult;
 
 		const glm::mat4 post_translation_matrix = glm_pose.to_matrix();
 
