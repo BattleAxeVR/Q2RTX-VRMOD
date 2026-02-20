@@ -3228,10 +3228,9 @@ extern "C"
 
 		glm::mat4 mirror_matrix(1);
 
-		if(false)
+		if(mirror)
 		{
 			yaw_deg += 180.0f;
-			roll_deg += 180.0f;
 			mirror_matrix[0][0] = -1.0f;
 		}
 
