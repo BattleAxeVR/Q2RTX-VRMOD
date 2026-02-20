@@ -3057,8 +3057,8 @@ static void prepare_viewmatrix(refdef_t *fd)
 		ipd = ipd_override;
 	}
 
-	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], fd);
-	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], fd);
+	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], &fd->vieworg, &fd->viewangles);
+	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], &fd->vieworg, &fd->viewangles);
 
 	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
 	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
