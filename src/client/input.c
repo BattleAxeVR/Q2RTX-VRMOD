@@ -681,7 +681,28 @@ static void CL_AdjustAngles(int msec)
 
         if (fabs(turn_value) > deadzone)
         {
-            cl.viewangles[YAW] -= speed * cl_yawspeed->value * turn_value;
+#if SUPPORT_SNAP_TURN
+            const int snap_turn_deg = (int)cl_xr_snap_turn_deg->value;
+            const bool using_snap_turn = (snap_turn_deg > 0);
+
+            const int num_frames_before_reset = 90;
+
+            static int frame_index = 0;
+            const bool ready_to_snap = ((frame_index % num_frames_before_reset) == 0);
+            frame_index++;
+
+            if(using_snap_turn)
+            {
+                if(ready_to_snap)
+                {
+                    cl.viewangles[YAW] -= (turn_value > 0.0f) ? snap_turn_deg : -snap_turn_deg;
+                }
+            }
+            else
+#endif
+            {
+                cl.viewangles[YAW] -= speed * cl_yawspeed->value * turn_value;
+            }
         }
 
 #if !APPLY_CONTROLLER_TRACKING_TO_GUN
@@ -733,18 +754,30 @@ static void CL_BaseMove(vec3_t move)
         const Sint16 gamepad_stick_deadzone = 1000;
 
         Sint16 gamepad_left_y = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_LEFTY);
+        const float normalized_left_y = (float)gamepad_left_y / 32767.0f;
+        
+        float walk_forward_amount = 0.0f;
 
         if((gamepad_left_y < -gamepad_stick_deadzone) || (gamepad_left_y > gamepad_stick_deadzone))
         {
-            move[0] -= cl_forwardspeed->value * (float)gamepad_left_y / 32767.0f;
+            walk_forward_amount = cl_forwardspeed->value * normalized_left_y;
         }
 
         Sint16 gamepad_left_x = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_LEFTX);
+        const float normalized_left_x = (float)gamepad_left_x / 32767.0f;
+        
+        float strafe_amount = 0.0f;
 
         if((gamepad_left_x < -gamepad_stick_deadzone) || (gamepad_left_x > gamepad_stick_deadzone))
         {
-            move[1] += cl_sidespeed->value * (float)gamepad_left_x / 32767.0f;
+            strafe_amount = cl_sidespeed->value * normalized_left_x;
         }
+
+        move[0] -= walk_forward_amount;
+        move[1] += strafe_amount;
+
+#if SUPPORT_HEAD_ORIENTED_LOCOMOTION
+#endif
     }
 #endif
 

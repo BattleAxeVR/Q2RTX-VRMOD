@@ -6,6 +6,7 @@
 #define DEFINES_H
 
 #define SUPPORT_GAMEPADS 1
+
 #define SUPPORT_SNAP_TURN 1
 
 #define ANALOG_PRESSED_THRESHOLD 0.5f
@@ -32,6 +33,11 @@
 
 // Extra define to skip actually using OpenXR but enable other functionality
 #define CONNECT_TO_OPENXR (SUPPORT_OPENXR && 1)
+
+#define SUPPORT_HEAD_ORIENTED_LOCOMOTION (CONNECT_TO_OPENXR && 1)
+#define SUPPORT_WAIST_ORIENTED_LOCOMOTION (CONNECT_TO_OPENXR && 0)
+
+#define SUPPORT_AUTOMATIC_3RD_PERSON_VIEW 0 // this should/could work in 2D mode as well
 
 #define APPLY_STEREO_VIEW_PITCH 0
 #define APPLY_STEREO_VIEW_YAW 1
