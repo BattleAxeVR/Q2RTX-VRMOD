@@ -3185,20 +3185,10 @@ extern "C"
 		glm::mat4 scale_matrix = glm::scale(glm::mat4(1.0f), scale_vec);
 
 		const bool is_left_handed = (hand_id == LEFT);
-		const BVR::GLMPose glm_aim_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id], false, false);
-		const glm::mat3 rotation_matrix_orig = glm::mat4_cast(glm_aim_pose.rotation_);
+		const bool mirror = is_left_handed ? true : false;
+		const BVR::GLMPose glm_aim_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id], true, mirror);
 
-		glm::mat3 B(0);
-
-		// Quake 2 is Right-handed, like OpenXR, but +Z is up
-		B[0][1] = -1.0f; // -Y is X
-		B[1][2] = 1.0f; // + Z is up
-		B[2][0] = -1.0f; // -X is Y
-
-		glm::mat4 hand_rotation_matrix = B * rotation_matrix_orig;
-
-		glm::fquat aim_rotation = glm_aim_pose.rotation_;
-
+		const glm::fquat aim_rotation = glm_aim_pose.rotation_;
 		const glm::mat4 aim_rotation_matrix(glm::mat4_cast(aim_rotation));
 
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
@@ -3263,7 +3253,7 @@ extern "C"
 			const glm::vec4 hand_position_LS = glm::vec4(glm_aim_pose.translation_.x, 0.0f, glm_aim_pose.translation_.z, 1.0f);
 			const glm::vec4 hand_position_WS = game_rotation2 * hand_position_LS;
 
-			const float world_mult = 1.0f;// mirror ? 1.0f : -1.0f;
+			const float world_mult = mirror ? 1.0f : -1.0f;
 
 			glm_pose.translation_.x += hand_position_WS.z * world_mult;
 			glm_pose.translation_.y += hand_position_WS.x * world_mult;
