@@ -1677,7 +1677,8 @@ static VkShaderModule create_shader_module_from_file(const char *name, const cha
 
 	char path[1024] = { 0 };
 
-#if SUPPORT_OPENXR
+#if 1//SUPPORT_OPENXR
+	// Always use shader_vkpt_vr in this repo, even in non-VR builds
 	snprintf(path, sizeof path, "shader_vkpt_vr/%s%s.spv", name ? name : (enum_name + 8), suffix);
 #else
 	snprintf(path, sizeof path, "shader_vkpt/%s%s.spv", name ? name : (enum_name + 8), suffix);
