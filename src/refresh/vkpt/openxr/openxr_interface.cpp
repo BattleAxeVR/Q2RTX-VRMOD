@@ -3080,8 +3080,8 @@ extern "C"
 
 		const XrPosef& xr_pose = xr_view.pose;
 
-		BVR::GLMPose glm_xr_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
-		const glm::mat3 rotation_matrix_orig = glm::mat4_cast(glm_xr_pose.rotation_);
+		BVR::GLMPose eye_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
+		const glm::mat3 rotation_matrix_orig = glm::mat4_cast(eye_pose.rotation_);
 
 		glm::mat3 B(0);
 
@@ -3135,131 +3135,6 @@ extern "C"
 		glm_pose.translation_.y = view_position_y;
 		glm_pose.translation_.z = view_position_z;
 
-#if APPLY_IPD_TRANSLATION_TO_VIEW
-		static float ipd_mult = 1.0f;
-		const float ipd = GetIPD() * ipd_mult;
-		const float half_ipd = ipd * 0.5f;
-		const float ipd_offset_mag = (view_id == LEFT) ? -half_ipd : half_ipd;
-
-		const glm::vec4 ipd_offset_LS = { ipd_offset_mag, 0.0f, 0.0f, 0.0f };
-		const glm::vec4 ipd_offset_WS = final_rotation_matrix * ipd_offset_LS;
-
-		glm_pose.translation_ += ipd_offset_WS;
-#endif
-
-#if APPLY_HMD_TRANSLATION_TO_VIEW
-		XrView left_view = {};
-		XrView right_view = {};
-
-		if(openxr_.get_view(LEFT, left_view) && openxr_.get_view(RIGHT, right_view))
-		{
-			const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose, false, false);
-			const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose, false, false);
-
-			glm::vec3 head_position_LS = (left_eye_pose.translation_ + right_eye_pose.translation_) * 0.5f;
-
-			const glm::vec3 game_angles_rad2 = { 0.0f, deg2rad(yaw_deg), 0.0f };
-			const glm::fquat game_rotation2 = glm::fquat(game_angles_rad2);
-			const glm::vec4 head_position_WS = game_rotation2 * glm::vec4(head_position_LS.x, 0.0f, head_position_LS.z, 0.0f);
-
-			static float world_mult = 1.0f;
-			glm_pose.translation_.x -= head_position_WS.z * world_mult;
-			glm_pose.translation_.y -= head_position_WS.x * world_mult;
-			glm_pose.translation_.z += head_position_LS.y * world_mult;
-		}
-#endif
-
-		glm::mat4 translation_matrix = glm_pose.to_matrix();
-
-		glm::mat4 view_matrix = translation_matrix * final_rotation_matrix;
-
-		memcpy(inv_view_matrix_ptr, &view_matrix, sizeof(float) * 16);
-
-		glm::mat4 inverse_view_matrix = inverse(view_matrix);
-		memcpy(view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
-
-		return true;
-	}
-
-#if 0
-
-
-	bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr)
-	{
-		if(!openxr_.is_session_running() || !view_matrix_ptr)
-		{
-			return false;
-		}
-
-		XrView xr_view = {};
-
-		if(!openxr_.get_view(view_id, xr_view))
-		{
-			return false;
-		}
-
-		const XrPosef& xr_pose = xr_view.pose;
-		BVR::GLMPose eye_pose = BVR::convert_to_glm_pose(xr_pose, false, false);
-
-		glm::mat4 S(0);
-		S[0][2] = 1.0f;
-		S[1][0] = -1.0f;
-		S[2][1] = 1.0f;
-		S[3][3] = 1.0f;
-
-		glm::mat4 Sinv = inverse(S);
-		glm::mat4 eye_rotation_matrix = Sinv * glm::mat4_cast(eye_pose.rotation_);
-
-		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
-
-		const float view_position_x = view_origin.x;
-		const float view_position_y = view_origin.y;
-		const float view_position_z = view_origin.z;
-
-		const glm::vec3 view_angles_deg = *(glm::vec3*)view_angles_ptr;
-
-#if APPLY_STEREO_VIEW_PITCH
-		const float pitch_deg = view_angles_deg.x;
-#else
-		const float pitch_deg = 0.0f;
-#endif
-
-#if APPLY_STEREO_VIEW_YAW
-		const float yaw_deg = view_angles_deg.y;
-#else
-		const float yaw_deg = 0.0f;
-#endif
-
-#if APPLY_STEREO_VIEW_ROLL
-		const float roll_deg = view_angles_deg.z;
-#else
-		const float roll_deg = 0.0f;
-#endif
-
-		static float pitch_offset_deg = 0.0f;
-		static float yaw_offset_deg = 0.0f;
-		static float roll_offset_deg = 0.0f;
-
-		const glm::vec3 euler_angles_rad = { -deg2rad(roll_offset_deg),  -deg2rad(pitch_deg + pitch_offset_deg), deg2rad(yaw_deg + yaw_offset_deg) };
-
-		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
-		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
-
-		glm::mat4 mirror_matrix(1);
-
-		if(true)
-		{
-			mirror_matrix[0][0] = -1.0f;
-		}
-
-		const glm::mat4 final_rotation_matrix = game_rotation_matrix * mirror_matrix * eye_rotation_matrix;
-
-		BVR::GLMPose glm_pose;
-
-		glm_pose.translation_.x = view_position_x;
-		glm_pose.translation_.y = view_position_y;
-		glm_pose.translation_.z = view_position_z;
-
 		XrView left_view = {};
 		openxr_.get_view(LEFT, left_view);
 
@@ -3291,7 +3166,6 @@ extern "C"
 
 		return true;
 	}
-#endif
 
 	bool GetHandMatrix(const int hand_id, float* view_origin_ptr, float* view_angles_ptr, const float* scale_ptr, float* hand_matrix_ptr, float* gun_offsets_ptr)
 	{
@@ -3311,9 +3185,18 @@ extern "C"
 		glm::mat4 scale_matrix = glm::scale(glm::mat4(1.0f), scale_vec);
 
 		const bool is_left_handed = (hand_id == LEFT);
-		const bool mirror = false;// is_left_handed ? true : false;
-		const BVR::GLMPose glm_aim_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id], false, mirror);
-		
+		const BVR::GLMPose glm_aim_pose = BVR::convert_to_glm_pose(openxr_.aim_pose_LS_[hand_id], false, false);
+		const glm::mat3 rotation_matrix_orig = glm::mat4_cast(glm_aim_pose.rotation_);
+
+		glm::mat3 B(0);
+
+		// Quake 2 is Right-handed, like OpenXR, but +Z is up
+		B[0][1] = -1.0f; // -Y is X
+		B[1][2] = 1.0f; // + Z is up
+		B[2][0] = -1.0f; // -X is Y
+
+		glm::mat4 hand_rotation_matrix = B * rotation_matrix_orig;
+
 		glm::fquat aim_rotation = glm_aim_pose.rotation_;
 
 		const glm::mat4 aim_rotation_matrix(glm::mat4_cast(aim_rotation));
@@ -3346,7 +3229,7 @@ extern "C"
 
 		glm::mat4 mirror_matrix(1);
 
-		if(mirror)
+		if(false)
 		{
 			yaw_deg += 180.0f;
 			roll_deg += 180.0f;
@@ -3380,7 +3263,7 @@ extern "C"
 			const glm::vec4 hand_position_LS = glm::vec4(glm_aim_pose.translation_.x, 0.0f, glm_aim_pose.translation_.z, 1.0f);
 			const glm::vec4 hand_position_WS = game_rotation2 * hand_position_LS;
 
-			const float world_mult = mirror ? 1.0f : -1.0f;
+			const float world_mult = 1.0f;// mirror ? 1.0f : -1.0f;
 
 			glm_pose.translation_.x += hand_position_WS.z * world_mult;
 			glm_pose.translation_.y += hand_position_WS.x * world_mult;
