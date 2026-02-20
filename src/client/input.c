@@ -25,6 +25,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "../refresh/vkpt/openxr/openxr_c_interface.h"
 extern VRControllerState left_vr_controller;
 extern VRControllerState right_vr_controller;
+
+extern cvar_t *cl_xr_loco;
+extern cvar_t *cl_xr_snap_turn_deg;
 #endif
 
 static cvar_t    *cl_nodelta;
@@ -635,7 +638,30 @@ static void CL_AdjustAngles(int msec)
 
         if((gamepad_right_x < -1000) || (gamepad_right_x > 1000))
         {
-            cl.viewangles[YAW] -= speed * cl_yawspeed->value * (float)gamepad_right_x / 32767.0f;
+            const float gamepad_val_normalized = (float)gamepad_right_x / 32767.0f;
+
+#if SUPPORT_SNAP_TURN
+            const int snap_turn_deg = (int)cl_xr_snap_turn_deg->value;
+            const bool using_snap_turn = (snap_turn_deg > 0);
+            
+            const int num_frames_before_reset = 90;
+
+            static int frame_index = 0;
+            const bool ready_to_snap = ((frame_index % num_frames_before_reset) == 0);
+            frame_index++;
+
+            if(using_snap_turn)
+            {
+                if(ready_to_snap)
+                {
+                    cl.viewangles[YAW] -= (gamepad_val_normalized > 0.0f) ? snap_turn_deg : -snap_turn_deg;
+                }
+            }
+            else
+#endif
+            {
+                cl.viewangles[YAW] -= speed * cl_yawspeed->value * gamepad_val_normalized;
+            }
         }
 
         Sint16 gamepad_right_y = SDL_GameControllerGetAxis(gamecontroller, SDL_CONTROLLER_AXIS_RIGHTY);
