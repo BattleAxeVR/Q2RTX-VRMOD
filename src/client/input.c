@@ -772,12 +772,24 @@ static void CL_BaseMove(vec3_t move)
         {
             strafe_amount = cl_sidespeed->value * normalized_left_x;
         }
+       
+#if SUPPORT_HEAD_ORIENTED_LOCOMOTION
+        const int loco = (int)cl_xr_loco->value;
+        const bool using_head_loco = (loco == HEAD_LOCO);
+        const bool using_waist_loco = (loco == WAIST_LOCO);
+
+        if (using_head_loco)
+        {
+            ApplyHeadOrientedLocomotion(LEFT, &walk_forward_amount, &strafe_amount);
+        }
+        else if(using_waist_loco)
+        {
+            ApplyWaistOrientedLocomotion(LEFT, &walk_forward_amount, &strafe_amount);
+        }
+#endif
 
         move[0] -= walk_forward_amount;
         move[1] += strafe_amount;
-
-#if SUPPORT_HEAD_ORIENTED_LOCOMOTION
-#endif
     }
 #endif
 

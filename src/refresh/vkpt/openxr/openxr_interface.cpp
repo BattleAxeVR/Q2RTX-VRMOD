@@ -3368,88 +3368,74 @@ extern "C"
 
 		return true;
 	}
-}
 
-#else
-
-extern "C"
-{
-	bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr)
+	bool ApplyHeadOrientedLocomotion(const int view_id, float* walk_forward_ptr, float* strafe_ptr)
 	{
-		const glm::mat4 oriv_view_matrix = *(glm::mat4*)view_matrix_ptr;
-		const glm::mat4 oriv_inverse_view_matrix = *(glm::mat4*)inv_view_matrix_ptr;
+		if(!openxr_.is_session_running() || !walk_forward_ptr || !strafe_ptr)
+		{
+			return false;
+		}
 
-		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
+		float view_yaw_radians = 0.0f;
 
-		const float view_position_x = view_origin.x;
-		const float view_position_y = view_origin.y;
-		const float view_position_z = view_origin.z;
+		if(!GetYaw(view_id, false, &view_yaw_radians))
+		{
+			return false;
+		}
 
-		const glm::vec3 view_angles_deg = *(glm::vec3*)view_angles_ptr;
+		view_yaw_radians += deg2rad(90.0f);
 
-#if APPLY_STEREO_VIEW_PITCH
-		const float pitch_deg = view_angles_deg.x;
-#else
-		const float pitch_deg = 0.0f;
-#endif
+		const glm::vec3 euler_rad(0.0f, -view_yaw_radians, 0.0f);
+		const glm::fquat yaw_rotation = glm::fquat(euler_rad);
 
-#if APPLY_STEREO_VIEW_YAW
-		const float yaw_deg = view_angles_deg.y;
-#else
-		const float yaw_deg = 0.0f;
-#endif
+		float& walk_forward = *walk_forward_ptr;
+		float& strafe = *strafe_ptr;
 
-#if APPLY_STEREO_VIEW_ROLL
-		const float roll_deg = view_angles_deg.z;
-#else
-		const float roll_deg = 0.0f;
-#endif
-		BVR::GLMPose glm_pose;
-		glm_pose.translation_.x = view_position_x;
-		glm_pose.translation_.y = view_position_y;
-		glm_pose.translation_.z = view_position_z;
+		glm::vec3 stick_values(strafe, 0.0f, -walk_forward);
+		glm::vec3 rotated_stick_values = yaw_rotation * stick_values;
 
-		glm::mat4 translation_matrix = glm_pose.to_matrix();
-#if 1
-		static float yaw_offset_deg = 0.0f;
-		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
-
-		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
-		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
-
-		const glm::vec3 forward_direction_LS(1.0f, 0.0f, 0.0f);
-		const glm::vec3 up_direction(0.0f, 0.0f, -1.0f);
-
-		const glm::fquat view_rotation = glm::quatLookAtLH(forward_direction_LS, up_direction);
-		const glm::mat4 view_rotation_matrix = glm::mat4_cast(view_rotation);
-
-		glm::mat4 view_matrix = translation_matrix * view_rotation_matrix * game_rotation_matrix;
-#else
-		static float yaw_offset_deg = -90.0f;
-		const glm::vec3 euler_angles_rad = { -deg2rad(pitch_deg), -deg2rad(yaw_deg + yaw_offset_deg), 0.0f };
-
-		glm::fquat game_rotation = glm::fquat(euler_angles_rad);
-		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
-
-		static float pitch_angle_deg = 90.0f;
-		const glm::vec3 pitch_angles_rad = { deg2rad(pitch_angle_deg), 0.0f, 0.0f };
-		glm::fquat pitch_rotation = glm::fquat(pitch_angles_rad);
-		glm::mat4 pitch_rotation_matrix = glm::mat4_cast(pitch_rotation);
-
-		static float roll_angle_deg = 180.0f + roll_deg;
-		const glm::vec3 roll_angles_rad = { deg2rad(roll_angle_deg), 0.0f, 0.0f };
-		glm::fquat roll_rotation = glm::fquat(roll_angles_rad);
-		glm::mat4 roll_rotation_matrix = glm::mat4_cast(roll_rotation);
-
-		glm::mat4 view_matrix = translation_matrix * roll_rotation_matrix * pitch_rotation_matrix * game_rotation_matrix;
-#endif
-		memcpy(inv_view_matrix_ptr, &view_matrix, sizeof(float) * 16);
-
-		glm::mat4 inverse_view_matrix = inverse(view_matrix);
-		memcpy(view_matrix_ptr, &inverse_view_matrix, sizeof(float) * 16);
+		walk_forward = rotated_stick_values.x;
+		strafe = rotated_stick_values.z;
 
 		return true;
 	}
+
+	bool ApplyWaistOrientedLocomotion(const int view_id, float* walk_forward_ptr, float* strafe_ptr)
+	{
+#if 1//ENABLE_WAIST_TRACKING
+		if(!openxr_.is_session_running() || !walk_forward_ptr || !strafe_ptr)
+		{
+			return false;
+		}
+
+		//For not just copy head loco implementation as placeholder to test
+		float view_yaw_radians = 0.0f;
+
+		if(!GetYaw(view_id, false, &view_yaw_radians))
+		{
+			return false;
+		}
+
+		view_yaw_radians += deg2rad(90.0f);
+
+		const glm::vec3 euler_rad(0.0f, -view_yaw_radians, 0.0f);
+		const glm::fquat yaw_rotation = glm::fquat(euler_rad);
+
+		float& walk_forward = *walk_forward_ptr;
+		float& strafe = *strafe_ptr;
+
+		glm::vec3 stick_values(strafe, 0.0f, -walk_forward);
+		glm::vec3 rotated_stick_values = yaw_rotation * stick_values;
+
+		walk_forward = rotated_stick_values.x;
+		strafe = rotated_stick_values.z;
+
+		return true;
+#else
+		return false;
+#endif
+	}
+
 }
 
 #endif // SUPPORT_OPENXR
