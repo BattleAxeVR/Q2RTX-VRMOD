@@ -2172,6 +2172,7 @@ static void process_bsp_entity(const entity_t* entity, int* instance_count)
 #define MESH_FILTER_MASKED 4
 #define MESH_FILTER_ALL 7
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
 extern int vr_guns_enabled;
 
 extern float vr_gun_origin_x;
@@ -2181,6 +2182,7 @@ extern float vr_gun_origin_z;
 extern float vr_gun_dir_x;
 extern float vr_gun_dir_y;
 extern float vr_gun_dir_z;
+#endif
 
 static void process_regular_entity(
 	const entity_t* entity, 
@@ -2262,16 +2264,12 @@ static void process_regular_entity(
 		else
 #endif
 		{
-			vr_guns_enabled = false;
-
 			const int view_id = LEFT;
 			create_viewweapon_matrix(stereo, view_id, transform, (entity_t*)entity);
 		}
 	}
 	else
 	{
-		vr_guns_enabled = false; 
-
 		const int view_id = LEFT;
 		create_entity_matrix(view_id, transform, (entity_t*)entity);
 	}

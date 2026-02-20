@@ -837,6 +837,7 @@ Sets mins, maxs, and pm->viewheight
 ==============
 */
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
 int vr_guns_enabled = 0;
 
 float vr_gun_origin_x = 0.0f;
@@ -846,6 +847,7 @@ float vr_gun_origin_z = 0.0f;
 float vr_gun_dir_x = 0.0f;
 float vr_gun_dir_y = 1.0f;
 float vr_gun_dir_z = 0.0f;
+#endif
 
 static void PM_CheckDuck(void)
 {
@@ -916,8 +918,6 @@ static void PM_CheckDuck(void)
         pm->override_gun_direction[1] = vr_gun_dir_y;
         pm->override_gun_direction[2] = vr_gun_dir_z;
     }
-#else
-    pm->override_gun = 0;
 #endif
 }
 

@@ -936,9 +936,11 @@ struct gclient_s
     edict_t     *chase_target;      // player we are chasing
     bool        update_chase;       // need to update chase info?
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     bool override_gun;
     vec3_t override_gun_origin;
     vec3_t override_gun_direction;
+#endif
 };
 
 struct edict_s 
