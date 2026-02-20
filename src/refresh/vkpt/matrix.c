@@ -271,7 +271,7 @@ void create_orthographic_matrix(mat4_t matrix, float xmin, float xmax, float ymi
 	matrix[15] = 1;
 }
 
-void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, vec3_t* view_origin, vec3_t* view_angles)
+void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, vec3_t* view_origin_ptr, vec3_t* view_angles_ptr)
 {
 	vec3_t viewaxis[3] = { 0 };
 
@@ -284,7 +284,7 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 		float roll_deg = 0.0f;
 
 #if APPLY_STEREO_VIEW_PITCH
-		pitch_deg += *view_angles[PITCH];
+		pitch_deg += *view_angles_ptr[PITCH];
 
 #if APPLY_EULER_PITCH_ANGLE_VR
 		if(stereo)
@@ -301,7 +301,7 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 #endif
 
 #if APPLY_STEREO_VIEW_YAW
-		yaw_deg += *view_angles[YAW];
+		yaw_deg += *view_angles_ptr[YAW];
 
 #if APPLY_EULER_YAW_ANGLE_VR
 		if(stereo)
@@ -318,7 +318,7 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 #endif
 
 #if APPLY_STEREO_VIEW_ROLL
-		roll_deg += *view_angles[ROLL];
+		roll_deg += *view_angles_ptr[ROLL];
 
 #if APPLY_EULER_ROLL_ANGLE_VR
 		if(stereo)
@@ -342,7 +342,7 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 	}
 	else
 	{
-		AnglesToAxis(*view_angles, viewaxis);
+		AnglesToAxis(*view_angles_ptr, viewaxis);
 	}
 
 	view_matrix[0]  = -viewaxis[1][0];
@@ -384,9 +384,9 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 		float y_ipd_offset = ipd_offset_WS[1];
 		float z_ipd_offset = ipd_offset_WS[2];
 
-		float world_space_x = *view_origin[0];
-		float world_space_y = *view_origin[1];
-		float world_space_z = *view_origin[2];
+		float world_space_x = *view_origin_ptr[0];
+		float world_space_y = *view_origin_ptr[1];
+		float world_space_z = *view_origin_ptr[2];
 
 		world_space_x += x_ipd_offset;
 		world_space_y += y_ipd_offset;
@@ -408,9 +408,9 @@ void create_view_matrix(int stereo, int view_id, float ipd, mat4_t view_matrix, 
 	}
 	else
 	{
-		view_matrix[12] = DotProduct(viewaxis[1], *view_origin);
-		view_matrix[13] = -DotProduct(viewaxis[2], *view_origin);
-		view_matrix[14] = -DotProduct(viewaxis[0], *view_origin);
+		view_matrix[12] = DotProduct(viewaxis[1], *view_origin_ptr);
+		view_matrix[13] = -DotProduct(viewaxis[2], *view_origin_ptr);
+		view_matrix[14] = -DotProduct(viewaxis[0], *view_origin_ptr);
 	}
 }
 

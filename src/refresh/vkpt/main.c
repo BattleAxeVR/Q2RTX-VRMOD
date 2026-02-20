@@ -3057,8 +3057,11 @@ static void prepare_viewmatrix(refdef_t *fd)
 		ipd = ipd_override;
 	}
 
-	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], &fd->vieworg, &fd->viewangles);
-	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], &fd->vieworg, &fd->viewangles);
+	vec3_t* view_origin_ptr = &fd->vieworg;
+	vec3_t* view_angles_ptr = &fd->viewangles;
+
+	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], view_origin_ptr, view_angles_ptr);
+	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], view_origin_ptr, view_angles_ptr);
 
 	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
 	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
@@ -3068,8 +3071,8 @@ static void prepare_viewmatrix(refdef_t *fd)
 
 	if(stereo && apply_xr_view)
 	{
-		GetViewMatrix(LEFT, (float*)&fd->vieworg, (float*)&fd->viewangles, vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
-		GetViewMatrix(RIGHT, (float*)&fd->vieworg, (float*)&fd->viewangles, vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
+		GetViewMatrix(LEFT, (float*)view_origin_ptr, (float*)view_angles_ptr, vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
+		GetViewMatrix(RIGHT, (float*)view_origin_ptr, (float*)view_angles_ptr, vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 	}
 #endif
 }
