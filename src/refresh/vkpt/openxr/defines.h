@@ -39,8 +39,7 @@
 // Extra define to skip actually using OpenXR but enable other functionality
 #define CONNECT_TO_OPENXR (SUPPORT_OPENXR && 1)
 
-#define SUPPORT_HEAD_ORIENTED_LOCOMOTION (CONNECT_TO_OPENXR && 1)
-#define SUPPORT_WAIST_ORIENTED_LOCOMOTION (CONNECT_TO_OPENXR && 0)
+#define SUPPORT_CUSTOM_VR_LOCOMOTION (CONNECT_TO_OPENXR && 1)
 
 #define SUPPORT_AUTOMATIC_3RD_PERSON_VIEW 0 // this should/could work in 2D mode as well
 

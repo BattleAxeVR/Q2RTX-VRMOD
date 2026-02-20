@@ -773,7 +773,7 @@ static void CL_BaseMove(vec3_t move)
             strafe_amount = cl_sidespeed->value * normalized_left_x;
         }
        
-#if SUPPORT_HEAD_ORIENTED_LOCOMOTION
+#if SUPPORT_CUSTOM_VR_LOCOMOTION
         const int loco = (int)cl_xr_loco->value;
         const bool using_head_loco = (loco == HEAD_LOCO);
         const bool using_waist_loco = (loco == WAIST_LOCO);
@@ -799,17 +799,39 @@ static void CL_BaseMove(vec3_t move)
         const float vr_stick_deadzone = 0.01f;
         const float forward_value = left_vr_controller.thumbstick_values_[1];
 
+        float walk_forward_amount = 0.0f;
+
         if (fabs(forward_value) > vr_stick_deadzone)
         {
-            move[0] = cl_forwardspeed->value * forward_value;
+            walk_forward_amount = -cl_forwardspeed->value * forward_value;
         }
 
         const float strafe_value = left_vr_controller.thumbstick_values_[0];
 
+        float strafe_amount = 0.0f;
+
         if (fabs(strafe_value) > vr_stick_deadzone)
         {
-            move[1] += cl_sidespeed->value * strafe_value;
+            strafe_amount = cl_sidespeed->value * strafe_value;
         }
+
+#if SUPPORT_CUSTOM_VR_LOCOMOTION
+        const int loco = (int)cl_xr_loco->value;
+        const bool using_head_loco = (loco == HEAD_LOCO);
+        const bool using_waist_loco = (loco == WAIST_LOCO);
+
+        if (using_head_loco)
+        {
+            ApplyHeadOrientedLocomotion(LEFT, &walk_forward_amount, &strafe_amount);
+        }
+        else if(using_waist_loco)
+        {
+            ApplyWaistOrientedLocomotion(LEFT, &walk_forward_amount, &strafe_amount);
+        }
+#endif
+
+        move[0] -= walk_forward_amount;
+        move[1] += strafe_amount;
     }
 #endif
 

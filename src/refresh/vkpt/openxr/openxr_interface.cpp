@@ -3416,7 +3416,7 @@ extern "C"
 			return false;
 		}
 
-		view_yaw_radians += deg2rad(90.0f);
+		view_yaw_radians -= deg2rad(90.0f);
 
 		const glm::vec3 euler_rad(0.0f, -view_yaw_radians, 0.0f);
 		const glm::fquat yaw_rotation = glm::fquat(euler_rad);
@@ -3424,7 +3424,7 @@ extern "C"
 		float& walk_forward = *walk_forward_ptr;
 		float& strafe = *strafe_ptr;
 
-		glm::vec3 stick_values(strafe, 0.0f, -walk_forward);
+		glm::vec3 stick_values(strafe, 0.0f, walk_forward);
 		glm::vec3 rotated_stick_values = yaw_rotation * stick_values;
 
 		walk_forward = rotated_stick_values.x;
