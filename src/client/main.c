@@ -2814,7 +2814,8 @@ static void CL_InitLocal(void)
 
     Cmd_Register(c_client);
 
-    for (i = 0; i < MAX_LOCAL_SERVERS; i++) {
+    for (i = 0; i < MAX_LOCAL_SERVERS; i++) 
+    {
         var = Cvar_Get(va("adr%i", i), "", CVAR_ARCHIVE);
         var->generator = Com_Address_g;
     }
@@ -2861,17 +2862,33 @@ static void CL_InitLocal(void)
     cl_showclamp = Cvar_Get("showclamp", "0", 0);
 #endif
 
+#if SUPPORT_OPENXR
     cl_stereo = Cvar_Get("stereo", "1", 0);
+    cl_xr_view = Cvar_Get("xr_view", "1", 0);
+    cl_xr_proj = Cvar_Get("xr_proj", "1", 0);
+
+#if DUAL_WIELD_BY_DEFAULT
+    cl_xr_guns = Cvar_Get("xr_guns", "2", 0); 
+#elif APPLY_CONTROLLER_TRACKING_TO_GUN
+    cl_xr_guns = Cvar_Get("xr_guns", "1", 0); 
+#else
+    cl_xr_guns = Cvar_Get("xr_guns", "0", 0); 
+#endif
+
+#else
+    cl_stereo = Cvar_Get("stereo", "0", 0);
+    cl_xr_view = Cvar_Get("xr_view", "0", 0);
+    cl_xr_proj = Cvar_Get("xr_proj", "0", 0);
+    cl_xr_guns = Cvar_Get("xr_guns", "0", 0); 
+#endif
+    
     cl_ipd = Cvar_Get("ipd", "0", 0);
 
     cl_fov_outward = Cvar_Get("fov_outward", "0", 0);
     cl_fov_inward = Cvar_Get("fov_inward", "0", 0);
     cl_fov_up = Cvar_Get("fov_up", "0", 0);
     cl_fov_down = Cvar_Get("fov_down", "0", 0);
-
-    cl_xr_view = Cvar_Get("xr_view", "1", 0);
-    cl_xr_proj = Cvar_Get("xr_proj", "1", 0);
-
+    
 #if DUAL_WIELD_BY_DEFAULT
     cl_xr_guns = Cvar_Get("xr_guns", "2", 0); 
 #elif APPLY_CONTROLLER_TRACKING_TO_GUN
@@ -2906,7 +2923,9 @@ static void CL_InitLocal(void)
     rcon_address = Cvar_Get("rcon_address", "", CVAR_PRIVATE);
     rcon_address->generator = Com_Address_g;
 
-	cl_player_model = Cvar_Get("cl_player_model", va("%d", CL_PLAYER_MODEL_FIRST_PERSON), CVAR_ARCHIVE);
+	//cl_player_model = Cvar_Get("cl_player_model", va("%d", CL_PLAYER_MODEL_FIRST_PERSON), CVAR_ARCHIVE);
+    cl_player_model = Cvar_Get("cl_player_model", va("%d", CL_PLAYER_MODEL_THIRD_PERSON), CVAR_ARCHIVE);
+
 	cl_player_model->changed = cl_player_model_changed;
     cl_thirdperson_angle = Cvar_Get("cl_thirdperson_angle", "0", 0);
     cl_thirdperson_range = Cvar_Get("cl_thirdperson_range", "60", 0);
