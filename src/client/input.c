@@ -25,10 +25,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "../refresh/vkpt/openxr/openxr_c_interface.h"
 extern VRControllerState left_vr_controller;
 extern VRControllerState right_vr_controller;
-
 extern cvar_t *cl_xr_loco;
-extern cvar_t *cl_xr_snap_turn_deg;
 #endif
+
+extern cvar_t *cl_snap_turn_deg;
 
 static cvar_t    *cl_nodelta;
 static cvar_t    *cl_maxpackets;
@@ -641,7 +641,7 @@ static void CL_AdjustAngles(int msec)
             const float gamepad_val_normalized = (float)gamepad_right_x / 32767.0f;
 
 #if SUPPORT_SNAP_TURN
-            const int snap_turn_deg = (int)cl_xr_snap_turn_deg->value;
+            const int snap_turn_deg = (int)cl_snap_turn_deg->value;
             const bool using_snap_turn = (snap_turn_deg > 0);
             
             const int num_frames_before_reset = 90;
@@ -682,7 +682,7 @@ static void CL_AdjustAngles(int msec)
         if (fabs(turn_value) > deadzone)
         {
 #if SUPPORT_SNAP_TURN
-            const int snap_turn_deg = (int)cl_xr_snap_turn_deg->value;
+            const int snap_turn_deg = (int)cl_snap_turn_deg->value;
             const bool using_snap_turn = (snap_turn_deg > 0);
 
             const int num_frames_before_reset = 90;

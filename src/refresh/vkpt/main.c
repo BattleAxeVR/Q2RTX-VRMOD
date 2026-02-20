@@ -108,9 +108,10 @@ extern cvar_t *cl_xr_gun_offset_y;
 extern cvar_t *cl_xr_gun_offset_z;
 extern cvar_t *cl_xr_ipd_mult;
 extern cvar_t *cl_xr_loco;
-extern cvar_t *cl_xr_snap_turn_deg;
 
 extern int xr_gun_last_shot_hand;
+
+extern cvar_t *cl_snap_turn_deg;
 
 extern cvar_t *cvar_flt_fsr_rcas;
 
@@ -3062,6 +3063,7 @@ static void prepare_viewmatrix(refdef_t *fd)
 	inverse(vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
 	inverse(vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 
+#if SUPPORT_OPENXR
 	const int apply_xr_view = (cl_xr_view->value == 1.0f) ? 1 : 0;
 
 	if(stereo && apply_xr_view)
@@ -3069,6 +3071,7 @@ static void prepare_viewmatrix(refdef_t *fd)
 		GetViewMatrix(LEFT, (float*)&fd->vieworg, (float*)&fd->viewangles, vkpt_refdef.view_matrix[LEFT], vkpt_refdef.view_matrix_inv[LEFT]);
 		GetViewMatrix(RIGHT, (float*)&fd->vieworg, (float*)&fd->viewangles, vkpt_refdef.view_matrix[RIGHT], vkpt_refdef.view_matrix_inv[RIGHT]);
 	}
+#endif
 }
 
 static void prepare_ubo(refdef_t *fd, mleaf_t* viewleaf, const reference_mode_t* ref_mode, const vec3_t sky_matrix[3], bool render_world)

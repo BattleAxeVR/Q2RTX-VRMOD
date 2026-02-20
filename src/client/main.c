@@ -55,7 +55,7 @@ cvar_t  *cl_blit_scale;
 cvar_t  *cl_blit_bias;
 cvar_t  *cl_xr_gun_idle_frame;
 cvar_t  *cl_xr_loco;
-cvar_t  *cl_xr_snap_turn_deg;
+cvar_t  *cl_snap_turn_deg;
 
 int xr_gun_last_shot_hand = RIGHT;
 
@@ -2897,7 +2897,7 @@ static void CL_InitLocal(void)
     cl_xr_loco = Cvar_Get("xr_loco", "0", 0); 
 
     // Turning: Smooth vs Snap Turn (set to 0 to use smooth turning)
-    cl_xr_snap_turn_deg = Cvar_Get("xr_snap_turn_deg", "0", 0);
+    cl_snap_turn_deg = Cvar_Get("snap_turn_deg", "0", 0);
 
     cl_timeout = Cvar_Get("cl_timeout", "120", 0);
     cl_timeout->changed = cl_timeout_changed;
