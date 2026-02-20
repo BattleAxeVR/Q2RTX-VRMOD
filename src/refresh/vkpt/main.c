@@ -57,6 +57,12 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "openxr/openxr_c_interface.h"
 #endif
 
+#if SUPPORT_AUTOMATIC_3RD_PERSON_VIEW
+vec3_t view_origin_copy = { 0 };
+vec3_t view_angles_copy = { 0 };
+bool already_initialized_ = false;
+#endif
+
 cvar_t *cvar_profiler = NULL;
 cvar_t *cvar_profiler_samples = NULL;
 cvar_t *cvar_profiler_scale = NULL;
@@ -3059,6 +3065,28 @@ static void prepare_viewmatrix(refdef_t *fd)
 
 	vec3_t* view_origin_ptr = &fd->vieworg;
 	vec3_t* view_angles_ptr = &fd->viewangles;
+
+#if SUPPORT_AUTOMATIC_3RD_PERSON_VIEW
+	const bool auto_3rd_person = (cl_automatic_3rd_person->value == 1.0f);
+
+	if(auto_3rd_person)
+	{
+		const bool is_in_1st_person = (cl_player_model->integer == CL_PLAYER_MODEL_FIRST_PERSON);
+
+		if(!already_initialized_ || is_in_1st_person)
+		{
+			memcpy(&view_origin_copy, view_origin_ptr, sizeof(float) * 3);
+			memcpy(&view_angles_copy, view_angles_ptr, sizeof(float) * 3);
+
+			already_initialized_ = true;
+		}
+		else
+		{
+			view_origin_ptr = &view_origin_copy;
+			view_angles_ptr = &view_angles_copy;
+		}
+	}
+#endif
 
 	create_view_matrix(stereo, LEFT, ipd, vkpt_refdef.view_matrix[LEFT], view_origin_ptr, view_angles_ptr);
 	create_view_matrix(stereo, RIGHT, ipd, vkpt_refdef.view_matrix[RIGHT], view_origin_ptr, view_angles_ptr);
