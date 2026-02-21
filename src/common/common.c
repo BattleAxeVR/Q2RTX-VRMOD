@@ -54,7 +54,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "../refresh/vkpt/openxr/defines.h"
 
 #if SUPPORT_OPENXR
-#include "../refresh/vkpt/openxr/openxr_c_interface.h"
+#include "../refresh/vkpt/openxr/vr_controllers.h"
+
 VRControllerState left_vr_controller = {0};
 VRControllerState right_vr_controller = {0};
 

@@ -2917,7 +2917,7 @@ static void CL_InitLocal(void)
     // Turning: Smooth vs Snap Turn (set to 0 to use smooth turning)
     cl_snap_turn_deg = Cvar_Get("snap_turn_deg", "0", 0);
 
-    cl_automatic_3rd_person = Cvar_Get("automatic_3rd_person", "0", 0);
+    cl_automatic_3rd_person = Cvar_Get("automatic_3rd_person", "1", 0);
 
     cl_timeout = Cvar_Get("cl_timeout", "120", 0);
     cl_timeout->changed = cl_timeout_changed;
@@ -2927,7 +2927,6 @@ static void CL_InitLocal(void)
     rcon_address->generator = Com_Address_g;
 
 	cl_player_model = Cvar_Get("cl_player_model", va("%d", CL_PLAYER_MODEL_FIRST_PERSON), CVAR_ARCHIVE);
-    //cl_player_model = Cvar_Get("cl_player_model", va("%d", CL_PLAYER_MODEL_THIRD_PERSON), CVAR_ARCHIVE);
 
 	cl_player_model->changed = cl_player_model_changed;
     cl_thirdperson_angle = Cvar_Get("cl_thirdperson_angle", "0", 0);

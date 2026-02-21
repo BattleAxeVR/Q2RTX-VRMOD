@@ -21,6 +21,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "shared/list.h"
 #include "shared/m_flash.h"
 
+#include "../refresh/vkpt/openxr/defines.h"
+
 // define GAME_INCLUDE so that game.h does not define the
 // short, server-visible gclient_t and edict_t structures,
 // because we define the full size ones in this file
@@ -937,7 +939,7 @@ struct gclient_s
     bool        update_chase;       // need to update chase info?
 
 #if APPLY_CONTROLLER_TRACKING_TO_GUN
-    bool override_gun;
+    uint8_t override_gun;
     vec3_t override_gun_origin;
     vec3_t override_gun_direction;
 #endif

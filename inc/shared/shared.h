@@ -26,6 +26,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "config.h"
 #endif
 
+#include "../../src/refresh/vkpt/openxr/defines.h"
+
+
 #include <math.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -920,9 +923,11 @@ typedef struct {
     trace_t     (* q_gameabi trace)(const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end);
     int         (*pointcontents)(const vec3_t point);
 
+#if APPLY_CONTROLLER_TRACKING_TO_GUN
     uint8_t override_gun;
     vec3_t override_gun_origin;
     vec3_t override_gun_direction;
+#endif
 
 } pmove_t;
 
@@ -1442,10 +1447,6 @@ typedef struct
     int         rdflags;        // refdef flags
 
     short       stats[MAX_STATS];       // fast status bar updates
-
-    uint8_t override_gun;
-    vec3_t override_gun_origin;
-    vec3_t override_gun_direction;
 
 } player_state_t;
 

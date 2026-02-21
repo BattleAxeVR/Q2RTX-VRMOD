@@ -846,7 +846,7 @@ static void CL_BaseMove(vec3_t move)
             
             const float deadzone = 0.01f;
             const float turn_value = right_vr_controller.thumbstick_values_[0];
-            const bool is_actually_turning = (fabs(turn_value) > deadzone)
+            const bool is_actually_turning = (fabs(turn_value) > deadzone);
 
             if(is_actually_moving || is_actually_turning)
             {

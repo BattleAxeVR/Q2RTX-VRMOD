@@ -8,6 +8,9 @@
 #include "defines.h"
 
 #if SUPPORT_OPENXR
+
+#include "vr_controllers.h"
+
 #include <openxr/openxr.h>
 #include <vulkan/vulkan.h>
 
@@ -17,32 +20,6 @@ VkResult CreateVulkanOpenXRDevice(const VkDeviceCreateInfo* device_create_info, 
 void OpenXR_Update();
 void OpenXR_Shutdown();
 void OpenXR_Endframe(VkCommandBuffer* external_command_buffer, VkExtent2D input_extent, int image_index, bool waterwarp);
-
-typedef struct
-{
-	bool is_down_;
-	bool was_pressed_;
-	bool was_released_;
-
-	bool has_analog_value_;
-	float analog_value_;
-
-} DigitalButton;
-
-typedef struct
-{
-	float thumbstick_values_[2];
-
-	DigitalButton XA_button_;
-	DigitalButton BY_button_;
-
-	DigitalButton joystick_button_;
-
-	DigitalButton trigger_;
-	DigitalButton grip_;
-
-} VRControllerState;
-
 
 bool Is_OpenXR_Session_Running();
 

@@ -19,12 +19,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "shared/shared.h"
 #include "common/pmove.h"
 
-#include "../refresh/vkpt/openxr/defines.h"
-
-#if SUPPORT_OPENXR
-#include "../refresh/vkpt/openxr/openxr_c_interface.h"
-#endif
-
 #define STEPSIZE    18
 
 // all of the locals will be zeroed before each
