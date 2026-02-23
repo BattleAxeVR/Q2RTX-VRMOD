@@ -4156,6 +4156,22 @@ retry:;
 
 void R_EndFrame_RTX(void)
 {
+#if (SUPPORT_OPENXR && USE_EXTERNAL_XR_COMMAND_BUFFER)
+	if(frame_ready)
+	{
+		VkExtent2D image_extent = qvk.extent_taa_output;
+		int image_index = VKPT_IMG_TAA_OUTPUT;
+
+		if((vkpt_fsr_is_enabled() && !qvk.frame_menu_mode))
+		{
+			image_extent = qvk.extent_unscaled;
+			image_index = cvar_flt_fsr_rcas->integer != 0 ? VKPT_IMG_FSR_RCAS_OUTPUT : VKPT_IMG_FSR_EASU_OUTPUT;
+		}
+		bool waterwarp = (vkpt_refdef.fd->rdflags & RDF_UNDERWATER) && cvar_pt_waterwarp->integer;
+		OpenXR_Endframe(NULL, image_extent, image_index, waterwarp);
+	}
+#endif
+
 	LOG_FUNC();
 
 	if (!qvk.swap_chain)
@@ -4205,7 +4221,7 @@ void R_EndFrame_RTX(void)
 			}
 		}
 
-#if SUPPORT_OPENXR
+#if (SUPPORT_OPENXR && !USE_EXTERNAL_XR_COMMAND_BUFFER)
 		VkExtent2D image_extent = qvk.extent_taa_output;
 		int image_index = VKPT_IMG_TAA_OUTPUT;
 		
@@ -4215,12 +4231,7 @@ void R_EndFrame_RTX(void)
 			image_index = cvar_flt_fsr_rcas->integer != 0 ? VKPT_IMG_FSR_RCAS_OUTPUT : VKPT_IMG_FSR_EASU_OUTPUT;
 		}
 
-#if USE_EXTERNAL_XR_COMMAND_BUFFER
-		OpenXR_Endframe(NULL, image_extent, image_index, waterwarp);
-#else
 		OpenXR_Endframe(&cmd_buf, image_extent, image_index, waterwarp);
-#endif
-
 #endif
 
 		frame_ready = false;
