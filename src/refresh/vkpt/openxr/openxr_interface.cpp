@@ -622,9 +622,12 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	{
 		CommandBuffer& xr_command_buffer = xr_command_buffers_[xr_command_buffer_index_];
 
-		xr_command_buffer.Wait();
-		xr_command_buffer.Reset();
-		xr_command_buffer.Begin();
+		if(view_id == LEFT)
+		{
+			xr_command_buffer.Wait();
+			xr_command_buffer.Reset();
+			xr_command_buffer.Begin();
+		}
 
 		command_buffer = xr_command_buffer.vk_command_buffer_;
 	}
@@ -720,11 +723,12 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 
 	vkCmdEndRendering(command_buffer);
 
-	if(!external_command_buffer)
+	if(!external_command_buffer && (view_id == RIGHT))
 	{
 		CommandBuffer& xr_command_buffer = xr_command_buffers_[xr_command_buffer_index_];
+
 		xr_command_buffer.End();
-		//xr_command_buffer.Exec(engine_.get_device().get_vk_graphics_queue());
+		xr_command_buffer.Exec(graphics_queue_);
 		xr_command_buffer_index_ = (xr_command_buffer_index_ + 1) % NUM_COMMAND_BUFFERS;
 	}
 }
@@ -1230,6 +1234,9 @@ bool OpenXR::create_device(const VkDeviceCreateInfo& device_create_info)
 	{
 		xr_command_buffers_[xr_command_buffer_index].Init(vk_logical_device_, m_queueFamilyIndex);
 	}
+
+	vkGetDeviceQueue(vk_logical_device_, m_queueFamilyIndex, 0, &graphics_queue_);
+	assert(graphics_queue_);
 
 	set_initialized(true);
 
@@ -3091,6 +3098,15 @@ extern "C"
 		B[2][0] = -1.0f; // -X is Y
 
 		glm::mat4 hmd_rotation_matrix = B * rotation_matrix_orig;
+
+		static bool normalize_it = true;
+
+		if(normalize_it)
+		{
+			glm::fquat rot = glm::quat_cast(hmd_rotation_matrix);
+			rot = normalize(rot);
+			hmd_rotation_matrix = glm::mat4_cast(rot);
+		}
 
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
 

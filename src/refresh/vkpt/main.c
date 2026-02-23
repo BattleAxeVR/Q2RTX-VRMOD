@@ -4215,7 +4215,12 @@ void R_EndFrame_RTX(void)
 			image_index = cvar_flt_fsr_rcas->integer != 0 ? VKPT_IMG_FSR_RCAS_OUTPUT : VKPT_IMG_FSR_EASU_OUTPUT;
 		}
 
+#if USE_EXTERNAL_XR_COMMAND_BUFFER
+		OpenXR_Endframe(NULL, image_extent, image_index, waterwarp);
+#else
 		OpenXR_Endframe(&cmd_buf, image_extent, image_index, waterwarp);
+#endif
+
 #endif
 
 		frame_ready = false;

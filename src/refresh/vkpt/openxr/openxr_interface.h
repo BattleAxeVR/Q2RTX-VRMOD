@@ -227,6 +227,8 @@ public:
 	int m_queueFamilyIndexCompute = INVALID_INDEX;
 	int m_queueFamilyIndexTransfer = INVALID_INDEX;
 
+	VkQueue graphics_queue_ = {};
+
 	bool supports_depth_layer_ = false;
 
 #if ENABLE_OPENXR_HAND_TRACKING
