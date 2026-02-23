@@ -3183,7 +3183,7 @@ extern "C"
 
 		const glm::mat4 post_translation_matrix = glm_pose.to_matrix();
 
-		glm::mat4 final_view_matrix = post_translation_matrix * final_rotation_matrix * pre_translation_matrix;
+		glm::mat4 final_view_matrix = post_translation_matrix * final_rotation_matrix;
 		memcpy(inv_view_matrix_ptr, &final_view_matrix, sizeof(float) * 16);
 
 		glm::mat4 inverse_view_matrix = inverse(final_view_matrix);
