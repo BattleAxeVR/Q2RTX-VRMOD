@@ -2917,7 +2917,7 @@ static void CL_InitLocal(void)
     // Turning: Smooth vs Snap Turn (set to 0 to use smooth turning)
     cl_snap_turn_deg = Cvar_Get("snap_turn_deg", "0", 0);
 
-    cl_automatic_3rd_person = Cvar_Get("automatic_3rd_person", "1", 0);
+    cl_automatic_3rd_person = Cvar_Get("automatic_3rd_person", "0", 0);
 
     cl_timeout = Cvar_Get("cl_timeout", "120", 0);
     cl_timeout->changed = cl_timeout_changed;
