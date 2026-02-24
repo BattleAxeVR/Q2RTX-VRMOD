@@ -16,6 +16,7 @@
 
 VkResult CreateVulkanOpenXRInstance(const VkInstanceCreateInfo* instance_create_info, VkInstance* vk_instance);
 VkResult CreateVulkanOpenXRDevice(const VkDeviceCreateInfo* device_create_info, VkPhysicalDevice* vk_physical_device, VkDevice* vk_logical_device);
+VkExtent2D OpenXR_GetRenderExtentBothEyes();
 
 void OpenXR_Update();
 void OpenXR_Shutdown();

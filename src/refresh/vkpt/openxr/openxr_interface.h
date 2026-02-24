@@ -327,6 +327,8 @@ public:
 	uint32_t per_eye_width_ = 0;
 	uint32_t per_eye_height_ = 0;
 
+	VkExtent2D render_extent_both_eyes_ = {};
+
 private:
 	bool initialized_ = false;
 

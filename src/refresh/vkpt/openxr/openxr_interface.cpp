@@ -1349,6 +1349,9 @@ bool OpenXR::create_swapchain()
 			{
 				per_eye_width_ = swapchainCreateInfo.width;
 				per_eye_height_ = swapchainCreateInfo.height;
+
+				render_extent_both_eyes_.width = per_eye_width_ * 2;
+				render_extent_both_eyes_.height = per_eye_height_;
 			}
 
 			swapchainCreateInfo.mipCount = 1;
@@ -2898,6 +2901,16 @@ extern "C"
 		*vk_logical_device = openxr_.vk_logical_device_;
 
 		return VK_SUCCESS;
+	}
+
+	VkExtent2D OpenXR_GetRenderExtentBothEyes()
+	{
+		// Make sure to call this only after OpenXR session has started
+		assert(started_session_);
+		assert(openxr_.render_extent_both_eyes_.width);
+		assert(openxr_.render_extent_both_eyes_.height);
+
+		return openxr_.render_extent_both_eyes_;
 	}
 
 	void OpenXR_Update()
