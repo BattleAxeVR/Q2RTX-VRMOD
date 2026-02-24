@@ -645,8 +645,11 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	clearValues[0].color.float32[3] = 1.0f;
 	clearValues[1].depthStencil.depth = 1.0f;
 	clearValues[1].depthStencil.stencil = 0;
+
+	uint32_t render_width = (uint32_t)projection_layer_view.subImage.imageRect.extent.width;
+	uint32_t render_height = (uint32_t)projection_layer_view.subImage.imageRect.extent.height;
 	
-	VkExtent2D extent = VkExtent2D{ (uint32_t)projection_layer_view.subImage.imageRect.extent.width, (uint32_t)projection_layer_view.subImage.imageRect.extent.height };
+	VkExtent2D extent = VkExtent2D{ render_width, render_height };
 	VkOffset2D offset{ 0, 0 };
 
 	VkImageView swapchain_colour_view = swapchain_context->get_colour_view(image_index);
