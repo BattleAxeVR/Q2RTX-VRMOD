@@ -542,6 +542,23 @@ bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionVi
 
 	projection_layer_views.resize(NUM_EYES);
 
+	VkCommandBuffer command_buffer = {};
+
+	if(external_command_buffer)
+	{
+		command_buffer = *external_command_buffer;
+	}
+	else
+	{
+		CommandBuffer& xr_command_buffer = xr_command_buffers_[xr_command_buffer_index_];
+
+		xr_command_buffer.Wait();
+		xr_command_buffer.Reset();
+		xr_command_buffer.Begin();
+
+		command_buffer = xr_command_buffer.vk_command_buffer_;
+	}
+
 	for(uint32_t view_id = 0; view_id < NUM_EYES; view_id++)
 	{
 		const XRSwapchain viewSwapchain = xr_swapchains_[view_id];
@@ -580,12 +597,19 @@ bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionVi
 #endif
 		}
 
-		render_projection_layer_view(projection_layer_views[view_id], swapchainImage, xr_colour_swapchain_format_, view_id, input_image_index, external_command_buffer, input_extent, waterwarp);
+		render_projection_layer_view(projection_layer_views[view_id], swapchainImage, xr_colour_swapchain_format_, view_id, input_image_index, command_buffer, input_extent, waterwarp);
 
 		XrSwapchainImageReleaseInfo releaseInfo{ XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
 		xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo);
+	}
 
-		//m_swapchainImages[viewSwapchain.handle]->ReleaseDepthSwapchainImage();
+	if(!external_command_buffer)
+	{
+		CommandBuffer& xr_command_buffer = xr_command_buffers_[xr_command_buffer_index_];
+
+		xr_command_buffer.End();
+		xr_command_buffer.Exec(graphics_queue_);
+		xr_command_buffer_index_ = (xr_command_buffer_index_ + 1) % NUM_COMMAND_BUFFERS;
 	}
 
 	composition_layer.space = xr_app_space_;
@@ -600,7 +624,7 @@ bool OpenXR::render_composition_layer(std::vector<XrCompositionLayerProjectionVi
 
 extern "C" VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped, int view_id);
 
-void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id, int input_image_index, VkCommandBuffer* external_command_buffer, VkExtent2D input_extent, bool waterwarp)
+void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView& projection_layer_view, const XrSwapchainImageBaseHeader* swapchain_image, int64_t swapchain_format, int view_id, int input_image_index, VkCommandBuffer command_buffer, VkExtent2D input_extent, bool waterwarp)
 {
 	if (!render_into_xr_swapchain_)
 	{
@@ -611,26 +635,6 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 
 	XRSwapchainImageContext* swapchain_context = m_swapchainImageContextMap[swapchain_image];
 	uint32_t image_index = swapchain_context->ImageIndex(swapchain_image);
-
-	VkCommandBuffer command_buffer = {};
-
-	if(external_command_buffer)
-	{
-		command_buffer = *external_command_buffer;
-	}
-	else
-	{
-		CommandBuffer& xr_command_buffer = xr_command_buffers_[xr_command_buffer_index_];
-
-		if(view_id == LEFT)
-		{
-			xr_command_buffer.Wait();
-			xr_command_buffer.Reset();
-			xr_command_buffer.Begin();
-		}
-
-		command_buffer = xr_command_buffer.vk_command_buffer_;
-	}
 
 	swapchain_context->depthBuffer.TransitionLayout(command_buffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
@@ -722,15 +726,6 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, input_image_index, extent, false, waterwarp, view_id);
 
 	vkCmdEndRendering(command_buffer);
-
-	if(!external_command_buffer && (view_id == RIGHT))
-	{
-		CommandBuffer& xr_command_buffer = xr_command_buffers_[xr_command_buffer_index_];
-
-		xr_command_buffer.End();
-		xr_command_buffer.Exec(graphics_queue_);
-		xr_command_buffer_index_ = (xr_command_buffer_index_ + 1) % NUM_COMMAND_BUFFERS;
-	}
 }
 
 std::vector<const char*> ParseExtensionString(char* names) 
