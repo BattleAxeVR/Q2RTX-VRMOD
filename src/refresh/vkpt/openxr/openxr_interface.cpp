@@ -3173,9 +3173,9 @@ extern "C"
 		view_pose.translation_.y -= head_position_WS.x;
 		view_pose.translation_.z += head_position_WS.y;
 
-		view_pose.translation_.x += head_to_eye_WS.x;
-		view_pose.translation_.y += head_to_eye_WS.y;
-		view_pose.translation_.z += head_to_eye_WS.z;
+		view_pose.translation_.x -= head_to_eye_WS.z;
+		view_pose.translation_.y -= head_to_eye_WS.x;
+		view_pose.translation_.z += head_to_eye_WS.y;
 
 		const glm::mat4 final_inv_view_matrix = view_pose.to_matrix();
 		memcpy(inv_view_matrix_ptr, &final_inv_view_matrix, sizeof(float) * 16);
