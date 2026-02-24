@@ -23,8 +23,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "refresh/images.h"
 
 extern cvar_t *cl_stereo;
-extern cvar_t *cl_blit_scale;
-extern cvar_t *cl_blit_bias;
+
+extern cvar_t *cl_blit_scale_x;
+extern cvar_t *cl_blit_scale_y;
+extern cvar_t *cl_blit_bias_x;
+extern cvar_t *cl_blit_bias_y;
 
 #include <assert.h>
 
@@ -77,7 +80,8 @@ typedef struct
 	vec2_t input_dimensions;
 	int stereo;
 	int view_id;
-	vec2_t uv_scale_bias;
+	vec2_t uv_scale;
+	vec2_t uv_bias;
 } FinalBlitPushConstants_t;
 
 static clipRect_t clip_rect;
@@ -90,6 +94,7 @@ static VkPipelineLayout        pipeline_layout_final_blit;
 static VkRenderPass            render_pass_stretch_pic;
 static VkPipeline              pipeline_stretch_pic[STRETCH_PIC_NUM_PIPELINES];
 static VkPipeline              pipeline_final_blit[FINAL_BLIT_NUM_PIPELINES];
+static VkPipeline              pipeline_final_blit_vr[FINAL_BLIT_NUM_PIPELINES];
 static VkFramebuffer*          framebuffer_stretch_pic = NULL;
 static BufferResource_t        buf_stretch_pic_queue[MAX_FRAMES_IN_FLIGHT];
 static BufferResource_t        buf_ubo[MAX_FRAMES_IN_FLIGHT];
@@ -723,9 +728,29 @@ VkResult vkpt_draw_create_pipelines()
 
 	pipeline_info.layout = pipeline_layout_final_blit;
 
-	for (int i = 0; i < FINAL_BLIT_NUM_PIPELINES; i++) 
+#if SUPPORT_OPENXR
+	VkGraphicsPipelineCreateInfo pipeline_info_vr = pipeline_info;
+
+	VkPipelineViewportStateCreateInfo vpStateInfo = { VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
+	vpStateInfo.scissorCount = 1;
+	vpStateInfo.viewportCount = 1;
+
+	pipeline_info_vr.pViewportState = &vpStateInfo;
+
+	const VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+
+	VkPipelineDynamicStateCreateInfo dynamic_state_info = { VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
+	dynamic_state_info.dynamicStateCount = LENGTH(dynamic_states);
+	dynamic_state_info.pDynamicStates = dynamic_states;
+
+	pipeline_info_vr.pDynamicState = &dynamic_state_info;
+	pipeline_info_vr.renderPass = VK_NULL_HANDLE;
+#endif
+
+
+	for (int pipeline_id = 0; pipeline_id < FINAL_BLIT_NUM_PIPELINES; pipeline_id++) 
 	{
-		uint32_t final_blit_spec_data[2] = {(i & FINAL_BLIT_FILTERED) ? 1 : 0, (i & FINAL_BLIT_WARPED) ? 1 : 0};
+		uint32_t final_blit_spec_data[2] = {(pipeline_id & FINAL_BLIT_FILTERED) ? 1 : 0, (pipeline_id & FINAL_BLIT_WARPED) ? 1 : 0};
 		VkSpecializationInfo spec_info_final_blit = {.mapEntryCount = LENGTH(final_blit_spec_entries), .pMapEntries = final_blit_spec_entries, .dataSize = sizeof(uint32_t) * 2, .pData = final_blit_spec_data};
 
 		VkPipelineShaderStageCreateInfo shader_info_final_blit[] = 
@@ -735,8 +760,18 @@ VkResult vkpt_draw_create_pipelines()
 		};
 
 		pipeline_info.pStages = shader_info_final_blit;
-		_VK(vkCreateGraphicsPipelines(qvk.device, VK_NULL_HANDLE, 1, &pipeline_info, NULL, &pipeline_final_blit[i]));
-		ATTACH_LABEL_VARIABLE(pipeline_final_blit[i], PIPELINE);
+		_VK(vkCreateGraphicsPipelines(qvk.device, VK_NULL_HANDLE, 1, &pipeline_info, NULL, &pipeline_final_blit[pipeline_id]));
+		ATTACH_LABEL_VARIABLE(pipeline_final_blit[pipeline_id], PIPELINE);
+
+#if SUPPORT_OPENXR
+		{
+			pipeline_info_vr.pStages = shader_info_final_blit;
+
+			_VK(vkCreateGraphicsPipelines(qvk.device, VK_NULL_HANDLE, 1, &pipeline_info_vr, NULL, &pipeline_final_blit_vr[pipeline_id]));
+			ATTACH_LABEL_VARIABLE(pipeline_final_blit_vr[pipeline_id], PIPELINE);
+		}
+#endif
+
 	}
 
 	framebuffer_stretch_pic = malloc(qvk.num_swap_chain_images * sizeof(*framebuffer_stretch_pic));
@@ -885,8 +920,10 @@ VkResult vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkEx
 	FinalBlitPushConstants_t push_constants = {.input_dimensions = {extent.width, extent.height}};
 	push_constants.stereo = 0;
 	push_constants.view_id = 0;
-	push_constants.uv_scale_bias[0] = 1.0f;
-	push_constants.uv_scale_bias[1] = 1.0f;
+	push_constants.uv_scale[0] = 1.0f;
+	push_constants.uv_scale[1] = 1.0f;
+	push_constants.uv_bias[0] = 1.0f;
+	push_constants.uv_bias[0] = 1.0f;
 
 	vkCmdBeginRenderPass(cmd_buf, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
 	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS,pipeline_layout_final_blit, 0, LENGTH(desc_sets), desc_sets, 0, 0);
@@ -904,49 +941,6 @@ VkResult vkpt_final_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkEx
 
 VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, VkExtent2D extent, bool filtered, bool warped, int view_id)
 {
-	VkDescriptorImageInfo img_info_input = 
-	{
-		.imageLayout = VK_IMAGE_LAYOUT_GENERAL,
-		.imageView   = qvk.images_views[image_index],
-		.sampler     = qvk.tex_sampler,
-	};
-
-	VkImageView debug_lines_view = vpkt_debugdraw_imageview();
-
-	if(!debug_lines_view)
-	{
-		debug_lines_view = qvk.images_views[VKPT_IMG_CLEAR];
-	}
-
-	VkDescriptorImageInfo img_info_debug_lines = 
-	{
-		.imageLayout = VK_IMAGE_LAYOUT_GENERAL,
-		.imageView   = debug_lines_view,
-		.sampler     = qvk.tex_sampler_nearest,
-	};
-
-	VkWriteDescriptorSet elem_images[] = 
-	{
-		{
-			.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.dstSet          = desc_set_final_blit[qvk.current_frame_index],
-			.dstBinding      = 0,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			.pImageInfo      = &img_info_input,
-		},
-		{
-			.sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-			.dstSet          = desc_set_final_blit[qvk.current_frame_index],
-			.dstBinding      = 1,
-			.dstArrayElement = 0,
-			.descriptorCount = 1,
-			.descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			.pImageInfo      = &img_info_debug_lines,
-		},
-	};
-
 	VkDescriptorSet desc_sets[] = 
 	{
 		qvk.desc_set_ubo,
@@ -956,13 +950,17 @@ VkResult vkpt_simple_vr_blit(VkCommandBuffer cmd_buf, unsigned int image_index, 
 	FinalBlitPushConstants_t push_constants = {.input_dimensions = {extent.width, extent.height}};
 	push_constants.stereo = 1;
 	push_constants.view_id = view_id;
-	push_constants.uv_scale_bias[0] = cl_blit_scale->value;
-	push_constants.uv_scale_bias[1] = cl_blit_bias->value;
+
+	push_constants.uv_scale[0] = cl_blit_scale_x->value;
+	push_constants.uv_scale[1] = cl_blit_scale_y->value;
+	push_constants.uv_bias[0] = cl_blit_bias_x->value;
+	push_constants.uv_bias[1] = cl_blit_bias_y->value;
 
 	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout_final_blit, 0, LENGTH(desc_sets), desc_sets, 0, 0);
 
 	int pipeline_idx = (filtered ? FINAL_BLIT_FILTERED : 0) | (warped ? FINAL_BLIT_WARPED : 0);
-
+	assert(pipeline_final_blit_vr[pipeline_idx]);
+	//vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_final_blit_vr[pipeline_idx]); // still debugging this, has some warping
 	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_final_blit[pipeline_idx]);
 	vkCmdPushConstants(cmd_buf, pipeline_layout_final_blit, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push_constants), &push_constants);
 

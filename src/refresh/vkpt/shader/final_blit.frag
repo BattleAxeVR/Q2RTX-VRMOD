@@ -39,7 +39,8 @@ layout(push_constant, std430) uniform PushConstants
     vec2 input_dimensions;
     int stereo;
     int view_id;
-    vec2 uv_scale_bias;
+    vec2 uv_scale;
+    vec2 uv_bias;
 } push;
 
 layout(set = 1, binding = 0) uniform sampler2D final_blit_input_image;
@@ -117,7 +118,6 @@ vec3 filter_lanczos(sampler2D img, vec2 uv)
 void main()
 {
     vec2 uv = tex_coord;
-
     vec3 color = vec3(0, 0, 0);
 
     //vec2 uv_mult = vec2(1.0f, 1.0f);
@@ -125,8 +125,11 @@ void main()
 
     if (push.stereo == 1)
     {
-        uv.x *= push.uv_scale_bias.x;
+        //uv *= uv_mult;
 
+        uv.x *= push.uv_scale.x;
+        uv.y *= push.uv_scale.y;
+        
         if (push.view_id == 0)
         {
             // Left eye
@@ -134,10 +137,10 @@ void main()
         else
         {
              // Right eye    
-             uv.x += push.uv_scale_bias.y;
+             uv.x += push.uv_bias.x;
         }
-        
-        //uv *= uv_mult;
+
+        uv.y += push.uv_bias.y;
 
         color = textureLod(final_blit_input_image, uv, 0).rgb;
         outColor = vec4(color, 1);
