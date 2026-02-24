@@ -47,7 +47,7 @@ bool OpenXR::start_session()
 	{
 		return false;
 	}
-	
+
 	assert(xr_instance_ != XR_NULL_HANDLE);
 	assert(xr_session_ == XR_NULL_HANDLE);
 
@@ -872,6 +872,8 @@ XrResult OpenXR::GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystem
 
 bool OpenXR::create_instance(const VkInstanceCreateInfo& instance_create_info)
 {
+	log_layers_and_extensions();
+
 	assert(xr_instance_ == XR_NULL_HANDLE);
 
 	std::vector<const char*> xr_instance_extensions;
@@ -1826,7 +1828,7 @@ bool OpenXR::UpdateFBBodyTracking(const XrTime predicted_display_time)
 #endif
 		}
 	}
-
+	return true;
 }
 
 void OpenXR::DestroyFBBodyTracker()
@@ -2397,13 +2399,12 @@ void OpenXR::toggle_body_tracking()
 	{
 		fb_body_tracking_enabled_ = !fb_body_tracking_enabled_;
 	}
-#else
 #endif
 }
 #endif // ENABLE_BODY_TRACKING
 
 #if ENABLE_WAIST_TRACKING
-bool OpenXR::get_waist_pose_LS(Pose& waist_pose_LS) const
+bool OpenXR::get_waist_pose_LS(GLMPose& waist_pose_LS) const
 {
 	if (!is_body_tracking_enabled())
 	{
@@ -2416,13 +2417,8 @@ bool OpenXR::get_waist_pose_LS(Pose& waist_pose_LS) const
 
 void OpenXR::update_waist_pose_LS(const XrPosef& xr_waist_pose_LS)
 {
-	//fb_body_tracking_supported_ = true;
-	waist_pose_LS_ = tv_convert_xr_pose_to_pose(xr_waist_pose_LS);
-
-	const float3 euler_angles_radians(deg2rad(90.0f), deg2rad(-90.0f), deg2rad(0.0f));
-	const Quat rotation = Quat(euler_angles_radians);
-	waist_pose_LS_.rotation_ = waist_pose_LS_.rotation_ * rotation;
-	waist_pose_LS_.rotation_.normalize();
+	fb_body_tracking_supported_ = true;
+	waist_pose_LS_ = convert_to_glm_pose(xr_waist_pose_LS, false, false);
 }
 #endif // ENABLE_WAIST_TRACKING
 
@@ -3412,23 +3408,27 @@ extern "C"
 
 	bool ApplyWaistOrientedLocomotion(const int view_id, float* walk_forward_ptr, float* strafe_ptr)
 	{
-#if 1//ENABLE_WAIST_TRACKING
+#if ENABLE_WAIST_TRACKING
 		if(!openxr_.is_session_running() || !walk_forward_ptr || !strafe_ptr)
 		{
 			return false;
 		}
 
-		//For not just copy head loco implementation as placeholder to test
-		float view_yaw_radians = 0.0f;
+		BVR::GLMPose waist_pose_LS;
 
-		if(!GetYaw(view_id, false, &view_yaw_radians))
+		if(!openxr_.get_waist_pose_LS(waist_pose_LS))
 		{
 			return false;
 		}
 
-		view_yaw_radians += deg2rad(90.0f);
+		double a = (2.0 * waist_pose_LS.rotation_.y * waist_pose_LS.rotation_.w) - (2.0 * waist_pose_LS.rotation_.x * waist_pose_LS.rotation_.z);
+		double b = 1.0 - 2.0 * sqr(waist_pose_LS.rotation_.y) - 2.0 * sqr(waist_pose_LS.rotation_.z);
+		double yaw_rad = atan2(a, b);
 
-		const glm::vec3 euler_rad(0.0f, -view_yaw_radians, 0.0f);
+		static float yaw_offset_deg = 0.0f;
+		yaw_rad += deg2rad(yaw_offset_deg);
+
+		const glm::vec3 euler_rad(0.0f, -yaw_rad, 0.0f);
 		const glm::fquat yaw_rotation = glm::fquat(euler_rad);
 
 		float& walk_forward = *walk_forward_ptr;

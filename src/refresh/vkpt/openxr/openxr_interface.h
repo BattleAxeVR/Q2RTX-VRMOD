@@ -66,9 +66,9 @@ extern "C"
 }
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
-#include <openxr/meta_body_tracking_calibration.h>
-#include <openxr/meta_body_tracking_fidelity.h>
-#include <openxr/meta_body_tracking_full_body.h>
+//#include <openxr/meta_body_tracking_calibration.h>
+//#include <openxr/meta_body_tracking_fidelity.h>
+//#include <openxr/meta_body_tracking_full_body.h>
 #endif
 
 #if ENABLE_OPENXR_FB_FACE_TRACKING
@@ -188,7 +188,7 @@ public:
 #endif
 
 #if ENABLE_WAIST_TRACKING
-	bool get_waist_pose_LS(Pose& waist_pose_LS) const;
+	bool get_waist_pose_LS(GLMPose& waist_pose_LS) const;
 	void update_waist_pose_LS(const XrPosef& xr_waist_pose_LS);
 #endif
 
@@ -457,7 +457,7 @@ private:
 #endif
 
 #if ENABLE_WAIST_TRACKING
-	Pose waist_pose_LS_ = {};
+	GLMPose waist_pose_LS_ = {};
 #endif
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
@@ -474,6 +474,7 @@ private:
 
 	void CreateFBBodyTracker();
 	void DestroyFBBodyTracker();
+	bool UpdateFBBodyTracking(const XrTime predicted_display_time);
 	void UpdateFBBodyTrackerLocations(const XrTime& predicted_display_time);
 #endif
 
