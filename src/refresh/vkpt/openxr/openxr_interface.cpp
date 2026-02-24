@@ -2161,6 +2161,15 @@ bool OpenXR::update_views(XrTime predicted_display_time)
 	return true;
 }
 
+glm::vec3 OpenXR::get_head_position_LS() const
+{
+	const glm::vec3 left_eye_position_LS = convert_to_glm(xr_views_[LEFT].pose.position);
+	const glm::vec3 right_eye_position_LS = convert_to_glm(xr_views_[RIGHT].pose.position);
+	const glm::vec3 head_position_LS = (left_eye_position_LS + right_eye_position_LS) * 0.5f;
+
+	return head_position_LS;
+}
+
 bool OpenXR::update_controller_poses(XrTime predicted_display_time)
 {
 	if(!is_session_running())
@@ -3071,6 +3080,8 @@ extern "C"
 		return true;
 	}
 
+	
+
 	bool GetViewMatrix(const int view_id, float* view_origin_ptr, float* view_angles_ptr, float* view_matrix_ptr, float* inv_view_matrix_ptr)
 	{
 		if(!openxr_.is_session_running() || !view_matrix_ptr)
@@ -3109,11 +3120,6 @@ extern "C"
 		}
 
 		const glm::vec3 view_origin = *(glm::vec3*)view_origin_ptr;
-
-		const float view_position_x = view_origin.x;
-		const float view_position_y = view_origin.y;
-		const float view_position_z = view_origin.z;
-
 		const glm::vec3 view_angles_deg = *(glm::vec3*)view_angles_ptr;
 
 #if APPLY_STEREO_VIEW_PITCH
@@ -3144,26 +3150,17 @@ extern "C"
 		glm::mat4 game_rotation_matrix = glm::mat4_cast(game_rotation);
 
 		const glm::mat4 final_rotation_matrix = game_rotation_matrix * hmd_rotation_matrix;
+		const glm::fquat final_rotation = glm::quat_cast(final_rotation_matrix);
 		
 		BVR::GLMPose view_pose;
 
-		view_pose.translation_.x = view_position_x;
-		view_pose.translation_.y = view_position_y;
-		view_pose.translation_.z = view_position_z;
+		view_pose.rotation_ = final_rotation;
+		view_pose.translation_ = view_origin;
 
 		const glm::vec3 game_yaw_angles_rad = { 0.0f, deg2rad(yaw_deg), 0.0f };
 		const glm::fquat game_yaw_rotation_only = glm::fquat(game_yaw_angles_rad);
 
-		XrView left_view = {};
-		openxr_.get_view(LEFT, left_view);
-
-		XrView right_view = {};
-		openxr_.get_view(RIGHT, right_view);
-
-		const BVR::GLMPose left_eye_pose = BVR::convert_to_glm_pose(left_view.pose, false, false);
-		const BVR::GLMPose right_eye_pose = BVR::convert_to_glm_pose(right_view.pose, false, false);
-
-		const glm::vec3 head_position_LS = (left_eye_pose.translation_ + right_eye_pose.translation_) * 0.5f;
+		const glm::vec3 head_position_LS = openxr_.get_head_position_LS();
 		const glm::vec3 head_position_WS = game_yaw_rotation_only * head_position_LS;
 
 		const glm::vec3 head_to_eye_LS = eye_pose.translation_ - head_position_LS;
@@ -3177,9 +3174,7 @@ extern "C"
 		view_pose.translation_.y -= head_to_eye_WS.x;
 		view_pose.translation_.z += head_to_eye_WS.y;
 
-		const glm::mat4 post_translation_matrix = view_pose.to_matrix();
-		const glm::mat4 final_inv_view_matrix = post_translation_matrix * final_rotation_matrix;
-		
+		const glm::mat4 final_inv_view_matrix = view_pose.to_matrix();
 		memcpy(inv_view_matrix_ptr, &final_inv_view_matrix, sizeof(float) * 16);
 
 		glm::mat4 final_view_matrix = inverse(final_inv_view_matrix);

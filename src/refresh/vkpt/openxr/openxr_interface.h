@@ -156,6 +156,8 @@ public:
 	bool update_views(XrTime predicted_display_time);
 	bool update_controller_poses(XrTime predicted_display_time);
 
+	glm::vec3 get_head_position_LS() const;
+
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 	void set_social_eye_tracking_supported(const bool social_eye_tracking_supported);
 	bool is_social_eye_tracking_supported() const;
