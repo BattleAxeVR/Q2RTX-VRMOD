@@ -288,9 +288,6 @@ bool XRInputState::init_controllers()
 #if SUPPORT_TOUCH_CONTROLLERS
 	// Suggest bindings for the Oculus Touch.
 	{
-		XrPath oculusTouchInteractionProfilePath;
-		xrStringToPath(openxr_.xr_instance_, "/interaction_profiles/oculus/touch_controller", &oculusTouchInteractionProfilePath);
-
 		std::vector<XrActionSuggestedBinding> bindings
 		{
 			{
@@ -359,11 +356,32 @@ bool XRInputState::init_controllers()
 		};
 
 		XrInteractionProfileSuggestedBinding suggestedBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
-		suggestedBindings.interactionProfile = oculusTouchInteractionProfilePath;
 		suggestedBindings.suggestedBindings = bindings.data();
 		suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
 
+
+		XrPath oculusTouchInteractionProfilePath;
+		xrStringToPath(openxr_.xr_instance_, "/interaction_profiles/oculus/touch_controller", &oculusTouchInteractionProfilePath);
+
+		suggestedBindings.interactionProfile = oculusTouchInteractionProfilePath;
 		xrSuggestInteractionProfileBindings(openxr_.xr_instance_, &suggestedBindings);
+
+#if SUPPORT_TOUCH_PRO_CONTROLLERS
+		XrPath oculusTouchProInteractionProfilePath;
+		xrStringToPath(openxr_.xr_instance_, "/interaction_profiles/facebook/touch_controller_pro", &oculusTouchProInteractionProfilePath);
+
+		suggestedBindings.interactionProfile = oculusTouchProInteractionProfilePath;
+		xrSuggestInteractionProfileBindings(openxr_.xr_instance_, &suggestedBindings);
+#endif
+
+#if SUPPORT_TOUCH_PLUS_CONTROLLERS
+		XrPath oculusTouchPlusnteractionProfilePath;
+		xrStringToPath(openxr_.xr_instance_, "/interaction_profiles/facebook/touch_controller_plus", &oculusTouchPlusnteractionProfilePath);
+
+		suggestedBindings.interactionProfile = oculusTouchPlusnteractionProfilePath;
+		xrSuggestInteractionProfileBindings(openxr_.xr_instance_, &suggestedBindings);
+#endif
+
 	}
 #endif
 
@@ -770,13 +788,13 @@ bool XRInputState::init_controllers()
 			xrCreateActionSpace(openxr_.xr_session_, &actionSpaceInfo, &tracker_info.tracker_pose_space);
 		}
 
-		XrInteractionProfileSuggestedBinding profileSuggBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+		XrInteractionProfileSuggestedBinding suggestedBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
 
-		profileSuggBindings.interactionProfile = viveTrackerInteractionProfilePath;
-		profileSuggBindings.suggestedBindings = actionSuggBindings.data();
-		profileSuggBindings.countSuggestedBindings = (uint32_t)actionSuggBindings.size();
+		suggestedBindings.interactionProfile = viveTrackerInteractionProfilePath;
+		suggestedBindings.suggestedBindings = actionSuggBindings.data();
+		suggestedBindings.countSuggestedBindings = (uint32_t)actionSuggBindings.size();
 
-		xrSuggestInteractionProfileBindings(openxr_.xr_instance_, &profileSuggBindings);
+		xrSuggestInteractionProfileBindings(openxr_.xr_instance_, &suggestedBindings);
 	}
 #endif // ENABLE_VIVE_TRACKERS
 
