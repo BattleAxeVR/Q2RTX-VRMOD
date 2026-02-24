@@ -648,6 +648,9 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 
 	uint32_t render_width = (uint32_t)projection_layer_view.subImage.imageRect.extent.width;
 	uint32_t render_height = (uint32_t)projection_layer_view.subImage.imageRect.extent.height;
+
+	assert(render_width == per_eye_width_);
+	assert(render_height == per_eye_height_);
 	
 	VkExtent2D extent = VkExtent2D{ render_width, render_height };
 	VkOffset2D offset{ 0, 0 };
@@ -700,30 +703,7 @@ void OpenXR::render_projection_layer_view(const XrCompositionLayerProjectionView
 	rendering_info.renderArea.extent = extent;
 	rendering_info.renderArea.offset = offset;
 
-	if(view_id == RIGHT)
-	{
-		///rendering_info.renderArea.offset.y += 200.0f;
-	}
-
 	vkCmdBeginRendering(command_buffer, &rendering_info);
-
-#if 0
-	static bool apply_viewport = false;
-
-	if (apply_viewport)
-	{
-		//VkViewport viewport{ 0, 0, (float)extent.width, (float)extent.height, 0, 1 };
-		VkViewport viewport{ 0, 0, (float)projection_layer_view.subImage.imageRect.extent.width, (float)projection_layer_view.subImage.imageRect.extent.height, 0, 10000 };
-		viewport.y = (view_id == LEFT) ? 500.0f : 0.0f;
-
-		vkCmdSetViewport(command_buffer, 0, 1, &viewport);
-
-		VkOffset2D offset{ 0, 0 };
-
-		const VkRect2D rect = { offset, extent };
-		vkCmdSetScissor(command_buffer, 0, 1, &rect);
-	}
-#endif
 
 	bool filtered = false;
 	VkResult draw_res = vkpt_simple_vr_blit(command_buffer, input_image_index, extent, false, waterwarp, view_id);
