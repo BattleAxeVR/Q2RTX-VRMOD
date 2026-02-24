@@ -514,19 +514,31 @@ int get_auto_scale(void)
 {
     int scale = 1;
 
-    if (r_config.height < r_config.width) {
-        if (r_config.height >= 2160)
+    if (r_config.height < r_config.width) 
+    {
+        if(r_config.height >= 2160)
+        {
             scale = 4;
-        else if (r_config.height >= 1080)
+        }
+        else if(r_config.height >= 1080)
+        {
             scale = 2;
-    } else {
-        if (r_config.width >= 3840)
+        }
+    } 
+    else 
+    {
+        if(r_config.width >= 3840)
+        {
             scale = 4;
-        else if (r_config.width >= 1920)
+        }
+        else if(r_config.width >= 1920)
+        {
             scale = 2;
+        }
     }
 
-    if (vid.get_dpi_scale) {
+    if (vid.get_dpi_scale) 
+    {
         int min_scale = vid.get_dpi_scale();
         return max(scale, min_scale);
     }
@@ -536,11 +548,15 @@ int get_auto_scale(void)
 
 float R_ClampScale(cvar_t *var)
 {
-    if (!var)
+    if(!var)
+    {
         return 1.0f;
+    }
 
-    if (var->value)
+    if(var->value)
+    {
         return 1.0f / Cvar_ClampValue(var, 1.0f, 10.0f);
+    }
 
     return 1.0f / get_auto_scale();
 }
