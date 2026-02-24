@@ -324,6 +324,9 @@ public:
 
 	VRControllerState vr_controllers_[NUM_CONTROLLERS] = {};
 
+	uint32_t per_eye_width_ = 0;
+	uint32_t per_eye_height_ = 0;
+
 private:
 	bool initialized_ = false;
 

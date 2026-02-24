@@ -1276,18 +1276,23 @@ bool OpenXR::create_swapchain()
 	assert(xr_system_properties_initialized_);
 
 	// Query and cache view configuration views.
-	uint32_t viewCount = 0;
-	xrEnumerateViewConfigurationViews(xr_instance_, xr_system_id_, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 0, &viewCount, nullptr);
-	xr_config_views_.resize(viewCount, { XR_TYPE_VIEW_CONFIGURATION_VIEW });
+	uint32_t view_count = 0;
+	xrEnumerateViewConfigurationViews(xr_instance_, xr_system_id_, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, 0, &view_count, nullptr);
 
-	xrEnumerateViewConfigurationViews(xr_instance_, xr_system_id_, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, viewCount, &viewCount, xr_config_views_.data());
+	if(view_count != NUM_EYES)
+	{
+		// No support for Quad Views (yet)
+		assert(false);
+		return false;
+	}
+
+	xr_config_views_.resize(view_count, { XR_TYPE_VIEW_CONFIGURATION_VIEW });
+	xrEnumerateViewConfigurationViews(xr_instance_, xr_system_id_, XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, view_count, &view_count, xr_config_views_.data());
 
 	// Create and cache view buffer for xrLocateViews later.
-	xr_views_.resize(viewCount, { XR_TYPE_VIEW });
+	xr_views_.resize(view_count, { XR_TYPE_VIEW });
 
-	assert(viewCount == NUM_EYES);
-
-	if(viewCount > 0)
+	if(view_count > 0)
 	{
 		uint32_t swapchainFormatCount = 0;
 		xrEnumerateSwapchainFormats(xr_session_, 0, &swapchainFormatCount, nullptr);
@@ -1321,9 +1326,9 @@ bool OpenXR::create_swapchain()
 			//Log::Write(Log::Level::Verbose, Fmt("Swapchain Formats: %s", swapchainFormatsString.c_str()));
 		}
 
-		for(uint32_t i = 0; i < viewCount; i++)
+		for(uint32_t view_id = 0; view_id < view_count; view_id++)
 		{
-			const XrViewConfigurationView& vp = xr_config_views_[i];
+			const XrViewConfigurationView& xr_view_config = xr_config_views_[view_id];
 
 			//Log::Write(Log::Level::Info, Fmt("Creating swapchain for view %d with dimensions Width=%d Height=%d SampleCount=%d", i,	vp.recommendedImageRectWidth, vp.recommendedImageRectHeight, vp.recommendedSwapchainSampleCount));
 
@@ -1336,9 +1341,16 @@ bool OpenXR::create_swapchain()
 			swapchainCreateInfo.width = HARDCODED_OPENXR_PER_EYE_WIDTH;
 			swapchainCreateInfo.height = HARDCODED_OPENXR_PER_EYE_HEIGHT;
 #else
-			swapchainCreateInfo.width = vp.recommendedImageRectWidth;
-			swapchainCreateInfo.height = vp.recommendedImageRectHeight;
+			swapchainCreateInfo.width = xr_view_config.recommendedImageRectWidth;
+			swapchainCreateInfo.height = xr_view_config.recommendedImageRectHeight;
 #endif
+
+			if(view_id == LEFT)
+			{
+				per_eye_width_ = swapchainCreateInfo.width;
+				per_eye_height_ = swapchainCreateInfo.height;
+			}
+
 			swapchainCreateInfo.mipCount = 1;
 			swapchainCreateInfo.faceCount = 1;
 			swapchainCreateInfo.sampleCount = VK_SAMPLE_COUNT_1_BIT;
