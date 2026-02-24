@@ -255,8 +255,10 @@ bool XRInputState::init_controllers()
 		xrStringToPath(openxr_.xr_instance_, "/interaction_profiles/khr/simple_controller", &khrSimpleInteractionProfilePath);
 
 		std::vector<XrActionSuggestedBinding> bindings{ {// Fall back to a click input for the grab action.
+#if SUPPORT_SELECT
 			{grabAction, selectPath[LEFT]},
 			{grabAction, selectPath[RIGHT]},
+#endif
 #if SUPPORT_GRIP_POSE
 			{gripPoseAction, gripPath[LEFT]},
 			{gripPoseAction, gripPath[RIGHT]},
@@ -293,7 +295,7 @@ bool XRInputState::init_controllers()
 		{
 			{
 #if SUPPORT_GRIP
-				{grabAction, squeezeValuePath[LEFT]},
+			{grabAction, squeezeValuePath[LEFT]},
 			{grabAction, squeezeValuePath[RIGHT]},
 #endif
 
@@ -375,8 +377,8 @@ bool XRInputState::init_controllers()
 		std::vector<XrActionSuggestedBinding> bindings{ {{grabAction, squeezeValuePath[LEFT]},
 			{grabAction, squeezeValuePath[RIGHT]},
 #if SUPPORT_GRIP_POSE
-			{gripPoseAction, posePath[LEFT]},
-			{gripPoseAction, posePath[RIGHT]},
+			{gripPoseAction, gripPath[LEFT]},
+			{gripPoseAction, gripPath[RIGHT]},
 #endif
 #if SUPPORT_AIM_POSE
 			{aimPoseAction, aimPath[LEFT]},
