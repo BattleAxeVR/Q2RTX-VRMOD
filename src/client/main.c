@@ -51,8 +51,10 @@ cvar_t  *cl_xr_gun_offset_x;
 cvar_t  *cl_xr_gun_offset_y;
 cvar_t  *cl_xr_gun_offset_z;
 cvar_t  *cl_xr_ipd_mult;
-cvar_t  *cl_blit_scale;
-cvar_t  *cl_blit_bias;
+cvar_t  *cl_blit_scale_x;
+cvar_t  *cl_blit_scale_y;
+cvar_t  *cl_blit_bias_x;
+cvar_t  *cl_blit_bias_y;
 cvar_t  *cl_xr_gun_idle_frame;
 cvar_t  *cl_xr_loco;
 cvar_t  *cl_snap_turn_deg;
@@ -2906,8 +2908,11 @@ static void CL_InitLocal(void)
 
     cl_xr_ipd_mult = Cvar_Get("xr_ipd_mult", "1", 0);
 
-    cl_blit_scale = Cvar_Get("blit_scale", "1", 0);
-    cl_blit_bias = Cvar_Get("blit_bias", "1.5", 0);
+    cl_blit_scale_x = Cvar_Get("blit_scale_x", "1.0", 0);
+    cl_blit_scale_y = Cvar_Get("blit_scale_y", "1.0", 0);
+
+    cl_blit_bias_x = Cvar_Get("blit_bias_x", "1.5", 0);
+    cl_blit_bias_y = Cvar_Get("blit_bias_y", "0.0", 0);
 
     cl_xr_gun_idle_frame = Cvar_Get("xr_gun_idle_frame", "-1", 0);
 
