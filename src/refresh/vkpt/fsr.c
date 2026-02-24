@@ -184,10 +184,10 @@ vkpt_fsr_create_pipelines()
 	return VK_SUCCESS;
 }
 	
-VkResult
-vkpt_fsr_destroy_pipelines()
+VkResult vkpt_fsr_destroy_pipelines()
 {
-	for(int i = 0; i < FSR_NUM_PIPELINES; i++) {
+	for(int i = 0; i < FSR_NUM_PIPELINES; i++) 
+	{
 		vkDestroyPipeline(qvk.device, pipeline_fsr_sdr[i], NULL);
 		vkDestroyPipeline(qvk.device, pipeline_fsr_hdr[i], NULL);
 	}
@@ -196,11 +196,12 @@ vkpt_fsr_destroy_pipelines()
 
 bool vkpt_fsr_is_enabled()
 {
-	if (cvar_flt_fsr_enable->integer == 0)
+	if(cvar_flt_fsr_enable->integer == 0)
+	{
 		return false;
+	}
 
-	if ((cvar_flt_fsr_enable->integer == 1)
-		&& (qvk.extent_render.width >= qvk.extent_unscaled.width || qvk.extent_render.height >= qvk.extent_unscaled.height))
+	if ((cvar_flt_fsr_enable->integer == 1) && (qvk.extent_render.width >= qvk.extent_unscaled.width || qvk.extent_render.height >= qvk.extent_unscaled.height))
 	{
 		// Only apply when upscaling by default (but allow tweaking this from the console)
 		return false;
@@ -259,16 +260,13 @@ static void vkpt_fsr_easu(VkCommandBuffer cmd_buf)
 	VkPipeline* pipeline_fsr = qvk.surf_is_hdr ? pipeline_fsr_hdr : pipeline_fsr_sdr;
 	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_fsr[cvar_flt_fsr_rcas->integer != 0 ? FSR_EASU_TO_RCAS : FSR_EASU_TO_DISPLAY]);
 
-	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_COMPUTE,
-		pipeline_layout_fsr, 0, LENGTH(desc_sets), desc_sets, 0, 0);
+	vkCmdBindDescriptorSets(cmd_buf, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_layout_fsr, 0, LENGTH(desc_sets), desc_sets, 0, 0);
 
 	VkExtent2D dispatch_size = qvk.extent_unscaled;
 
 	// Dispatch size as described by the FSR Integration Overview
-	vkCmdDispatch(cmd_buf,
-			(dispatch_size.width + 15) / 16,
-			(dispatch_size.height + 15) / 16,
-			1);
+	vkCmdDispatch(cmd_buf, (dispatch_size.width + 15) / 16, (dispatch_size.height + 15) / 16, 1);
+
 	BARRIER_COMPUTE(cmd_buf, qvk.images[VKPT_IMG_FSR_EASU_OUTPUT]);
 
 	END_PERF_MARKER(cmd_buf, PROFILER_FSR_EASU);
@@ -293,10 +291,8 @@ static void vkpt_fsr_rcas(VkCommandBuffer cmd_buf)
 	VkExtent2D dispatch_size = qvk.extent_unscaled;
 
 	// Dispatch size as described by the FSR Integration Overview
-	vkCmdDispatch(cmd_buf,
-			(dispatch_size.width + 15) / 16,
-			(dispatch_size.height + 15) / 16,
-			1);
+	vkCmdDispatch(cmd_buf, (dispatch_size.width + 15) / 16,	(dispatch_size.height + 15) / 16, 1);
+
 	BARRIER_COMPUTE(cmd_buf, qvk.images[VKPT_IMG_FSR_RCAS_OUTPUT]);
 
 	END_PERF_MARKER(cmd_buf, PROFILER_FSR_RCAS);

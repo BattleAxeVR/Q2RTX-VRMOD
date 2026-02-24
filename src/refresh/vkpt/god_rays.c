@@ -164,15 +164,15 @@ void vkpt_record_god_rays_trace_command_buffer(VkCommandBuffer command_buffer, i
 
 	vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, god_rays.pipelines[0]);
 
-	VkDescriptorSet desc_sets[] = {
+	VkDescriptorSet desc_sets[] = 
+	{
 		god_rays.descriptor_set,
 		qvk.desc_set_vertex_buffer,
 		qvk.desc_set_ubo,
 		qvk_get_current_desc_set_textures(),
 	};
 
-	vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, god_rays.pipeline_layout, 0, LENGTH(desc_sets),
-		desc_sets, 0, NULL);
+	vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, god_rays.pipeline_layout, 0, LENGTH(desc_sets), desc_sets, 0, NULL);
 
 	vkCmdPushConstants(command_buffer, god_rays.pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(int), &pass);
 
@@ -192,15 +192,15 @@ void vkpt_record_god_rays_filter_command_buffer(VkCommandBuffer command_buffer)
 
 	vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, god_rays.pipelines[1]);
 
-	VkDescriptorSet desc_sets[] = {
+	VkDescriptorSet desc_sets[] = 
+	{
 		god_rays.descriptor_set,
 		qvk.desc_set_vertex_buffer,
 		qvk.desc_set_ubo,
 		qvk_get_current_desc_set_textures(),
 	};
 
-	vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, god_rays.pipeline_layout, 0, LENGTH(desc_sets),
-		desc_sets, 0, NULL);
+	vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, god_rays.pipeline_layout, 0, LENGTH(desc_sets), desc_sets, 0, NULL);
 
 	int pass = 0;
 	vkCmdPushConstants(command_buffer, god_rays.pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(int), &pass);
@@ -251,30 +251,32 @@ static void create_pipeline_layout(void)
 	bindings[0].descriptorCount = 1;
 	bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 	
-	const VkDescriptorSetLayoutCreateInfo set_layout_create_info = {
+	const VkDescriptorSetLayoutCreateInfo set_layout_create_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
 		.bindingCount = LENGTH(bindings),
 		.pBindings = bindings
 	};
 
-	_VK(vkCreateDescriptorSetLayout(qvk.device, &set_layout_create_info, NULL,
-		&god_rays.descriptor_set_layout));
+	_VK(vkCreateDescriptorSetLayout(qvk.device, &set_layout_create_info, NULL, &god_rays.descriptor_set_layout));
 
-
-	VkDescriptorSetLayout desc_set_layouts[] = {
+	VkDescriptorSetLayout desc_set_layouts[] = 
+	{
 		god_rays.descriptor_set_layout,
 		qvk.desc_set_layout_vertex_buffer,
 		qvk.desc_set_layout_ubo,
 		qvk.desc_set_layout_textures
 	};
 
-	VkPushConstantRange push_constant_range = {
+	VkPushConstantRange push_constant_range = 
+	{
 		.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
 		.offset = 0,
 		.size = sizeof(int),
 	};
 
-	const VkPipelineLayoutCreateInfo layout_create_info = {
+	const VkPipelineLayoutCreateInfo layout_create_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 		.pSetLayouts = desc_set_layouts,
 		.setLayoutCount = LENGTH(desc_set_layouts),
@@ -282,27 +284,29 @@ static void create_pipeline_layout(void)
 		.pPushConstantRanges = &push_constant_range
 	};
 
-	_VK(vkCreatePipelineLayout(qvk.device, &layout_create_info, NULL,
-		&god_rays.pipeline_layout));
+	_VK(vkCreatePipelineLayout(qvk.device, &layout_create_info, NULL, &god_rays.pipeline_layout));
 }
 
 static void create_pipelines(void)
 {
-	const VkPipelineShaderStageCreateInfo shader = {
+	const VkPipelineShaderStageCreateInfo shader = 
+	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 		.stage = VK_SHADER_STAGE_COMPUTE_BIT,
 		.module = qvk.shader_modules[QVK_MOD_GOD_RAYS_COMP],
 		.pName = "main"
 	};
 
-	const VkPipelineShaderStageCreateInfo filter_shader = {
+	const VkPipelineShaderStageCreateInfo filter_shader = 
+	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 		.stage = VK_SHADER_STAGE_COMPUTE_BIT,
 		.module = qvk.shader_modules[QVK_MOD_GOD_RAYS_FILTER_COMP],
 		.pName = "main"
 	};
 
-	const VkComputePipelineCreateInfo pipeline_create_infos[2] = {
+	const VkComputePipelineCreateInfo pipeline_create_infos[2] = 
+	{
 		{
 			.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
 			.stage = shader,
@@ -315,17 +319,18 @@ static void create_pipelines(void)
 		},
 	};
 
-	_VK(vkCreateComputePipelines(qvk.device, VK_NULL_HANDLE, LENGTH(pipeline_create_infos), pipeline_create_infos,
-		NULL, god_rays.pipelines));
+	_VK(vkCreateComputePipelines(qvk.device, VK_NULL_HANDLE, LENGTH(pipeline_create_infos), pipeline_create_infos, NULL, god_rays.pipelines));
 }
 
 static void create_descriptor_set(void)
 {
-	const VkDescriptorPoolSize pool_sizes[] = {
+	const VkDescriptorPoolSize pool_sizes[] = 
+	{
 		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1 }
 	};
 
-	const VkDescriptorPoolCreateInfo pool_create_info = {
+	const VkDescriptorPoolCreateInfo pool_create_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 		.maxSets = 1,
 		.poolSizeCount = LENGTH(pool_sizes),
@@ -334,7 +339,8 @@ static void create_descriptor_set(void)
 
 	_VK(vkCreateDescriptorPool(qvk.device, &pool_create_info, NULL, &god_rays.descriptor_pool));
 
-	const VkDescriptorSetAllocateInfo allocate_info = {
+	const VkDescriptorSetAllocateInfo allocate_info = 
+	{
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
 		.descriptorPool = god_rays.descriptor_pool,
 		.descriptorSetCount = 1,
@@ -348,16 +354,20 @@ static void create_descriptor_set(void)
 static void update_descriptor_set(void)
 {
 	// if we end up here during init before we've called create_image_views(), punt --- we will be called again later
-	if (god_rays.shadow_image_view == NULL)
+	if(god_rays.shadow_image_view == NULL)
+	{
 		return;
+	}
 
-	VkDescriptorImageInfo image_info = {
+	VkDescriptorImageInfo image_info = 
+	{
 		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 		.imageView = god_rays.shadow_image_view,
 		.sampler = god_rays.shadow_sampler
 	};
 	
-	VkWriteDescriptorSet writes[1] = {
+	VkWriteDescriptorSet writes[1] = 
+	{
 		{
 			.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 			.dstSet = god_rays.descriptor_set,

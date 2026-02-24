@@ -715,7 +715,6 @@ VkResult vkpt_draw_create_pipelines()
 	_VK(vkCreateGraphicsPipelines(qvk.device, VK_NULL_HANDLE, 1, &pipeline_info, NULL, &pipeline_stretch_pic[STRETCH_PIC_HDR]));
 	ATTACH_LABEL_VARIABLE(pipeline_stretch_pic[STRETCH_PIC_HDR], PIPELINE);
 
-
 	VkSpecializationMapEntry final_blit_spec_entries[] = 
 	{
 		{ .constantID = 0, .offset = 0, .size = sizeof(uint32_t) },

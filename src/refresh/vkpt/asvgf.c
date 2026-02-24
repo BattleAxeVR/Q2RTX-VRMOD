@@ -406,7 +406,8 @@ vkpt_interleave(VkCommandBuffer cmd_buf)
 	};
 
 #ifdef VKPT_DEVICE_GROUPS
-	if (qvk.device_count > 1) {
+	if (qvk.device_count > 1) 
+	{
 		BEGIN_PERF_MARKER(cmd_buf, PROFILER_MGPU_TRANSFERS);
 
 		// create full interleaved motion and color buffers on GPU 0
