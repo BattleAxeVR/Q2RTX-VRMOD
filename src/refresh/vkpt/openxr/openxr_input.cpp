@@ -837,8 +837,9 @@ bool XRInputState::init_controllers()
 	{
 		XrActionSpaceCreateInfo actionSpaceInfo{ XR_TYPE_ACTION_SPACE_CREATE_INFO };
 		actionSpaceInfo.action = aimPoseAction;
-
+		actionSpaceInfo.poseInActionSpace.orientation.w = 1.f;
 		actionSpaceInfo.subactionPath = hand_subaction_path_[LEFT];
+
 		xrCreateActionSpace(openxr_.xr_session_, &actionSpaceInfo, &aimSpace[LEFT]);
 
 		actionSpaceInfo.subactionPath = hand_subaction_path_[RIGHT];
