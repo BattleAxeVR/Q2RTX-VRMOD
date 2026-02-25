@@ -10,14 +10,10 @@ Give it a day or two more and it should be fully playable. Right now I just got 
 
 <img width="1622" height="1765" alt="image" src="https://github.com/user-attachments/assets/a4687cd1-0fd4-403d-933f-d961b71be14e" />
 
+![VirtualDesktop Android-20260225-024202](https://github.com/user-attachments/assets/32f2a35a-74bd-49d8-8f7e-8965ded4e10c)
+![VirtualDesktop Android-20260225-024149](https://github.com/user-attachments/assets/771c04d4-fc51-496c-ab80-9cdbed2b6cb7)
 
-I originally coded an OpenVR version back in 2019 but never released it. It was just to validate to myself whether an RTX 2080 Ti could even render path-traced visuals in VR in realtime. And it could.
 
-I will eventually add many features.
-
-For starters, waist-oriented locomotion is a priority for me, it will prove to people what you can do with extremely simple code (provided you have a waist tracker available in OpenXR) and that boosts realism and comfort at the same time.
-
-I may also enable eye-tracking for aim assist or some cool laser eye cannons but I will not be implementing my private foveated path tracing scheme in this repo, until after my own game launches.
 
 Here is my patreon in case anyone wants to donate to support my work. THANK YOU!
 
