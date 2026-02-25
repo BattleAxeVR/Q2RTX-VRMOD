@@ -6,30 +6,22 @@ Start Date: Jan 25th, 2026
 
 This is a fork of Nvidia's FINAL Q2RTX code, that uses OpenXR to prove once and for all that path tracing + VR works, runs fast, and looks great, even in an ancient game like this one.
 
-Give it a day or two more and it should be fully playable. Right now I just got the OpenXR integration mostly hooked up, except for view/projection matrices passed into the main renderer. Modifying the shaders to do single-pass stereo (or 2-pass), is fairly trivial, as I've done it before.
-
-<img width="1622" height="1765" alt="image" src="https://github.com/user-attachments/assets/a4687cd1-0fd4-403d-933f-d961b71be14e" />
-
 ![VirtualDesktop Android-20260225-024202](https://github.com/user-attachments/assets/32f2a35a-74bd-49d8-8f7e-8965ded4e10c)
+
+
 ![VirtualDesktop Android-20260225-024149](https://github.com/user-attachments/assets/771c04d4-fc51-496c-ab80-9cdbed2b6cb7)
 
+Tested on:
+PSVR 2 -> SteamVR
 
+Quest Pro -> Meta Quest Link/AirLink
+Quest Pro -> Virtual Desktop (VDXR)
+Quest Pro -> SteamVR
+Quest Pro -> SteamLink
 
 Here is my patreon in case anyone wants to donate to support my work. THANK YOU!
 
 https://www.patreon.com/posts/quake-2-rtx-vr-149142788?utm_medium=social&utm_source=twitter&utm_campaign=postshare_creator&utm_content=join_link
-
-## Project Discontinued
-
-**This repository is no longer maintained.**
-
-If you're looking for a downloadable installer for Quake II RTX, please visit the [Releases](https://github.com/NVIDIA/Q2RTX/releases) page.
-
-If you would like to make some improvements, feel free to fork this repository or look for other community projects based on Quake II RTX.
-
-<br>
-<br>
-<br>
 
 ## Original README
 
