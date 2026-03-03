@@ -6,7 +6,7 @@ Start Date: Jan 25th, 2026
 
 This is a fork of Nvidia's FINAL Q2RTX code, that uses OpenXR to prove once and for all that path tracing + VR works, runs fast, and looks great, even in an ancient game like this one.
 
-![VirtualDesktop Android-20260225-024202](https://github.com/user-attachments/assets/32f2a35a-74bd-49d8-8f7e-8965ded4e10c)
+<img width="2271" height="1350" alt="image" src="https://github.com/user-attachments/assets/1cb6a117-4e0d-4c45-834d-d6ac8bd57d9b" />
 
 
 ![VirtualDesktop Android-20260225-024149](https://github.com/user-attachments/assets/771c04d4-fc51-496c-ab80-9cdbed2b6cb7)
